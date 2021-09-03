@@ -1,0 +1,75 @@
+###################################################
+#                Required Parameters              #
+###################################################
+#IMG_DIR=C:\Cytation Images
+#OUT_DIR=C:\Users\BiotekDT.TYRATECH\Documents\Analyzed Images
+
+IMG_DIR=/home/jklimavicz/Documents/Merlin_Images
+#IMG_DIR=/home/jklimavicz/Documents/platereader_test
+OUT_DIR=/home/jklimavicz/Documents/test_output
+
+###################################################
+#               Default GUI Options               #
+###################################################
+
+########             Check boxes           ########
+#Default to saving an RGB .png image from all three color images to show potential movement as color shifts 
+SAVE_INTMD=False
+#Default to saving a .png image with detected objects colored in. 
+SAVE_MASK=True
+#Default to saving a .png image with colored bounding boxes around each object. 
+SAVE_BBOX=True
+#Default to saving a .csv file with a line for each detected object. 
+VERBOSE_CSV=True
+
+########           Control Defaults         ########
+CTRL_NAME=LM (T)
+CTRL_CODE=VC
+
+# Open the csv file in Excel when done (only works on Windows OS). 
+OPEN_CSV=True
+
+###################################################
+#                 Date Formating                  #
+###################################################
+
+#date formats may include any combo of the following special symbols broken up by dashes and/or slashes (case-sensitive):
+#  Symbol   Definition
+#  %d       Zero-padded day of month (01, 02, ..., 31)
+#  %b       Abbreviated name of month (Jan, Feb, ..., Dec)
+#  %m       Zero-padded month (01, 02, ..., 12)
+#  %y       Two-digit year (00, 01, ..., 99)
+#  %Y       Four-digit year (2000, 2001, ..., 2020, 2021, ..., 9999)
+#  %a       Abbreviated weekday (Sun, Mon, ..., Sat)
+#  %H       Hours (24-hour time)
+#  %M       Minutes
+#  %S       Seconds
+#By default, the FILE_DATE_FORMAT is %Y%m%d (YYYYMMDD), while PRETTY_DATE_FORMAT is %m/%d/%Y (mm/dd/YYYY).
+#The FILE_DATE_FORMAT is used when saving file names, while the PRETTY_DATE_FORMAT is used for the csv 
+#spreadsheet and the GUI.
+DIR_DATE_FORMAT=%y%m%d_%H%M%S
+FILE_DATE_FORMAT=%y%m%d
+PRETTY_DATE_FORMAT=%m/%d/%Y 
+
+###################################################
+#                 CSV Default Name                #
+###################################################
+#csv output name:
+#use $d for current date, e.g. '$d_output.csv'
+#use $f for date associated with date that the image folder was made
+#use $y for the day *prior* to the date that the image folder was made (ostensibly the date the plate was prepared)
+#dates are presented in the format specified above, e.g. larval_counts_$f.csv
+CSV_NAME=larval_counts.csv
+
+
+###################################################
+#    Parameters for the worm-finding algorithm    #
+###################################################
+
+# Non-maximum supression, determined by IoU. Must be in [0,1].
+# Higher values result in more boxes (less supression). 
+DETECTION_NMS_THRESHOLD = 0.4
+
+# Confidence of detection. Must be in [0,1]
+# Higher values result in fewer detections. 
+DETECTION_MIN_CONFIDENCE = 0.6
