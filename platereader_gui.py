@@ -18,11 +18,10 @@ from platedriver.plate import Plate
 from platedriver.platedata import PlateData
 import platedriver.utils as pdu
 import platform
-import threading
 from threading import *
 import time
-from pathlib import Path
-
+from stats.main import analyze_data
+import multiprocessing
 
 #############################################################################
 #                 For entering background plate info
@@ -114,36 +113,6 @@ class IOFrame(ttk.Frame):
 
         self.row_num += 1
 
-
-        # #Row: Output filename
-        # self.outputCSVLabel = Label(self, text="Output filename:")
-        # self.outputCSVLabel.grid(row=self.row_num, column=0, sticky=E)
-        # self.CSV_Var = StringVar()
-        # self.CSV_Var.set(self.config["CSV_NAME"])
-        # self.csv_name_manual_mod = False
-        # self.outputCSVEntry = Entry(self, textvariable=self.CSV_Var, width=40, font = self.font)
-        # self.outputCSVEntry.grid(row=self.row_num, column=1, columnspan = full_width, sticky=EW)
-        # # self.outputCSVEntry.insert(END, self.CSV_Var.get())
-        # # self.outputCSVBrowseButton = ttk.Button(self, text ='Browse', command = lambda: self.csv_output(), style = "my.TButton")
-        # # self.outputCSVBrowseButton.grid(row=self.row_num, column=full_width+1, sticky=(S,W))
-        # self.row_num += 1
-        # Tooltip(self.outputCSVLabel, text="Select a filename and location for the csv file " +
-        #     "of the live/dead larval counts.")
-        # # Tooltip(self.outputCSVBrowseButton, text="Select a filename and location for the csv file " +
-        # #     "of the live/dead larval counts.")
-
-        # #Row: Verbose output 
-        # self.outputVerboseLabel = Label(self, text="Save a verbose csv:")
-        # self.outputVerboseLabel.grid(row=self.row_num, column=1, columnspan=3, sticky=W)
-        # self.verbose_var = IntVar()
-        # self.verbose_var.set(self.config["VERBOSE_CSV"])
-        # self.outputVerboseEntry = Checkbutton(self, variable=self.verbose_var)
-        # self.outputVerboseEntry.grid(row=self.row_num, column=4,  sticky=W)
-        # self.row_num += 1
-        # Tooltip(self.outputVerboseLabel, text="Prints a .csv output file containing live/dead estimates for "+
-        #     "each object in every well. This option is used mostly for debugging purposes. Saves to a "+
-        #     "csv file in the same folder as the normal output but with ""_verbose"" added to the basename.")
-
         #Row: Date and Plate
         self.DateLabel = Label(self, text="Date:")
         self.DateLabel.grid(row=self.row_num, column=0, sticky=E)
@@ -216,15 +185,6 @@ class IOFrame(ttk.Frame):
                 self.DateEntry.delete(0,END)
                 self.DateEntry.insert(0,self.config["DIR_DATE"].strftime(self.config["PRETTY_DATE_FORMAT"]))
 
-
-    # def csv_output(self):
-    #     new_name = self.param.CSVOuputName = filedialog.asksaveasfilename(initialdir=self.config['OUT_DIR'], 
-    #         initialfile = self.config['CSV_NAME'],
-    #         filetypes =[('CSV Files', '*.csv')])
-    #     if new_name:
-    #         self.config['CSV_NAME'] = os.path.basename(new_name)
-    #         self.outputCSVEntry.delete(0,END)
-    #         self.outputCSVEntry.insert(0,self.config['CSV_NAME'])
 
     def image_output_chooser(self):
         new_name = filedialog.askdirectory(initialdir=self.config['OUT_DIR'])
@@ -390,10 +350,7 @@ class App(tk.Tk):
         self.__create_widgets()
         self.auto_prog_bar_on = False
         self.plate = None
-        self.nextval = 0
         self.__progress()
-
-
 
     def det_scaling(self):
         operating_sys = platform.system()
@@ -419,11 +376,17 @@ class App(tk.Tk):
         style.configure("correct_font", font = font)
         self.cmpd_frame.configure(borderwidth = 1, relief = 'raised', text = "Plate Configuration")
 
-        # Button to run the analysis,
-        self.Convertbutton = Button(self, text="Run Analysis", command = lambda: self.threaded_plate_driver())
+        # Button to run the analysis of images
+        self.Convertbutton = Button(self, text="Run Image Analysis", command = lambda: self.threaded_plate_driver())
         self.Convertbutton.grid(row=2, column=0, sticky=S)
         self.Convertbutton.config(height = 2)
-        Tooltip(self.Convertbutton, text='Analyzes the plate and saves the data when complete.')
+        Tooltip(self.Convertbutton, text='Analyzes the plate images and saves the data when complete.')
+
+        # Button to run the analysis
+        self.Statbutton = Button(self, text="Run Statistics", command = lambda: self.statistics_driver())
+        self.Statbutton.grid(row=3, column=0, sticky=S)
+        self.Statbutton.config(height = 2)
+        Tooltip(self.Statbutton, text='Performs statistical analysis of larval count data, including dose-response curve fitting and LC calculations.')
 
     def __plate_setup(self):
         #update entry values
@@ -446,7 +409,6 @@ class App(tk.Tk):
         self.plate = Plate(config = self.input_frame.config,
                         save_dir = self.out_dir,
                         plate_data=plate_data)
-
 
     def __plate_driver(self):
         if self.plate.error_message: return
@@ -488,14 +450,11 @@ class App(tk.Tk):
                 self.prog_label.config(text=text)
                 return
         elif os.stat(file_path).st_size == 0: os.remove(file_path)
-        # else: 
-        #     msg = f'{file_path} already exists. Please select a different name.'
-        #     pdu.message_window(title = "CSV file already exists", msg = msg)
-        #     return
 
         self.input_frame.reset_manual_indicators() #reset manual override halt on autoupdating date/csv
         #disable conert button
         self.Convertbutton['state'] = tk.DISABLED
+        self.Statbutton['state'] = tk.DISABLED
         #make progress bar
         
         self.__plate_setup()
@@ -508,52 +467,74 @@ class App(tk.Tk):
         plate_thread.start()
         time.sleep(0.5)
         #continue monitoring the thread
-        self.monitor(plate_thread)
+        self.monitor(plate_thread, obj = self.plate)
 
-    def monitor(self, thread):
+    def statistics_driver(self):
+        self.input_frame.update()
+        self.Convertbutton['state'] = tk.DISABLED
+        self.Statbutton['state'] = tk.DISABLED 
+        self.stats_obj = analyze_data(config_path = self.input_frame.config["STATS_CONFIG_PATH"],
+                                        MASK_RCNN_SAVE = 'True',
+                                        MASK_RCNN_SAVE_NAME = 'larval_counts.csv')
+        # stats_thread = multiprocessing.Process(target=self.__stats_processor )
+        stats_thread=Thread(target = self.__stats_processor)
+        #make a daemon to kill the plate thread if the GUI is closed
+        stats_thread.daemon = True
+        #start the thread
+        stats_thread.start()
+        time.sleep(0.5)
+        #continue monitoring the thread
+        self.monitor(stats_thread, self.stats_obj, speed = 0.25)
+
+    def __stats_processor(self):
+        self.auto_prog_bar_on = True 
+        self.stats_obj.full_process(new_datapath = self.input_frame.config["OUT_DIR"])
+        self.prog_bar.stop()
+
+    def monitor(self, thread, obj, **kwargs):
         if thread.is_alive():
             #update every 0.25 seconds
-            self.after(250, lambda: self.monitor(thread))
-            self.__update_progress()
+            self.after(250, lambda: self.monitor(thread, obj, **kwargs))
+            self.__update_progress(obj, **kwargs)
+            # print(obj.progress)
+            # print(obj.message)
             
         else:
-            if self.plate.error_message:
-                self.prog_label.config(text=self.plate.error_message)
+            if isinstance(obj, Plate) and obj.error_message:
+                self.prog_label.config(text=obj.error_message)
                 self.prog_bar['value'] == 0
             else:
                 self.prog_label.config(text="Done! You may close this window or process another plate.")
                 self.prog_bar['value'] = 100
             self.Convertbutton['state'] = tk.NORMAL
+            self.Statbutton['state'] = tk.NORMAL
             self.prog_percent.config(text="")
 
     def __progress(self):
         self.prog_bar = ttk.Progressbar(
             self.master, orient="horizontal",
             length=600, mode="determinate")
-        self.prog_bar.grid(column=0, row=4, padx=20, pady=0)
+        self.prog_bar.grid(column=0, row=5, padx=20, pady=0)
         self.prog_label = Label(self, text="")
-        self.prog_label.grid(row=3, column=0, padx=20, pady=0, sticky=EW)
+        self.prog_label.grid(row=4, column=0, padx=20, pady=0, sticky=EW)
         self.prog_percent = Label(self, text="")
-        self.prog_percent.grid(row=5, column=0, padx=20, pady=0, sticky=EW)
+        self.prog_percent.grid(row=6, column=0, padx=20, pady=0, sticky=EW)
 
-    def __update_progress(self):
-        self.prog_label.config(text=self.plate.plate_message)
+    def __update_progress(self, obj, speed = 0.15, **kwargs):
+        self.prog_label.config(text=obj.message)
         # print(self.plate.progress)
         if self.auto_prog_bar_on: 
-            # if self.plate.progress < 8 and \
-            #         self.prog_bar['value'] < 10 and \
-            #         self.prog_bar['value'] < self.plate.progress:
-            #     self.prog_bar.step(0.15)
-            if self.prog_bar['value'] < self.plate.progress - 15:
-                self.prog_bar['value'] = self.plate.progress - 10
-            elif self.prog_bar['value'] < self.plate.progress:
-                max_step = min(0.15, self.plate.progress - self.prog_bar['value'])
+            if self.prog_bar['value'] < obj.progress - 15:
+                self.prog_bar['value'] = obj.progress - 10
+            elif self.prog_bar['value'] < obj.progress:
+                # print(speed, obj.progress, self.prog_bar['value'])
+                max_step = min(speed, obj.progress - self.prog_bar['value'])
                 self.prog_bar.step(max_step)
             else:
-                self.prog_bar['value'] = self.plate.progress
-        elif self.prog_bar['value'] < self.nextval:
-            max_step = min(0.15, self.nextval - self.prog_bar['value'])
-            self.prog_bar.step(max_step)
+                self.prog_bar['value'] = obj.progress
+        # elif self.prog_bar['value'] < self.nextval:
+        #     max_step = min(speed, self.nextval - self.prog_bar['value'])
+        #     self.prog_bar.step(max_step)
         self.prog_percent.config(text=f"{round(self.prog_bar['value']):n}%")
 
 
