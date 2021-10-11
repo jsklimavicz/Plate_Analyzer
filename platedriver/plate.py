@@ -37,7 +37,7 @@ class Plate:
 		self.save_dir = save_dir
 		self.debug = debug
 		self.image_folder = config['IMG_DIR']
-		self.plate_message = "Starting..."
+		self.message = "Starting..."
 		self.progress = 0 # used for gui progressbar
 		self.processed_well_count = 0 # used for gui progressbar
 		self.error_message = None # used to pass errors to the gui
@@ -139,7 +139,7 @@ class Plate:
 	def __process_images(self):
 		images = {}
 		#Start the image processing step after updating parameters
-		self.plate_message = "Starting multiprocessing pool..."
+		self.message = "Starting multiprocessing pool..."
 		self.progress = 2
 		#Use joblib's parallel to perform num_cpu jobs. Note that because we're in a class, and joblib's parallel is wonky, 
 		# we must call and outside function (unwrap_image_process()) to get Parallel to work as expected. Here, we wrap the 
@@ -147,7 +147,7 @@ class Plate:
 		# variables, e.g. number of wells counted and the progress made for the progres bar.
 		dict_list = Parallel(n_jobs=-1, require='sharedmem')(delayed(unwrap_image_process)(well) for well in zip([self]*len(self.well_ID_list), self.well_ID_list))
 
-		self.plate_message = "Calculating processed images..."
+		self.message = "Calculating processed images..."
 		for line in dict_list:
 			for wellID in line:
 				self.well_list[wellID] = line[wellID]
@@ -166,7 +166,7 @@ class Plate:
 			# increment the number of wells counted. 
 			self.processed_well_count +=1 
 			# change progress bar message to show what row we're on in the plate.
-			self.plate_message = f"Performing preprocessing on well {(wellID+'.'):3} This will take a few minutes; go grab some tea!"
+			self.message = f"Performing preprocessing on well {(wellID+'.'):3} This will take a few minutes; go grab some tea!"
 			# increment progress bar value before and after the time-consuming read well process.
 			# A larger chunk of completion time is allocated *before* the process to allow the 
 			# progress bar to take samll, slow steps for most of the process to allow the user to know
@@ -199,7 +199,7 @@ class Plate:
 
 	def detect_larvae(self):
 		
-		self.plate_message = f"Starting larval neural network..."
+		self.message = f"Starting larval neural network..."
 		config = worm_detector.WormConfig(self.config)
 		model = modellib.MaskRCNN(mode="inference", config=config, model_dir="./wormAI/mrcnn/log/")
 		config.display()
@@ -224,10 +224,10 @@ class Plate:
 			im = self.well_list[wellID]['composite']
 			r = model.detect([im], verbose=0)[0]
 
-			self.plate_message = f"Counting larvae in well {wellID}."
+			self.message = f"Counting larvae in well {wellID}."
 			self.progress += 65 * (0.7 / self.total_wells)
 			if well_count < 5:
-				self.plate_message += " Estimating time remaining..."
+				self.message += " Estimating time remaining..."
 			else:
 				now = datetime.utcnow()
 				time_per_well = (now - start_time).total_seconds()/(well_count+1)
@@ -241,9 +241,9 @@ class Plate:
 
 					time_format = f"{hours}{mins}{secs}"
 
-					self.plate_message += f" Estimated time remaining: {time_format}"
+					self.message += f" Estimated time remaining: {time_format}"
 				else:
-					self.plate_message += " Finishing up..."
+					self.message += " Finishing up..."
 
 			well_count += 1
 
@@ -267,7 +267,7 @@ class Plate:
 
 	def save_csv(self, filename = None, verbose_csv = False, open_csv=False):
 		if not exists(self.save_dir): mkdir(self.save_dir)
-		self.plate_message = "Saving the csv file(s)..."
+		self.message = "Saving the csv file(s)..."
 		# print(verbose_csv)
 		data, verb_data, ctrl_warning = self.__make_summary(verbose_csv = verbose_csv)
 		if self.config["VERBOSE_CSV"]: 
@@ -290,7 +290,7 @@ class Plate:
 						"aged_dead": 6, 
 						"artifact": 7 }
 		worm_classes = {v: k for k, v in inv_worm_classes.items()}
-		self.plate_message = "Summarizing data results ..."
+		self.message = "Summarizing data results ..."
 		if verbose_csv: 
 			verb_columns = ["Ref ID", "Compound", "Date", "ppm", "Rep", "Plate", 'Row', 'Column', "Media", "Object ID", "Bounding Box", "Class", "Class Name", "Score"]
 			verb_header = ",".join(verb_columns)
