@@ -3,6 +3,7 @@ Mask R-CNN
 Base Configurations class.
 
 Copyright (c) 2017 Matterport, Inc.
+Copyright (c) 2021 James Klimavicz
 Licensed under the MIT License (see LICENSE for details)
 Written by Waleed Abdulla
 """
