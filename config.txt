@@ -5,8 +5,8 @@
 #OUT_DIR=C:\Users\BiotekDT.TYRATECH\Documents\Analyzed Images
 
 IMG_DIR=/home/jklimavicz/Documents/Merlin_Images
-#IMG_DIR=/home/jklimavicz/Documents/platereader_test
 OUT_DIR=/home/jklimavicz/Documents/test_output
+STATS_CONFIG_PATH = /home/jklimavicz/Documents/Plate_Analyzer/stats/analysis_config.txt
 
 ###################################################
 #               Default GUI Options               #
