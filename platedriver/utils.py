@@ -11,6 +11,7 @@ def parse_config_file(verbose = 0):
     config_file_path = os.path .join(root, 'config.txt')
     #defaults
     config_dict = {'IMG_DIR': '.', \
+                'STATS_CONFIG_PATH': './analysis_config.txt',
                 'OUT_DIR': './out', \
                 'SAVE_INTMD': False, \
                 'SAVE_MASK': True, \
