@@ -86,6 +86,7 @@ class MerlinAnalyzer:
 		#read key and merge in compound names
 		if key_file is not None: key = self.read_key(key_file)
 		cmpd_data = cmpd_data.merge(key, how='left', on='ID')
+		cmpd_data['Compound'] =  cmpd_data['Compound'].str.lower()
 		#Remove any rows with missing count or compound data.
 		cmpd_data.dropna(subset = ['Live', 'Dead', 'Compound'], inplace=True)
 		cmpd_data = cmpd_data[cmpd_data.Count != 0]
@@ -174,7 +175,8 @@ class MerlinAnalyzer:
 		for cmpd_id in new_data["Compound"].unique():
 
 			cmpd_data = new_data[new_data["Compound"] == cmpd_id].copy()
-			unique_ids = ["_".join([x,str(y),str(z),w]) for x,y,z,w in zip(cmpd_data["Date"].tolist(), 
+			#UID = name_date_plate_row_ID
+			unique_ids = ["_".join([cmpd_id,x,str(y),str(z),w]) for x,y,z,w in zip(cmpd_data["Date"].tolist(), 
 																		cmpd_data["Plate"].tolist(), 
 																		cmpd_data["Row"].tolist(),
 																		cmpd_data["ID"].tolist())]
