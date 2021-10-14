@@ -11,7 +11,7 @@ For Windows 10, the recommended method is to use the included batch file to invo
 
 Alternatively, one may invoke the program directly with `main.py`, which takes no command line arguments. 
 
-All variables used by the program are set in either `./config.txt` or in `./stats/analysis_config.txt`; the former contains arguments for the GUI and general program options and filepaths, while the latter contains options related to data analysis, statistical options, and filepaths related to the statistical analysis output. The `./docs/stats_config` file describes the permitted variables and their actions for the statistical analysis and plotting options, while `./docs/general_config` describes the permitted options for the general program. 
+All variables used by the program are set in either `./config.txt` or in `./stats/analysis_config.txt`; the former contains arguments for the GUI and general program options and filepaths, while the latter contains options related to data analysis, statistical options, and filepaths related to the statistical analysis output. The [`./docs/stats_config`](./docs/stats_config.md) file describes the permitted variables and their actions for the statistical analysis and plotting options, while [`./docs/general_config`](./docs/general_config.md) describes the permitted options for the general program. 
 
 ## Requirements
 
