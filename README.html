@@ -1,6 +1,6 @@
 <h1>Merlin Bioassay Data Analyzer</h1>
 
-<p>The purpose of this program is to analyze the images taken from the Biotek Cytation5 platereader. The program also has the ability to perform dose-response curve analysis and calculate LC values.</p>
+<p>The purpose of this program is to analyze the images taken from the Biotek Cytation5 platereader. The program also has the ability to perform dose-response curve analysis and calculate LC values. </p>
 
 <h2>Use</h2>
 
@@ -18,12 +18,40 @@
 
 <p>Testing has been performed on Ubuntu 20.04 and Windows 10 using Python 3.8.8.</p>
 
+<p>Tensorflow is used for analyzing the images with the Mask R-CNN algorithm. The process is highly parallelized, and runs fastest with a CUDA-enabled NVIDIA graphics card; however, images can also be processed on multiple CPU cores. </p>
+
 <h2>Graphical User Interface</h2>
 
-<h2>Data Collection and Analysis</h2>
+<h2>Data Collection and Analysis Pipeline</h2>
 
-<h3>Data Collection</h3>
+<p>The pipeline from image collection to data output is as follows:</p>
 
-<p>The pipeline from image collection to data output is as follows:
-1. The platereader takes three images of the well. Images are spaced approximately 0.2 seconds apart, and are saved locally. 
-2. </p>
+<ol>
+<li>The platereader takes three images of the well. Images are spaced approximately 0.2 seconds apart, and are saved locally. </li>
+<li>For each well, these three images are used to make a composite image with six channels as follows:
+<ol>
+<li>Red channel of the first image</li>
+<li>Green channel of the first image</li>
+<li>Blue channel of the first image</li>
+<li>Prewitt edge filter of guassian blurred grayscale version of the first image</li>
+<li>Grayscale of the second image</li>
+<li>Grayscale of the third image</li>
+</ol></li>
+<li>The grayscale of the first image is also subjected to a Circle Hough Transform to determine the edge of the well. The area outside the well is set to mean value of the inside of the well for each image channel. The image is also downsized to 800x800 pixels and single precision. </li>
+<li>The trained Mask R-CNN algorithm processes each image to classify larvae as dead, alive, moribund, L2 larvae, egg, long-dead, or artifact. </li>
+<li>The number of each class is counted, and, if the user has selected the option, composite images are made. In images with bounding boxes or masks shown, the following colors are used:
+<ul>
+<li>alive: green</li>
+<li>dead: red</li>
+<li>moribund: yellow</li>
+<li>L2 larvae: purple</li>
+<li>egg: blue</li>
+<li>long-dead: brown</li>
+<li>artifact: aqua</li>
+</ul></li>
+<li>A .csv file containing the count data for each well is produced. Only the live, dead, and moribund larvae are counted; the moribund larvae are included with the dead larvae. The other four groups are not included in the count data; however, if there are more than five total objects not classified as live, dead, or moribund, a note is included in the .csv file stating the number of eggs, L2 larvae, long-dead larvae, and artifacts in the well. </li>
+</ol>
+
+<h2>Training Set</h2>
+
+<p>The Mask R-CNN algorith was trained using a set of 800 hand-classified wells. </p>
