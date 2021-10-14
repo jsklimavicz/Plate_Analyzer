@@ -1,8 +1,4 @@
----
-layout: post
-title: Merlin Bioassay Data Analyzer
-author: James Klimavicz
----
+# Merlin Bioassay Data Analyzer
 
 The purpose of this program is to analyze the images taken from the Biotek Cytation5 platereader. The program also has the ability to perform dose-response curve analysis and calculate LC values. Platereader images are preprocessed, and larvae are identified, classified, and counted using a modification of the [matterport implementation](https://github.com/matterport/Mask_RCNN)[^2] of Mask R-CNN[^3]. Dose-response data is determined using a Bayesian approach to generate dose-response curves, estimated LC values, and corresponding credible intervals. 
 
