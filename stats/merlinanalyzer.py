@@ -21,8 +21,8 @@ class MerlinAnalyzer:
 	'''
 	Class for processing all bioassay data.
 	'''
-	archivefilename = "merlin_bioassay_archive_data.pickle"
-	picklesha1hash = ".picklehash"
+	archivefilename = "stats.pickle"
+	picklesha1hash = ".statshash"
 	sha_key = b"merlin-data"
 	cache_path = os.path.abspath('./stats/cache')
 
