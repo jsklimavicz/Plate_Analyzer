@@ -30,8 +30,9 @@ def corr_beta_vars(plate_ids, live_count, dead_count, size = 1, scale = 0.5, nul
 	assert len(dead_count) == len(live_count)
 	#get a correlation matrix
 	corr_mat = corr_matrix(plate_ids, rho = rho)
+
 	#generate multivariate normal random variables
-	norm_var = np.random.default_rng().multivariate_normal(np.zeros_like(plate_ids), corr_mat, size = size)
+	norm_var = np.random.default_rng().multivariate_normal(np.array([0.] *len(plate_ids)), corr_mat, size = size)
 	#find normal cdf values 
 	norm_prob = st.norm.cdf(norm_var)
 	#generate beta variables from cdf values

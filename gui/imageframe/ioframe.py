@@ -11,8 +11,8 @@ from os import path, getcwd, mkdir
 from os.path import exists
 from datetime import datetime
 import tkinter as tk
-from platedriver.utils import Tooltip #as Tooltip
-import platedriver.utils as pdu
+from gui.tooltip import Tooltip #as Tooltip
+import gui.utils as pdu
 import platform
 import time
 from stats.main import analyze_data

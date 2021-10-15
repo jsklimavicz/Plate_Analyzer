@@ -6,7 +6,7 @@
 
 IMG_DIR=/home/jklimavicz/Documents/Merlin_Images
 OUT_DIR=/home/jklimavicz/Documents/test_output
-STATS_CONFIG_PATH = /home/jklimavicz/Documents/Plate_Analyzer/stats/analysis_config.txt
+STATS_CONFIG_PATH = /home/jklimavicz/Documents/Plate_Analyzer/config/analysis_config.txt
 
 ###################################################
 #               Default GUI Options               #

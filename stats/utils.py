@@ -9,7 +9,7 @@ from statistics import median
 
 ET_VARS = ["equal-tailed", "equal", "et", "even", "even-tailed"]
 
-def parse_config_file(config_path = os.path.abspath('./analysis_config.txt'), **kwargs):
+def parse_config_file(config_path = os.path.abspath('.config/analysis_config.txt'), **kwargs):
     '''
     Reads in the configuration file 'analysis_config.txt' and converts the specified data to the appropriate type. 
     '''

@@ -163,7 +163,8 @@ def empty_cpmd_dict():
 				"plate_ids": None,
 				"reps": None,
 				"ctrl_mort": None,
-				"unique_plate_ids": None}
+				"unique_plate_ids": None,
+				"include_now": None}
 
 def delete_multiple_element(list_object, indices):
 	'''

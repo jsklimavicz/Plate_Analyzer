@@ -18,7 +18,7 @@ import wormAI.worm_detector as worm_detector
 from wormAI.mrcnn import model as modellib, utils
 from pathlib import Path
 from datetime import datetime, timedelta
-import platedriver.utils as pdu
+import gui.utils as pdu
 
 #for parallel call to provide self pointer as arg
 def unwrap_image_process(arg, **kwarg):

@@ -11,6 +11,7 @@ from sklearn.neighbors import KernelDensity
 from stats.merlin_grapher import MerlinGrapher
 from time import time
 import stats.utils as utils
+from itertools import compress
 
 def default_params_dict():
 	param_dict = {"BOOTSTRAP_ITERS": 1000,  
@@ -28,17 +29,21 @@ class CI_finder:
 	'''
 	default_options = default_params_dict()
 
-	def __init__(self, plate_ids, live_count, dead_count, conc, options = None, **kwargs):
-		if plate_ids is None or live_count is None or dead_count is None or conc is None:
+	def __init__(self, unique_plate_ids, live_count, dead_count, conc, include_now, options = None, **kwargs):
+		if unique_plate_ids is None or live_count is None or dead_count is None or conc is None:
 			raise ValueError("CI_finder requries plate_ids, live_count, dead_count, and conc values.")
-		elif not (len(plate_ids)== len(live_count) and 
-			len(plate_ids)==len(dead_count) and 
-			len(plate_ids)==len(conc)):
+		elif not (len(unique_plate_ids)== len(live_count) and 
+			len(unique_plate_ids)==len(dead_count) and 
+			len(unique_plate_ids)==len(conc) and 
+			len(unique_plate_ids)==len(include_now)):
 			raise ValueError("CI_finder requries plate_ids, live_count, dead_count, and conc to all be the same length.")
-		self.plate_ids = plate_ids
-		self.live_count = live_count
-		self.dead_count = dead_count
-		self.conc = conc
+		self.unique_plate_ids =  list(compress(unique_plate_ids, include_now))
+		self.live_count = np.array(list(compress(live_count, include_now)))
+		self.dead_count = np.array(list(compress(dead_count, include_now)))
+		self.conc = np.array(list(compress(conc, include_now)))
+		
+		self.uid_list = list(set(self.unique_plate_ids)) #for the purpose of determining if there are new UIDs included
+
 		self.n_trials = kwargs['n_trials']
 		self.options = self.default_options
 		if options:
@@ -219,7 +224,7 @@ class CI_finder:
 
 		if self.params is not None: return
 		#get correlated beta variables
-		beta_probs = corr_beta_vars(self.plate_ids, 
+		beta_probs = corr_beta_vars(self.unique_plate_ids, 
 									self.live_count, 
 									self.dead_count, 
 									size = self.options["BOOTSTRAP_ITERS"], 

@@ -32,6 +32,7 @@ class MerlinAnalyzer:
 		self.cmpd_data = {}
 		self.options = utils.parse_config_file(config_path = config_path, **kwargs)
 		self.message = ""
+		self.error_message = None
 		self.progress = 0.0
 		# print(self.options)
 
@@ -130,7 +131,7 @@ class MerlinAnalyzer:
 			print('Pickled data as been compromised. Old data cannot be loaded.')
 
 	def merge_old_new(self, new_datapath, archive_path, key_file):
-		if os.path.exists(os.path.join(archive_path,self.archivefilename)): 
+		if os.path.exists(os.path.join(archive_path, self.archivefilename)): 
 			self.cmpd_data = self.read_archive(archive_path)
 			# print(self.options)
 			for cmpd in self.cmpd_data.keys():
@@ -195,17 +196,28 @@ class MerlinAnalyzer:
 							reps = cmpd_data["Rep"].tolist(),
 							ctrl_mort = np.array(cmpd_data["ctrl_mort"].tolist()),
 							unique_plate_ids = unique_ids,
+							include_now = [True] * len(unique_ids),
 							*args, **kwargs)
 
 			self.progress += 2.0/self.number_of_compounds #update progress for each compound
-
 		return new_compound_dict
+
+	def set_diallowed(self, disallowed_uids): 
+		for cmpd, key in self.cmpd_data.items():
+			for ind, uid in enumerate(key.data['unique_plate_ids']):
+				key.data['include_now'][ind] = False if uid in disallowed_uids else True
+
+
+	def get_uid_list(self):
+		uid_list = []
+		for k, v in self.cmpd_data.items(): 
+			uid_list += list(v.data['unique_plate_ids'])
+		return uid_list
 
 	def save_csv(self, filename, header, body):
 		with open(filename, 'w') as file:
 			file.write(",".join(header) + "\n")
 			file.write("\n".join(body))
-
 	
 	def generate_csv_data_lines(self, header):
 		output = []
@@ -270,7 +282,6 @@ class MerlinAnalyzer:
 					line.append(comment)
 				else: line.append(" ")
 			output.append(",".join(line))
-
 		return output
 
 	def generate_csv_header(self):
@@ -315,6 +326,18 @@ class MerlinAnalyzer:
 		vals = func(diff, CI_level = self.options['REL_POT_CI'])
 		return np.power(2., vals).T
 
+	def collect_data(self,
+						new_datapath = None, 
+						key_file = None,
+						archive_path = None):
+		
+		new_datapath =  new_datapath if new_datapath is not None else self.options["INPUT_PATH"]
+		archive_path = archive_path if archive_path is not None else self.options["ARCHIVE_PATH"]
+		key_file = key_file if key_file is not None else self.options["KEY_PATH"]
+
+		self.merge_old_new(new_datapath = new_datapath, archive_path = archive_path, key_file = key_file)
+
+
 	def full_process(self, 
 						new_datapath = None, 
 						key_file = None,
@@ -333,7 +356,7 @@ class MerlinAnalyzer:
 
 		# print(new_datapath)
 
-		self.merge_old_new(new_datapath = new_datapath, archive_path = archive_path, key_file = key_file)
+		# self.merge_old_new(new_datapath = new_datapath, archive_path = archive_path, key_file = key_file)
 
 
 		image_dir = os.path.abspath(os.path.join(out_path, 'images'))

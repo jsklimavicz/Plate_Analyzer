@@ -10,7 +10,7 @@ from os import path, getcwd, mkdir
 from os.path import exists
 from datetime import datetime
 import tkinter as tk
-from platedriver.utils import Tooltip #as Tooltip
+from gui.tooltip import Tooltip #as Tooltip
 import platform
 import time
 from stats.main import analyze_data
