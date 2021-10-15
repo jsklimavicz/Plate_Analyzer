@@ -4,7 +4,6 @@
 from tkinter import *
 from tkinter import ttk, filedialog, messagebox
 from tkinter.ttk import Label, Style
-from tkcalendar import Calendar 
 import random
 import os
 from os import path, getcwd, mkdir
@@ -13,12 +12,10 @@ import platedriver.plate as pc
 from datetime import datetime
 import tkinter as tk
 from platedriver.utils import Tooltip #as Tooltip
-import threading
 from platedriver.plate import Plate 
 from platedriver.platedata import PlateData
 import platedriver.utils as pdu
 import platform
-from threading import *
 import time
 from stats.main import analyze_data
 import multiprocessing
