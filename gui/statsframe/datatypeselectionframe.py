@@ -18,7 +18,15 @@ from threading import Thread
 import time
 from stats.main import analyze_data
 
+import pickle
+import hashlib
+import hmac
+
 class DataTypeSelectionFrame(ttk.Frame):
+	cache_path = os.path.abspath('./stats/cache')
+	sha_key = b'james is awesome'
+	forb_hash = ".forbiddenhash"
+	forb_pick = "forbidden." + "pickle"
 	def __init__(self, container, config, stats_obj, scale = 1, **kwargs):
 		super().__init__(container, **kwargs)
 		self.scale = scale
@@ -40,7 +48,7 @@ class DataTypeSelectionFrame(ttk.Frame):
 		self.columnconfigure(5, weight=2)
 
 		self.selection_options = ["Compound", "Reference ID", "Date", "Plate ID", "Row ID"]
-		self.forbidden_list = []
+		self.forbidden_list = self.load_forbidden_list()
 
 		self.__create_widgets()
 
@@ -132,5 +140,30 @@ class DataTypeSelectionFrame(ttk.Frame):
 					item = item.split("_")
 					item = f"{item[0]}_{item[2]}"
 				if item in uid: disallowed.append(uid)
+		self.save_forbidden_list()
 		return disallowed
 
+	def save_forbidden_list(self):
+		if not os.path.exists(self.cache_path): os.makedirs(self.cache_path)
+		pickle_data = pickle.dumps(self.forbidden_list)
+		digest =  hmac.new(self.sha_key, pickle_data, hashlib.sha1).hexdigest()
+		header = '%s' % (digest)
+		filepath = '.'
+		with open(os.path.join(self.cache_path, self.forb_hash), 'w') as file:
+			file.write(header)
+		with open(os.path.join(self.cache_path, self.forb_pick), 'wb') as file:
+			file.write(pickle_data)
+
+	def load_forbidden_list(self):
+		if os.path.exists(os.path.join(self.cache_path, self.forb_hash)):
+			with open(os.path.join(self.cache_path, self.forb_hash), 'r') as file:
+				pickle_hash = file.read().strip()
+			with open(os.path.join(self.cache_path, self.forb_pick), 'rb') as file:
+				pickled_data = file.read()
+			digest =  hmac.new(self.sha_key, pickled_data, hashlib.sha1).hexdigest()
+
+			if pickle_hash == digest:
+				unpickled_data = pickle.loads(pickled_data)
+				return unpickled_data
+		else:
+			return []

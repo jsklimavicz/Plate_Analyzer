@@ -5,7 +5,7 @@
 INPUT_PATH = /home/jklimavicz/Documents/test_output
 KEY_PATH = /home/jklimavicz/Documents/merlin_stats_in/key.csv
 SAVE_PATH = /home/jklimavicz/Documents/merlin_stats_out
-ARCHIVE_PATH = ./stats
+#ARCHIVE_PATH = ./stats
 
 ###################################################
 #                 Graphing Options                #

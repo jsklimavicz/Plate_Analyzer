@@ -17,13 +17,10 @@ import platform
 from threading import Thread
 import time
 from stats.main import analyze_data
-from gui.statsframe.dataselectionframe import DataSelectionFrame as DSF
 from gui.statsframe.datatypeselectionframe import DataTypeSelectionFrame as DTSF
 from gui.progmonitor import ProgMonitor
 
-import pickle
-import hashlib
-import hmac
+
 
 class StatsFrame(ttk.Frame):
 	def __init__(self, container, config, scale = 1, **kwargs):
@@ -68,6 +65,7 @@ class StatsFrame(ttk.Frame):
 	def statistics_driver(self):
 		self.Statbutton['state'] = tk.DISABLED 
 		disallowed_uids = self.selection_frame.get_disallowed_uids()
+
 		self.container.tab(0, state="disabled")
 		self.selection_frame.disallowButton['state'] = tk.DISABLED 
 		self.selection_frame.allowButton['state'] = tk.DISABLED 
@@ -89,3 +87,4 @@ class StatsFrame(ttk.Frame):
 		self.progmonitor.prog_bar.stop()
 		self.selection_frame.disallowButton['state'] = tk.NORMAL 
 		self.selection_frame.allowButton['state'] = tk.NORMAL 
+

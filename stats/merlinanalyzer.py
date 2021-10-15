@@ -24,6 +24,7 @@ class MerlinAnalyzer:
 	archivefilename = "merlin_bioassay_archive_data.pickle"
 	picklesha1hash = ".picklehash"
 	sha_key = b"merlin-data"
+	cache_path = os.path.abspath('./stats/cache')
 
 	def __init__(self, 
 					*args, 
@@ -111,15 +112,15 @@ class MerlinAnalyzer:
 		#Select important columns for merging key file
 		return self.column_name_modifier(filename)[["Compound", "ID", "Class"]]
 		
-	def read_archive(self, filepath):
+	def read_archive(self):
 		'''
 		Reads in old pickle file after making sure that the file is not corrupted/modified
 		by means of using a sha1 hash
 		'''
 		self.message = "Reading archived data."
-		with open(os.path.join(filepath, self.picklesha1hash), 'r') as file:
+		with open(os.path.join(self.cache_path, self.picklesha1hash), 'r') as file:
 			pickle_hash = file.read().strip()
-		with open(os.path.join(filepath, self.archivefilename), 'rb') as file:
+		with open(os.path.join(self.cache_path, self.archivefilename), 'rb') as file:
 			pickled_data = file.read()
 		digest =  hmac.new(self.sha_key, pickled_data, hashlib.sha1).hexdigest()
 		self.progress = 2.0 #update progress for each compound
@@ -130,9 +131,9 @@ class MerlinAnalyzer:
 		else:
 			print('Pickled data as been compromised. Old data cannot be loaded.')
 
-	def merge_old_new(self, new_datapath, archive_path, key_file):
-		if os.path.exists(os.path.join(archive_path, self.archivefilename)): 
-			self.cmpd_data = self.read_archive(archive_path)
+	def merge_old_new(self, new_datapath, key_file):
+		if os.path.exists(os.path.join(self.cache_path, self.archivefilename)): 
+			self.cmpd_data = self.read_archive()
 			# print(self.options)
 			for cmpd in self.cmpd_data.keys():
 				# print(self.cmpd_data[cmpd].options)
@@ -157,16 +158,17 @@ class MerlinAnalyzer:
 
 		self.progress = 4.0 #update progress for each compound
 
-	def save_archive(self, filepath):
+	def save_archive(self):
 		saveable_lib = {}
 		for k, v in self.cmpd_data.items():
 			saveable_lib[k] = self.cmpd_data[k].saveable_cmpd()
 		pickle_data = pickle.dumps(saveable_lib)
 		digest =  hmac.new(self.sha_key, pickle_data, hashlib.sha1).hexdigest()
 		header = '%s' % (digest)
-		with open(os.path.join(filepath, self.picklesha1hash), 'w') as file:
+		if not os.path.exists(self.cache_path): os.makedirs(self.cache_path)
+		with open(os.path.join(self.cache_path, self.picklesha1hash), 'w') as file:
 			file.write(header)
-		with open(os.path.join(filepath, self.archivefilename), 'wb') as file:
+		with open(os.path.join(self.cache_path, self.archivefilename), 'wb') as file:
 			file.write(pickle_data)
 		
 	def process_compounds(self, new_data, *args, **kwargs):
@@ -332,10 +334,10 @@ class MerlinAnalyzer:
 						archive_path = None):
 		
 		new_datapath =  new_datapath if new_datapath is not None else self.options["INPUT_PATH"]
-		archive_path = archive_path if archive_path is not None else self.options["ARCHIVE_PATH"]
+		archive_path = self.cache_path if archive_path is not None else self.options["ARCHIVE_PATH"]
 		key_file = key_file if key_file is not None else self.options["KEY_PATH"]
 
-		self.merge_old_new(new_datapath = new_datapath, archive_path = archive_path, key_file = key_file)
+		self.merge_old_new(new_datapath = new_datapath, key_file = key_file)
 
 
 	def full_process(self, 
@@ -348,7 +350,7 @@ class MerlinAnalyzer:
 						*args, 
 						**kwargs):
 
-		archive_path = archive_path if archive_path is not None else self.options["ARCHIVE_PATH"]
+		archive_path = self.cache_path if archive_path is not None else self.options["ARCHIVE_PATH"]
 		key_file = key_file if key_file is not None else self.options["KEY_PATH"]
 		out_path = out_path if out_path is not None else self.options["SAVE_PATH"]
 		pdf_outfile = pdf_outfile if pdf_outfile is not None else self.options["OUTPUT_PDF_NAME"]
@@ -394,7 +396,7 @@ class MerlinAnalyzer:
 
 		self.message = "Archiving data."
 		self.progress = 96.0  #update progress for each compound
-		self.save_archive(archive_path)
+		self.save_archive()
 
 		self.message = "Creating output csv."
 		self.progress = 98.0  #update progress for each compound
