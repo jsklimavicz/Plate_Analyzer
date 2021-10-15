@@ -69,18 +69,28 @@ class DataTypeSelectionFrame(ttk.Frame):
 							command=lambda _: self.list_update())
 		self.exclusionEntry.grid(row=0, column=1, columnspan = full_width,  sticky=EW, padx=10, pady=20)
 
-		self.allowed_list = Listbox(self, selectmode='multiple',exportselection=0, height=10)
-		self.allowed_list.grid(row=1, column=0, columnspan = 2, rowspan = 4, sticky=EW, padx=10, pady=20)
-		self.disallowed_list = Listbox(self, selectmode='multiple',exportselection=0, height=10)
-		self.disallowed_list.grid(row=1, column=4, columnspan = 2, rowspan = 4, sticky=EW, padx=10, pady=20)
-		
+
+		self.allowedlabel = Label(self, text="Permitted List")
+		self.allowedlabel.grid(row=1, column=0, sticky=E)
+		self.allowed_list = Listbox(self, selectmode='multiple',exportselection=0, height=10, width = 50)
+		self.allowed_list.grid(row=2, column=0, columnspan = 2, rowspan = 4, sticky=EW, padx=10, pady=20)
+
+		self.disallowlabel = Label(self, text="Excluded List")
+		self.disallowlabel.grid(row=1, column=4, sticky=E)
+		self.disallowed_list = Listbox(self, selectmode='multiple',exportselection=0, height=10, width = 50)
+		self.disallowed_list.grid(row=2, column=4, columnspan = 2, rowspan = 4, sticky=EW, padx=10, pady=20)
+
 		self.disallowButton = Button(self, text="Remove from sample >", command = lambda: self.disallow())
-		self.disallowButton.grid(row=2, column=2, sticky=S, padx=10, pady=20)
+		self.disallowButton.grid(row=3, column=2, sticky=S, padx=10, pady=20)
 		self.disallowButton.config(height = 2)
 
 		self.allowButton = Button(self, text="< Add to sample", command = lambda: self.allow())
-		self.allowButton.grid(row=3, column=2, sticky=S, padx=10, pady=20)
+		self.allowButton.grid(row=4, column=2, sticky=S, padx=10, pady=20)
 		self.allowButton.config(height = 2)
+
+		self.clearButton = Button(self, text="Clear Disallowed List", command = lambda: self.clear_list())
+		self.clearButton.grid(row=6, column=4, sticky=S, padx=10, pady=20)
+		self.clearButton.config(height = 2)
 
 		self.list_update()
 
@@ -92,6 +102,10 @@ class DataTypeSelectionFrame(ttk.Frame):
 	def allow(self): 
 		for i in self.disallowed_list.curselection():
 			self.forbidden_list.remove(self.disallowed_ids[i])
+		self.list_update()
+
+	def clear_list(self): 
+		self.forbidden_list = []
 		self.list_update()
 
 	def list_update(self):

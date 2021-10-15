@@ -33,12 +33,6 @@ class StatsFrame(ttk.Frame):
 										MASK_RCNN_SAVE_NAME = 'larval_counts.csv')
 		self.stats_obj.collect_data()
 
-		for k, v in self.stats_obj.cmpd_data.items():
-			print(k)
-			print(v.__dict__)
-			if v.curve_data is not None: print(v.curve_data.__dict__)
-			break
-
 		self.__create_widgets()
 		# self.auto_prog_bar_on = False
 		# self.plate = None
@@ -69,6 +63,7 @@ class StatsFrame(ttk.Frame):
 		self.container.tab(0, state="disabled")
 		self.selection_frame.disallowButton['state'] = tk.DISABLED 
 		self.selection_frame.allowButton['state'] = tk.DISABLED 
+		self.selection_frame.clearButton['state'] = tk.DISABLED 
 		self.stats_obj.set_diallowed(disallowed_uids)
 
 		# stats_thread = multiprocessing.Process(target=self.__stats_processor )
@@ -87,4 +82,5 @@ class StatsFrame(ttk.Frame):
 		self.progmonitor.prog_bar.stop()
 		self.selection_frame.disallowButton['state'] = tk.NORMAL 
 		self.selection_frame.allowButton['state'] = tk.NORMAL 
+		self.selection_frame.clearButton['state'] = tk.NORMAL 
 
