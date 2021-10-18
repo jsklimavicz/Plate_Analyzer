@@ -100,6 +100,7 @@ class DataTypeSelectionFrame(ttk.Frame):
 		self.allowed_list.pack(expand = True, fill = Y)
 		scrollbar.config(command=self.allowed_list.yview)
 		Tooltip(self.allowed_list, text=allow_msg)
+		
 		#disallowed List
 		dfrm = Frame(self)
 		dfrm.grid(row=curr_row, column=4, rowspan = 4, columnspan = 2, sticky=N+S)

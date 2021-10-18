@@ -32,7 +32,7 @@ class App(tk.Tk):
 		geom = [700* self.scale*1.5, 700* self.scale*1.0] 
 
 		self.geometry(f'{geom[0]:n}x{geom[1]:n}')
-		self.title('Notebook Demo')
+		self.title('Merlin Bioassay Analyzer')
 
 		# create a notebook
 		self.notebook = ttk.Notebook(self)

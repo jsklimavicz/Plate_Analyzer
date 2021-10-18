@@ -19,6 +19,7 @@ import time
 from stats.main import analyze_data
 from gui.statsframe.datatypeselectionframe import DataTypeSelectionFrame as DTSF
 from gui.progmonitor import ProgMonitor
+from gui.statsframe.datapreviewer import DataPreviewer
 
 
 
@@ -34,9 +35,8 @@ class StatsFrame(ttk.Frame):
 		self.stats_obj.collect_data()
 
 		self.__create_widgets()
-		# self.auto_prog_bar_on = False
-		# self.plate = None
-		# self.__progress()
+
+
 		
 	def __create_widgets(self, scale = 1):
 
@@ -44,14 +44,26 @@ class StatsFrame(ttk.Frame):
 		self.selection_frame = DTSF(self, config = self.config, stats_obj = self.stats_obj, scale = self.scale)
 		self.selection_frame.grid(column=0, row=0, padx=10, pady=20)
 
+		self.PreviewData = Button(self, text="Preview Data", command = lambda: self.__preview_data())
+		self.PreviewData.grid(row=1, column=0, sticky=S)
+		self.PreviewData.config(height = 2)
+
 		# Button to run the analysis
-		self.Statbutton = Button(self, text="Run Statistics", command = lambda: self.statistics_driver())
-		self.Statbutton.grid(row=1, column=0, sticky=S)
+		self.Statbutton = Button(self, text="Run Statistics", command = lambda: self.__statistics_driver())
+		self.Statbutton.grid(row=2, column=0, sticky=S)
 		self.Statbutton.config(height = 2)
 		Tooltip(self.Statbutton, text='Performs statistical analysis of larval count data, including dose-response curve fitting and LC calculations.')
 
 		self.progmonitor = ProgMonitor(self, run_button = self.Statbutton)
-		self.progmonitor.grid(row=2, column=0, sticky=S)
+		self.progmonitor.grid(row=3, column=0, sticky=S)
+
+	def __preview_data(self):
+		'''
+		Simple preprocessor to update the disallowed UIDs for the different 
+		compounds. 
+		'''
+		self.__stats_preprocessor() #update forbidden list
+		DataPreviewer(self, self.stats_obj, scale = self.scale)
 
 	def __stats_preprocessor(self):
 		'''
@@ -61,7 +73,7 @@ class StatsFrame(ttk.Frame):
 		disallowed_uids = self.selection_frame.get_disallowed_uids()
 		self.stats_obj.set_diallowed(disallowed_uids)
 
-	def statistics_driver(self):
+	def __statistics_driver(self):
 		'''
 		Main driver for the Run Statistics button. Updates the disallowed list,
 		and then performs the necessary statistics. 
