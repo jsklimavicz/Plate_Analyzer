@@ -90,11 +90,24 @@ class DataTypeSelectionFrame(ttk.Frame):
 
 		#Lists
 		curr_row += 1 #2
-		self.allowed_list = Listbox(self, selectmode='multiple',exportselection=0, height=10, width = self.textbox_width)
-		self.allowed_list.grid(row=curr_row, column=0, columnspan = 2, rowspan = 4, sticky=EW, padx=10, pady=20)
-		self.disallowed_list = Listbox(self, selectmode='multiple',exportselection=0, height=10, width = self.textbox_width)
-		self.disallowed_list.grid(row=curr_row, column=4, columnspan = 2, rowspan = 4, sticky=EW, padx=10, pady=20)
-		Tooltip(self.allowed_list, text=allow_msg)		
+		# Scroll bar help from https://stackoverflow.com/a/24656407/8075803
+		#allowed List
+		afrm = Frame(self)
+		afrm.grid(row=curr_row, column=0, rowspan = 4, columnspan = 2, sticky=N+S)
+		scrollbar = Scrollbar(afrm, orient="vertical")
+		scrollbar.pack(side=RIGHT, fill=Y)
+		self.allowed_list = Listbox(afrm, selectmode='multiple',exportselection=0,yscrollcommand=scrollbar.set, width = self.textbox_width)
+		self.allowed_list.pack(expand = True, fill = Y)
+		scrollbar.config(command=self.allowed_list.yview)
+		Tooltip(self.allowed_list, text=allow_msg)
+		#disallowed List
+		dfrm = Frame(self)
+		dfrm.grid(row=curr_row, column=4, rowspan = 4, columnspan = 2, sticky=N+S)
+		scrollbar = Scrollbar(dfrm, orient="vertical")
+		scrollbar.pack(side=RIGHT, fill=Y)
+		self.disallowed_list = Listbox(dfrm, selectmode='multiple',exportselection=0,yscrollcommand=scrollbar.set, width = self.textbox_width)
+		self.disallowed_list.pack(expand = True, fill = Y)
+		scrollbar.config(command=self.disallowed_list.yview)
 		Tooltip(self.disallowed_list, text=disallow_msg)
 
 		#Allow/disallow buttons
