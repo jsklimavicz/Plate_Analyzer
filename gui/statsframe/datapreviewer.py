@@ -46,12 +46,12 @@ class DataPreviewer(tk.Frame):
 
 		#cmpd List
 		cmpd_frm = Frame(self.top)
-		cmpd_frm.grid(row=0, column=0, rowspan = 4, columnspan = 2, sticky=N+S)
-		self.exclusionlabel = Label(cmpd_frm, text="Select Compound.")
-		self.exclusionlabel.grid(row=0, column=0, sticky=E)
+		cmpd_frm.grid(row=0, column=0, rowspan = 5, columnspan = 2, sticky=N+S, padx=10, pady=10)
+		exclusionlabel = Label(cmpd_frm, text="Select Compound.")
+		exclusionlabel.grid(row=0, column=0, sticky=E)
 		
 		cmpd_list_frm = Frame(cmpd_frm)
-		cmpd_list_frm.grid(row= 1, column=0, rowspan = 3, columnspan = 2, sticky=N+S)
+		cmpd_list_frm.grid(row= 1, column=0, rowspan = 5, columnspan = 2, sticky=N+S, padx=10, pady=10)
 		scrollbar = Scrollbar(cmpd_list_frm, orient="vertical")
 		scrollbar.pack(side=RIGHT, fill=Y)
 		self.cmpd_listbox = Listbox(cmpd_list_frm, selectmode='single',exportselection=0,yscrollcommand=scrollbar.set, width = 30)
@@ -64,15 +64,19 @@ class DataPreviewer(tk.Frame):
 		Tooltip(self.cmpd_listbox, text="Select a compound to show the data that will be used for analysis.")
 		
 		#UID List
-		uid_list_frm = Frame(cmpd_frm)
-		uid_list_frm.grid(row=5, column=0, rowspan = 3, columnspan = 2, sticky=N+S)
+		uid_frm = Frame(self.top)
+		uid_frm.grid(row=5, column=0, rowspan = 5, columnspan = 2, sticky=N+S, padx=10, pady=10)
+		exclusionlabel = Label(uid_frm, text="Identifiers")
+		exclusionlabel.grid(row=0, column=0, sticky=E)
+		uid_list_frm = Frame(uid_frm)
+		uid_list_frm.grid(row=1, column=0, rowspan = 5, columnspan = 2, sticky=N+S, padx=10, pady=10)
 		scrollbar = Scrollbar(uid_list_frm, orient="vertical")
 		scrollbar.pack(side=RIGHT, fill=Y)
 		self.uid_listbox = Listbox(uid_list_frm, selectmode='single',exportselection=0,yscrollcommand=scrollbar.set, width = 30)
 		self.uid_listbox.pack(expand = True, fill = Y)
 		self.uid_listbox.bind('<<ListboxSelect>>', self.uidselect)
 		scrollbar.config(command=self.uid_listbox.yview)
-		Tooltip(self.uid_listbox, text="Select a compound to show the data that will be used for analysis.")
+		Tooltip(self.uid_listbox, text="Identifier is of the format Cmpd_ID_Date_Plate_Row. Select an identifier to highlight its data in the plot.")
 
 		#Figure frame
 		#Making the figure and canvas here is important. When made in the plot function, a
