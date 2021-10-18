@@ -57,6 +57,8 @@ class DataPreviewer(tk.Frame):
 		self.cmpd_listbox = Listbox(cmpd_list_frm, selectmode='single',exportselection=0,yscrollcommand=scrollbar.set, width = 30)
 		self.cmpd_listbox.pack(expand = True, fill = Y)
 		self.cmpd_listbox.bind('<<ListboxSelect>>', self.plotselect)
+		self.cmpd_listbox.bind("<Down>", self.plotselect_scroll)
+		self.cmpd_listbox.bind("<Up>", self.plotselect_scroll)
 		scrollbar.config(command=self.cmpd_listbox.yview)
 		self.cmpd_list = sorted(list(self.stats_obj.cmpd_data.keys()))
 		for ind, item in enumerate(self.cmpd_list):
@@ -75,6 +77,8 @@ class DataPreviewer(tk.Frame):
 		self.uid_listbox = Listbox(uid_list_frm, selectmode='single',exportselection=0,yscrollcommand=scrollbar.set, width = 30)
 		self.uid_listbox.pack(expand = True, fill = Y)
 		self.uid_listbox.bind('<<ListboxSelect>>', self.uidselect)
+		self.uid_listbox.bind("<Down>", self.uidselect_scroll)
+		self.uid_listbox.bind("<Up>", self.uidselect_scroll)
 		scrollbar.config(command=self.uid_listbox.yview)
 		Tooltip(self.uid_listbox, text="Identifier is of the format Cmpd_ID_Date_Plate_Row. Select an identifier to highlight its data in the plot.")
 
@@ -93,6 +97,25 @@ class DataPreviewer(tk.Frame):
 
 		# b = ttk.Button(self.top, text="Okay", command=self.top.destroy)
 		# b.grid(column=0, row = 6)
+
+	def scroll(self, event):
+		'''
+		Based on https://stackoverflow.com/a/62711725/8075803
+		'''
+		selection = event.widget.curselection()[0]
+		if event.keysym == 'Up': selection += -1
+		if event.keysym == 'Down': selection += 1
+		if 0 <= selection < event.widget.size():
+			event.widget.selection_clear(0, tk.END)
+			event.widget.select_set(selection)
+
+	def uidselect_scroll(self, event):
+		self.scroll(event)
+		self.uidselect(event)
+
+	def plotselect_scroll(self, event):
+		self.scroll(event)
+		self.plotselect(event)
 
 	def plotselect(self, event = None):
 		# Note here that Tkinter passes an event object to onselect()
