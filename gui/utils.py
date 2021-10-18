@@ -113,7 +113,7 @@ Continuing with default values.'''
     penultimate_directory = os.path.dirname(config_dict["MOST_RECENT_IMG_DIR"])
     penultimate_directory = os.path.basename(penultimate_directory).lower()
     if "plate" in penultimate_directory:
-        print(penultimate_directory)
+        # print(penultimate_directory)
         plate_split = penultimate_directory.split("plate")
         if len(plate_split) >=1: 
             plate_num = re.match(r'\d', plate_split[1]) #find first digit after the plate split.

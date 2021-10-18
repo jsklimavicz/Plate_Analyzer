@@ -44,39 +44,53 @@ class StatsFrame(ttk.Frame):
 		self.selection_frame = DTSF(self, config = self.config, stats_obj = self.stats_obj, scale = self.scale)
 		self.selection_frame.grid(column=0, row=0, padx=10, pady=20)
 
-
 		# Button to run the analysis
 		self.Statbutton = Button(self, text="Run Statistics", command = lambda: self.statistics_driver())
-		self.Statbutton.grid(row=3, column=0, sticky=S)
+		self.Statbutton.grid(row=1, column=0, sticky=S)
 		self.Statbutton.config(height = 2)
 		Tooltip(self.Statbutton, text='Performs statistical analysis of larval count data, including dose-response curve fitting and LC calculations.')
 
 		self.progmonitor = ProgMonitor(self, run_button = self.Statbutton)
-		self.progmonitor.grid(row=4, column=0, sticky=S)
+		self.progmonitor.grid(row=2, column=0, sticky=S)
 
-
+	def __stats_preprocessor(self):
+		'''
+		Simple preprocessor to update the disallowed UIDs for the different 
+		compounds. 
+		'''
+		disallowed_uids = self.selection_frame.get_disallowed_uids()
+		self.stats_obj.set_diallowed(disallowed_uids)
 
 	def statistics_driver(self):
-		self.Statbutton['state'] = tk.DISABLED 
-		disallowed_uids = self.selection_frame.get_disallowed_uids()
+		'''
+		Main driver for the Run Statistics button. Updates the disallowed list,
+		and then performs the necessary statistics. 
+		'''
 
+		#Update stats object with diallowed compounds
+		self.__stats_preprocessor()
+
+		#Disable buttons to prevent weird things from happening. 
+		self.Statbutton['state'] = tk.DISABLED 
 		self.container.tab(0, state="disabled")
 		self.selection_frame.disallowButton['state'] = tk.DISABLED 
 		self.selection_frame.allowButton['state'] = tk.DISABLED 
 		self.selection_frame.clearButton['state'] = tk.DISABLED 
-		self.stats_obj.set_diallowed(disallowed_uids)
-
-		# stats_thread = multiprocessing.Process(target=self.__stats_processor )
+		
+		#create process thread for computing stats
 		stats_thread=Thread(target = self.__stats_processor)
 
 		#make a daemon to kill the plate thread if the GUI is closed
 		stats_thread.daemon = True
 		stats_thread.start() #start the thread
-		time.sleep(0.5)
+		time.sleep(0.5) #brief pause to allow monitoring thread to chill
 		#continue monitoring the thread
 		self.progmonitor.monitor(stats_thread, self.stats_obj, speed = 0.22)
 
 	def __stats_processor(self):
+		'''
+		Performs statistical computations on computing threads
+		'''	
 		self.progmonitor.auto_prog_bar_on = True 
 		self.stats_obj.full_process(new_datapath = self.config["OUT_DIR"])
 		self.progmonitor.prog_bar.stop()

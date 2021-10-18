@@ -27,7 +27,7 @@ class IOFrame(ttk.Frame):
 		self.font = ('Arial', 12*self.scale)
 		self.config = config
 		self.plateID = self.config['PLATE_NUMBER']
-		print(self.plateID)
+		#print(self.plateID)
 		self.textbox_width=60
 		super().__init__(container)
 		# setup the grid layout manager

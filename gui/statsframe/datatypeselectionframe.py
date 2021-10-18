@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#statsframe.py
+#datatypeselectionframe.py
 
 from tkinter import *
 from tkinter import ttk, filedialog, messagebox
@@ -17,6 +17,7 @@ import platform
 from threading import Thread
 import time
 from stats.main import analyze_data
+from tkinter.messagebox import askyesno
 
 import pickle
 import hashlib
@@ -53,60 +54,91 @@ class DataTypeSelectionFrame(ttk.Frame):
 		self.__create_widgets()
 
 	def __create_widgets(self):
+		'''
+		Creates the interactive features necessary for excluding data from analysis. 
+		'''
 		s = ttk.Style()
 		s.configure("my.TButton", font = self.font)
 
 		full_width = 2
-		#Row: Input Image Folder Selector
+		curr_row = 0
+		#Data type selection for exclusion (date, plate, row, ID, and compound)
 		self.exclusionlabel = Label(self, text="Exclude runs by:")
-		self.exclusionlabel.grid(row=0, column=0, sticky=E)
+		self.exclusionlabel.grid(row=curr_row, column=0, sticky=E)
 		self.exclusiontype = StringVar()
 		self.exclusiontype.set(self.selection_options[0])
-		
 		self.exclusionEntry = OptionMenu(self, 
 							self.exclusiontype, 
 							*self.selection_options,
 							command=lambda _: self.list_update())
-		self.exclusionEntry.grid(row=0, column=1, columnspan = full_width,  sticky=EW, padx=10, pady=20)
+		self.exclusionEntry.grid(row=curr_row, column=1, columnspan = full_width,  sticky=EW, padx=10, pady=20)
+		msg = "Select the data type for excluding data from the analysis."
+		Tooltip(self.exclusionlabel, text=msg)
+		Tooltip(self.exclusionEntry, text=msg)
 
-
+		#List labels
+		curr_row += 1 #1
 		self.allowedlabel = Label(self, text="Permitted List")
-		self.allowedlabel.grid(row=1, column=0, sticky=E)
-		self.allowed_list = Listbox(self, selectmode='multiple',exportselection=0, height=10, width = 50)
-		self.allowed_list.grid(row=2, column=0, columnspan = 2, rowspan = 4, sticky=EW, padx=10, pady=20)
-
+		self.allowedlabel.grid(row=curr_row, column=0, sticky=E)
+		allow_msg = "Permitted categories. Data may be included only if it does not match any group in the Excluded List."
+		Tooltip(self.allowedlabel, text=allow_msg)
 		self.disallowlabel = Label(self, text="Excluded List")
-		self.disallowlabel.grid(row=1, column=4, sticky=E)
-		self.disallowed_list = Listbox(self, selectmode='multiple',exportselection=0, height=10, width = 50)
-		self.disallowed_list.grid(row=2, column=4, columnspan = 2, rowspan = 4, sticky=EW, padx=10, pady=20)
+		self.disallowlabel.grid(row=curr_row, column=4, sticky=E)
+		disallow_msg = "Excluded categories. Data matching any category in this list will be excluded. " + \
+					"This list only shows the groups in the category selected by the dropdown menu above."
+		Tooltip(self.disallowlabel, text=disallow_msg)
 
+		#Lists
+		curr_row += 1 #2
+		self.allowed_list = Listbox(self, selectmode='multiple',exportselection=0, height=10, width = self.textbox_width)
+		self.allowed_list.grid(row=curr_row, column=0, columnspan = 2, rowspan = 4, sticky=EW, padx=10, pady=20)
+		self.disallowed_list = Listbox(self, selectmode='multiple',exportselection=0, height=10, width = self.textbox_width)
+		self.disallowed_list.grid(row=curr_row, column=4, columnspan = 2, rowspan = 4, sticky=EW, padx=10, pady=20)
+		Tooltip(self.allowed_list, text=allow_msg)		
+		Tooltip(self.disallowed_list, text=disallow_msg)
+
+		#Allow/disallow buttons
+		curr_row += 1 #3
 		self.disallowButton = Button(self, text="Remove from sample >", command = lambda: self.disallow())
-		self.disallowButton.grid(row=3, column=2, sticky=S, padx=10, pady=20)
+		self.disallowButton.grid(row=curr_row, column=2, sticky=S, padx=10, pady=20)
 		self.disallowButton.config(height = 2)
+		Tooltip(self.disallowButton, text="Move selected group(s) from the Permitted List to the Excluded List")	
 
+		curr_row += 1 #4
 		self.allowButton = Button(self, text="< Add to sample", command = lambda: self.allow())
-		self.allowButton.grid(row=4, column=2, sticky=S, padx=10, pady=20)
+		self.allowButton.grid(row=curr_row, column=2, sticky=S, padx=10, pady=20)
 		self.allowButton.config(height = 2)
+		Tooltip(self.allowButton, text="Move selected group(s) from the Excluded List to the Permitted List")
 
-		self.clearButton = Button(self, text="Clear Disallowed List", command = lambda: self.clear_list())
-		self.clearButton.grid(row=6, column=4, sticky=S, padx=10, pady=20)
+		#Button to clear excluded list. 
+		curr_row += 3 #7
+		self.clearButton = Button(self, text="Clear Excluded List", command = lambda: self.clear_list())
+		self.clearButton.grid(row = curr_row, column=4, sticky=S, padx=10, pady=20)
 		self.clearButton.config(height = 2)
+		Tooltip(self.clearButton, text="Clear all groups from the Excluded List.")
 
 		self.list_update()
 
 	def disallow(self): 
+		#Remove data from the allowed list.
 		for i in self.allowed_list.curselection():
 			self.forbidden_list.append(self.allowed_ids[i])
 		self.list_update()
 
 	def allow(self): 
+		#Move group from the disallowed list back to the allowed list.
 		for i in self.disallowed_list.curselection():
 			self.forbidden_list.remove(self.disallowed_ids[i])
 		self.list_update()
 
 	def clear_list(self): 
-		self.forbidden_list = []
-		self.list_update()
+		#Remove all groups from the forbidden list if user provides confirmation. 
+		msg = "Are you sure you want to clear all values from the excluded list? Currently, this list contains " + \
+		", ".join(self.forbidden_list[0:-1]) + f" and {self.forbidden_list[-1]}."
+		answer = askyesno(title = "Clear Excluded List?", message = msg)
+		if answer: 
+			self.forbidden_list = []
+			self.list_update()
 
 	def list_update(self):
 		var = self.exclusiontype.get()
