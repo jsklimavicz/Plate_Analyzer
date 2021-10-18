@@ -4,6 +4,7 @@
 import os.path 
 from os import walk
 from datetime import datetime, timedelta
+import re
 
 from tkinter import *
 from tkinter import ttk
@@ -57,22 +58,23 @@ def parse_config_file(verbose = 0):
     root = os.path.abspath('.')
     config_file_path = os.path .join(root, 'config/config.txt')
     #defaults
-    config_dict = {'IMG_DIR': '.', \
+    config_dict = {'IMG_DIR': '.', 
                 'STATS_CONFIG_PATH': './analysis_config.txt',
-                'OUT_DIR': './out', \
-                'SAVE_INTMD': False, \
-                'SAVE_MASK': True, \
-                'SAVE_BBOX': True, \
-                'VERBOSE_CSV': True, \
-                'CTRL_NAME': 'control', \
-                'CTRL_CODE': 'VC',\
-                'MEDIA_NAME': 'LM (T)', \
-                'OPEN_CSV': False,\
-                'DIR_DATE_FORMAT': '%y%m%d_%H%M%S', \
-                'FILE_DATE_FORMAT': '%y%m%d', \
-                'PRETTY_DATE_FORMAT': '%m/%d/%Y' ,\
+                'OUT_DIR': './out', 
+                'SAVE_INTMD': False, 
+                'SAVE_MASK': True, 
+                'SAVE_BBOX': True, 
+                'VERBOSE_CSV': True, 
+                'CTRL_NAME': 'control', 
+                'CTRL_CODE': 'VC',
+                'MEDIA_NAME': 'LM (T)', 
+                'OPEN_CSV': False,
+                'PLATE_NUMBER': 1, 
+                'DIR_DATE_FORMAT': '%y%m%d_%H%M%S', 
+                'FILE_DATE_FORMAT': '%y%m%d', 
+                'PRETTY_DATE_FORMAT': '%m/%d/%Y' ,
                 'CSV_NAME': 'larval_counts_$f.csv',
-                'DETECTION_NMS_THRESHOLD': 0.6, \
+                'DETECTION_NMS_THRESHOLD': 0.6, 
                 'DETECTION_MIN_CONFIDENCE': 0.8}
     try:
         with open(config_file_path, 'r') as file:
@@ -102,6 +104,21 @@ Continuing with default values.'''
     dir_basename = os.path.basename(config_dict["MOST_RECENT_IMG_DIR"]).split("_")
     config_dict['IMG_DIR_ID'] = f"{dir_basename[0]}_{dir_basename[1]}"
     config_dict["CSV_NAME"], config_dict["CURR_DATE"], config_dict["DIR_DATE"], config_dict["PREV_DATE"] = output_filename_formater(config_dict)
+    
+    '''
+    Extract a plate number from the file path name if specified. Note that the 
+    user-named folder is *not* the deepest directory, and is instead the 
+    penultimate directory. We thus need to strip off the final directory. 
+    '''
+    penultimate_directory = os.path.dirname(config_dict["MOST_RECENT_IMG_DIR"])
+    penultimate_directory = os.path.basename(penultimate_directory).lower()
+    if "plate" in penultimate_directory:
+        print(penultimate_directory)
+        plate_split = penultimate_directory.split("plate")
+        if len(plate_split) >=1: 
+            plate_num = re.match(r'\d', plate_split[1]) #find first digit after the plate split.
+            if plate_num : config_dict['PLATE_NUMBER'] = plate_num.group(0)
+
     if verbose > 2: print(config_dict)
 
     return config_dict
@@ -114,6 +131,7 @@ def find_most_recent_img_dir(config_dict):
         image_folder = dirs[0]
         for folder in dirs[1:]:
             if os.path.getmtime(folder) > recent_time :
+                # print(folder, os.path.getmtime(folder))
                 recent_time = os.path.getmtime(folder)
                 image_folder = folder
         return image_folder

@@ -26,7 +26,8 @@ class IOFrame(ttk.Frame):
 		self.scale = scale
 		self.font = ('Arial', 12*self.scale)
 		self.config = config
-		self.plateID = 1
+		self.plateID = self.config['PLATE_NUMBER']
+		print(self.plateID)
 		self.textbox_width=60
 		super().__init__(container)
 		# setup the grid layout manager
@@ -128,7 +129,7 @@ class IOFrame(ttk.Frame):
 		vlist = [1,2,3,4,5,6,7,8,9,10]
 		self.PlateIDButton = ttk.Spinbox(self, values = vlist, wrap = True, format = '%2.0f', width=2, font = self.font)
 		self.PlateIDButton.grid(row=self.row_num, column=1, sticky = (S,W))
-		self.PlateIDButton.insert(0,1)
+		self.PlateIDButton.insert(0,self.plateID)
 		self.row_num += 1
 		Tooltip(self.PlateIDLabel, text="ID of the plate. Set to 1 unless more than one plate is run in a day.")
 
