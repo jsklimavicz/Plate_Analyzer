@@ -6,6 +6,7 @@ from scipy import integrate
 from scipy.optimize import fmin, root
 import matplotlib.pyplot as plt
 from statistics import median
+import warnings
 
 ET_VARS = ["equal-tailed", "equal", "et", "even", "even-tailed"]
 
@@ -256,3 +257,10 @@ def format_LC_to_CSV(CI_array):
     else: append_line(output, CI_array)
     return output
 
+#DECORATOR
+def surpress_warnings(func, *args, **kwargs):
+    def inner(*args, **kwargs):
+        with warnings.catch_warnings(): #Ignores warnings for, e.g., including gradients for non-gradient methods. 
+            warnings.simplefilter("ignore")
+            return func(*args, **kwargs)
+    return inner

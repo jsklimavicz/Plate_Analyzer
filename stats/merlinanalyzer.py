@@ -314,6 +314,7 @@ class MerlinAnalyzer:
 		 			'Comments']
 		return header
 
+	@utils.surpress_warnings
 	def compare_LC(self, cmpd, n_bs = 100000, *args, **kwargs):
 		'''
 		Calculates relative potency using random samples from the kernel density of the LCx distribution for
@@ -350,16 +351,15 @@ class MerlinAnalyzer:
 						*args, 
 						**kwargs):
 
+		
 		archive_path = self.cache_path if archive_path is not None else self.options["ARCHIVE_PATH"]
 		key_file = key_file if key_file is not None else self.options["KEY_PATH"]
 		out_path = out_path if out_path is not None else self.options["SAVE_PATH"]
 		pdf_outfile = pdf_outfile if pdf_outfile is not None else self.options["OUTPUT_PDF_NAME"]
 		csv_outfile = csv_outfile if csv_outfile is not None else self.options["OUTPUT_CSV_NAME"]
 
-		# print(new_datapath)
-
-		# self.merge_old_new(new_datapath = new_datapath, archive_path = archive_path, key_file = key_file)
-
+		#Set progress to zero; this is needed if running the stats more than once to prevent 100% completions.
+		self.progress = 0.
 
 		image_dir = os.path.abspath(os.path.join(out_path, 'images'))
 		pdf_dir = os.path.abspath(os.path.join(image_dir, 'pdf'))

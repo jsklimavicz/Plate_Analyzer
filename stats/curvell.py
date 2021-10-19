@@ -53,7 +53,20 @@ class CI_finder:
 		self.points = None
 		self.plot_quant = None
 
-	def ll3(self, b, probs, conc, sigma = 1000,weibull_param=[2,1]):
+	#DECORATOR
+	def update_options(func, *args, **kwargs): 
+		'''
+		Decorator to update the options for this class if the options keyword is included. 
+		'''
+		def inner(*args, **kwargs):
+			if "options" in kwargs:
+				for k, v in options.items(): self.options[k] = v
+			func(*args, **kwargs)
+		return inner
+
+	@staticmethod
+	@utils.surpress_warnings
+	def ll3(b, probs, conc, sigma = 1000,weibull_param=[2,1]):
 		'''
 		Log-likelihood function of the three parameter dose-response curve 
 							    b3
@@ -74,7 +87,9 @@ class CI_finder:
 			ll += - ((b3/wl)**wk) + (wk-1)*np.log(b3) #+ np.log(wk) - wk*np.log(wl)
 		return(-ll)
 
-	def ll3_grad(self, b, probs, conc,sigma = 1000,weibull_param=[2,1]):
+	@staticmethod
+	@utils.surpress_warnings
+	def ll3_grad(b, probs, conc,sigma = 1000,weibull_param=[2,1]):
 		'''
 		Gradient of the log-likelihood function of the three parameter dose-response curve 
 							    b3
@@ -95,7 +110,9 @@ class CI_finder:
 		g4 = (wk-1)/b3 - (wk/b3)*((b3/wl)**wk) - sum(probs/d) + sum((1-probs)/b3)
 		return(np.array([-g1,-g2,-g4]))
 
-	def ll2(self, b, probs, conc, sigma = 1000):
+	@staticmethod
+	@utils.surpress_warnings
+	def ll2(b, probs, conc, sigma = 1000):
 		'''
 		Log-likelihood function of the two parameter dose-response curve 
 							    1
@@ -109,7 +126,9 @@ class CI_finder:
 		ll = -(b0**2 + b1**2)/(2*sigma**2) + b0*p_sum + b1*p_conc_sum - sum(np.log(1 + np.exp(b0+b1*conc)))
 		return(-ll)
 
-	def ll2_grad(self, b, probs, conc, sigma = 1000):
+	@staticmethod
+	@utils.surpress_warnings
+	def ll2_grad(b, probs, conc, sigma = 1000):
 		'''
 		Gradient of the log-likelihood function of the two parameter dose-response curve 
 							    1
@@ -126,7 +145,9 @@ class CI_finder:
 		g2 = -b1/sigma**2 + sum(conc*probs) - sum(conc*l)
 		return(np.array([-g1,-g2]))
 
-	def loglogit2(self, b, conc): 
+	@staticmethod
+	@utils.surpress_warnings
+	def loglogit2(b, conc): 
 		'''
 		Calculates the values of the two parameter dose-response curve 
 							    1
@@ -136,7 +157,9 @@ class CI_finder:
 		'''
 		return 1./(1.+ np.exp(-b[0] - conc * b[1]))
 
-	def loglogit3(self, b, conc): 
+	@staticmethod
+	@utils.surpress_warnings
+	def loglogit3(b, conc): 
 		'''
 		Calculates the values of the three parameter dose-response curve 
 							    b2
@@ -156,32 +179,20 @@ class CI_finder:
 			(self.params[:,0:2].shape[0], self.params[:,0:2].shape[1], len(quantiles)))
 		return (np.log(1./quant2 - 1.)-params[:,0])/params[:,1]
 
-	#DECORATOR
-	def update_options(func, *args, **kwargs): 
-		'''
-		Decorator to update the options for this class if the options keyword is included. 
-		'''
-		def inner(*args, **kwargs):
-			if "options" in kwargs:
-				for k, v in options.items(): self.options[k] = v
-			func(*args, **kwargs)
-		return inner
-
 	def fit_curve(self, probs):
 		'''
 		Curve-fitting driver. 
 		'''
 		#TODO: better methods of b estimation
 		#TODO: handle cases where EC50 is not going to be in the data :( 
+		@utils.surpress_warnings
 		def fit_ll3(b3, probs):
 			'''
 			Inner function that attempts to fit the three-paremeter dose-response curve with the option-specified
 			method for minimization. If this method fails, the more computationally-expensive but better-behaved
 			Nelder-Mead method is used. 
 			'''
-			with warnings.catch_warnings(): #Ignores warnings for, e.g., including gradients for non-gradient methods. 
-				warnings.simplefilter("ignore")
-				res = minimize(self.ll3, b3, args = (probs, self.conc), method = self.options["FIT_METHOD"], jac = self.ll3_grad)
+			res = minimize(self.ll3, b3, args = (probs, self.conc), method = self.options["FIT_METHOD"], jac = self.ll3_grad)
 			if not res.success:
 				res = minimize(self.ll3, b3, args = (probs, self.conc), method = 'Nelder-Mead')
 			return res
