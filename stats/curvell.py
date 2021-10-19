@@ -79,7 +79,7 @@ class CI_finder:
 
 	@staticmethod
 	@utils.surpress_warnings
-	def ll3(b, probs, conc, sigma = 1000, weibull_param=[2,1]):
+	def ll3(b, probs, conc, sigma_squared = 1e6, weibull_param=[2,1]):
 		'''
 		Log-likelihood function of the three parameter dose-response curve 
 							    b2
@@ -101,7 +101,8 @@ class CI_finder:
 		if (min(alpha)-b2 <= 1e-10): return(1e10)
 		wk = weibull_param[0]
 		wl = weibull_param[1]*(wk/(wk-1))**(1/wk)
-		ll = -(b0**2 + b1**2)/(2*(sigma**2)) + sum(probs*np.log(alpha-b2)) +\
+		#note: from benchmarking, b0*b0 is approximately 3x faster than b0**2 for a float.
+		ll = -(b0*b0 + b1*b1)/(2*sigma_squared) + sum(probs*np.log(alpha-b2)) +\
 				np.log(b2)*sum((1-probs)) - sum(l)
 		ll += -((b2/wl)**wk) + (wk-1)*np.log(b2) #+ np.log(wk) - wk*np.log(wl)
 		return(-ll)
@@ -128,7 +129,7 @@ class CI_finder:
 
 	@staticmethod
 	@utils.surpress_warnings
-	def ll3_jac(b, probs, conc,sigma = 1000, weibull_param=[2,1]):
+	def ll3_jac(b, probs, conc,sigma_squared = 1e6, weibull_param=[2,1]):
 		'''
 		Jacobian of the log-likelihood function of the three 
 		parameter dose-response curve 
@@ -146,15 +147,15 @@ class CI_finder:
 		l = xi/alpha
 		wk = weibull_param[0]
 		wl = weibull_param[1]*(wk/(wk-1))**(1/wk)
-		g0 = -b0/(sigma**2) + sum(m) - sum(l)
-		g1 = -b1/(sigma**2) + sum(conc*m) - sum(conc*l)
+		g0 = -b0/(sigma_squared) + sum(m) - sum(l)
+		g1 = -b1/(sigma_squared) + sum(conc*m) - sum(conc*l)
 		g2 = (wk-1)/b2 - (wk/b2)*((b2/wl)**wk) - sum(probs/d) + \
 				sum((1-probs)/b2)
 		return(np.array([-g0,-g1,-g2]))
 
 	@staticmethod
 	@utils.surpress_warnings
-	def ll2(b, probs, conc, sigma = 1000):
+	def ll2(b, probs, conc, sigma_squared = 1e6):
 		'''
 		Log-likelihood function of the two parameter dose-response curve 
 							    1
@@ -165,13 +166,13 @@ class CI_finder:
 		b0, b1 = b
 		p_sum = sum(probs)
 		p_conc_sum = sum(probs*conc)
-		ll = -(b0**2 + b1**2)/(2*sigma**2) + b0*p_sum + b1*p_conc_sum - \
+		ll = -(b0*b0 + b1*b1)/(2*sigma_squared) + b0*p_sum + b1*p_conc_sum - \
 				sum(np.log(1 + np.exp(b0+b1*conc)))
 		return(-ll)
 
 	@staticmethod
 	@utils.surpress_warnings
-	def ll2_jac(b, probs, conc, sigma = 1000):
+	def ll2_jac(b, probs, conc, sigma_squared = 1e6):
 		'''
 		Jacobian of the log-likelihood function of the 
 		two parameter dose-response curve
@@ -393,8 +394,10 @@ class CI_finder:
 		spline_vals = spline(conc)
 		start = 0
 		end = 10
-		sum_of_square_resids = sum((spline_vals - probs) ** 2)
-		sum_of_square_nofit = sum((probs - mean(probs)) ** 2)
+		SSR = spline_vals - probs
+		sum_of_square_resids = sum(SSR * SSR)
+		SSF = probs - mean(probs)
+		sum_of_square_nofit = sum(SSF*SSF)
 		return 1- sum_of_square_resids/sum_of_square_nofit
 
 	@update_options
