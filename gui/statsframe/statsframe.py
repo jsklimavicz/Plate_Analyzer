@@ -21,8 +21,6 @@ from gui.statsframe.datatypeselectionframe import DataTypeSelectionFrame as DTSF
 from gui.progmonitor import ProgMonitor
 from gui.statsframe.datapreviewer import DataPreviewer
 
-
-
 class StatsFrame(ttk.Frame):
 	def __init__(self, container, config, scale = 1, **kwargs):
 		super().__init__(container, **kwargs)
@@ -40,7 +38,6 @@ class StatsFrame(ttk.Frame):
 		
 	def __create_widgets(self, scale = 1):
 
-		self.font = ('Arial', 12*self.scale)
 		self.selection_frame = DTSF(self, config = self.config, stats_obj = self.stats_obj, scale = self.scale)
 		self.selection_frame.grid(column=0, row=0, padx=10, pady=20)
 

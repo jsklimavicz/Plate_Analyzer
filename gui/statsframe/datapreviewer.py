@@ -78,19 +78,22 @@ class DataPreviewer(tk.Frame):
 						exportselection=0,
 						yscrollcommand=scrollbar.set, 
 						width = 30)
-		self.cmpd_listbox.pack(expand = True, fill = Y) #pack/grid format gives tighter layout
+		#pack/grid format gives tighter layout
+		self.cmpd_listbox.pack(expand = True, fill = Y) 
 		
 		#bindings
 		self.cmpd_listbox.bind('<<ListboxSelect>>', self.plotselect)
 		self.cmpd_listbox.bind("<Down>", self.plotselect_scroll)
 		self.cmpd_listbox.bind("<Up>", self.plotselect_scroll)
-		scrollbar.config(command=self.cmpd_listbox.yview) #configure scrollbar to listbox
+		#configure scrollbar to listbox
+		scrollbar.config(command=self.cmpd_listbox.yview) 
 		
 		#Populate the listbox with compound names.
 		self.cmpd_list = sorted(list(self.stats_obj.cmpd_data.keys()))
 		for ind, item in enumerate(self.cmpd_list):
 			self.cmpd_listbox.insert(ind, item)
-		Tooltip(self.cmpd_listbox, text="Select a compound to show the data that will be used for analysis.")
+		msg = "Select a compound to preview data selected for analysis."
+		Tooltip(self.cmpd_listbox, text=msg)
 		
 		#UID Selection
 		uid_frm = Frame(self.top)
@@ -120,19 +123,22 @@ class DataPreviewer(tk.Frame):
 		self.uid_listbox.bind("<Down>", self.uidselect_scroll)
 		self.uid_listbox.bind("<Up>", self.uidselect_scroll)
 		scrollbar.config(command=self.uid_listbox.yview) #bind scrollbar
-		Tooltip(self.uid_listbox, text="Identifier is of the format <date>_P<plate>_R<row>_ID. " +\
-			"Select an identifier to highlight its data in the plot.")
+		msg = "Identifier is of the format <date>_P<plate>_R<row>_ID. " + \
+				"Select an identifier to highlight its data in the plot."
+		Tooltip(self.uid_listbox, text= msg)
 
 		'''
 		Figure frame
-		Making the figure and canvas here is important. When made in the plot function, a
-		memory leak results due to improper clearing of the plot. 
+		Making the figure and canvas here is important. When made in the plot
+		function, a memory leak results due to improper clearing of the plot. 
 		'''
 		self.fig_frame = Frame(self.top)
-		self.fig_frame.grid(row=0, column=3, rowspan = 9, columnspan = 9, sticky=N+S)
+		self.fig_frame.grid(row=0, column=3, rowspan = 9, columnspan = 9, 
+					sticky=N+S)
 		self.fig = Figure(figsize = (5,5), dpi = 150)
 		self.canvas = FigureCanvasTkAgg(self.fig, master=self.fig_frame)
-		self.canvas.get_tk_widget().grid(row=0, column=2, rowspan = 8, columnspan = 8, sticky=N+S)
+		self.canvas.get_tk_widget().grid(row=0, column=2, rowspan = 8, 
+					columnspan = 8, sticky=N+S)
 		self.plot1 = self.fig.add_subplot(111)
 
 		#initialize a plot with the first compound. 
@@ -167,16 +173,21 @@ class DataPreviewer(tk.Frame):
 			self.current_cmpd = self.cmpd_list[int(w.curselection()[0])]
 		else:
 			self.current_cmpd = self.cmpd_list[0]
-		self.include_now = self.stats_obj.cmpd_data[self.current_cmpd].data['include_now'] #Get the allowed data list
-		self.uid_list = list(self.stats_obj.cmpd_data[self.current_cmpd].data['unique_plate_ids']) #Get list of permitted IDs
-		#Rescructure the UID to be moreuser-friendly
-		self.uid_list = [s.split("_") for s in self.uid_list] 
-		self.uid_list = [f"{s[4]}_Plate{s[1]}_Row{s[2]}_{s[3]}" for s in self.uid_list]
-		self.uid_list = sorted(list(set(compress(self.uid_list, self.include_now))))
+		#Get the allowed data list
+		self.include_now = self.stats_obj.cmpd_data[
+							self.current_cmpd].data['include_now']
+		#Get list of permitted IDs 
+		self.uid_list = list(self.stats_obj.cmpd_data[
+							self.current_cmpd].data['unique_plate_ids']) 
+		self.uid_list = sorted(list(set(compress(
+							self.uid_list, self.include_now))))
 		
 		#clear previous list
 		self.uid_listbox.delete(0,END)
 		for ind, item in enumerate(self.uid_list):
+			#Rescructure the UID to be moreuser-friendly
+			s = item.split("_")
+			item = f"{s[4]}_{s[1]}_Plate{s[2]}_Row{s[3]}"
 			self.uid_listbox.insert(ind, item)
 		#update the plot
 		self.plot()
@@ -188,9 +199,10 @@ class DataPreviewer(tk.Frame):
 
 	def update_plot(self):
 		'''
-		Uses the current conc/probs from the selected compound to highlight the data from the 
-		currently-selected UID. Note that this method actually creates a completely new plot;
-		clearing the old plot is performed to prevent any memory leaks. 
+		Uses the current conc/probs from the selected compound to highlight 
+		the data from the currently-selected UID. Note that this method 
+		actually creates a completely new plot; clearing the old plot is 
+		performed to prevent any memory leaks. 
 		'''
 		self.plot1.clear()
 
@@ -199,7 +211,8 @@ class DataPreviewer(tk.Frame):
 		background_probs = []
 		uid_conc = []
 		uid_probs = []
-		for ind, uid in enumerate(self.stats_obj.cmpd_data[self.current_cmpd].data['unique_plate_ids']):
+		for ind, uid in enumerate(self.stats_obj.cmpd_data[
+						self.current_cmpd].data['unique_plate_ids']):
 			if uid == self.current_uid:
 				uid_conc.append(self.conc[ind])
 				uid_probs.append(self.probs[ind])
@@ -221,18 +234,28 @@ class DataPreviewer(tk.Frame):
 				mfc = 'red', 
 				ls = 'None')
 		self.set_labels() #update axes, etc.
+		self.plot_curve()
 		self.canvas.draw() #draw the plot
 
 	def plot(self):
-		#Plots the data for the selected compound. Initially, no data is highlighted. 
+		'''
+		Plots the data for the selected compound. Initially, no data is 
+		highlighted. 
+		'''
 		self.plot1.clear()
 		self.curr_data = self.stats_obj.cmpd_data[self.current_cmpd]
-		self.conc = self.curr_data.data["conc"].copy() #copied so that we don't change the original data. 
+		#copy concentrations so that we don't change the original data. 
+		self.conc_orig = self.curr_data.data["conc"].copy() 
+		self.conc = self.conc_orig.copy() 
 		#calculate survival probability. 
-		self.probs = self.curr_data.data["live_count"]/(self.curr_data.data["live_count"] + self.curr_data.data["dead_count"])
-		if self.stats_obj.options["JITTER"]: self.conc += np.random.uniform(-self.stats_obj.options["JITTER_FACTOR"], 
-													self.stats_obj.options["JITTER_FACTOR"], 
-													len(self.conc))
+		self.probs = self.curr_data.data["live_count"]/ \
+					(self.curr_data.data["live_count"] + \
+					self.curr_data.data["dead_count"])
+		if self.stats_obj.options["JITTER"]: 
+			self.conc += np.random.uniform(
+					-self.stats_obj.options["JITTER_FACTOR"],
+					self.stats_obj.options["JITTER_FACTOR"], 
+					len(self.conc))
 		self.plot1.plot(self.conc, 
 				self.probs, 
 				marker = '.', 
@@ -240,10 +263,23 @@ class DataPreviewer(tk.Frame):
 				mfc = 'black', 
 				ls = 'None')
 		self.set_labels()
+		self.make_curve()
 		self.canvas.draw()
+		
 
-	# def make_curve(self):
+	def make_curve(self):
+		lb, ub = round(min(self.conc)), round(max(self.conc))
+		num_points = 10 * (ub - lb + 2) + 1 #10 x-points (including both ends)
+		self.x = np.linspace(lb-1, ub+1, num_points)
+		b = CI_finder.estimate_initial_b(self.conc, self.probs, params = 3)
+		res = minimize(CI_finder.ll3, b, args = (1-self.probs, self.conc), method = 'Nelder-Mead')
+		print(b)
+		print(res.x)
+		self.y = CI_finder.loglogit3(b = res.x, conc = self.x)
+		self.plot_curve()
 
+	def plot_curve(self):
+		self.plot1.plot(self.x, self.y, ls = '-', c = 'blue')
 
 	def set_labels(self):
 		'''
@@ -252,13 +288,15 @@ class DataPreviewer(tk.Frame):
 
 		def calc_x_ticks():
 			'''
-			Calculate the x-ticks for the graph based on the range of concentrations in the data. 
+			Calculate the x-ticks for the graph based on the range of 
+			concentrations in the data. 
 			'''
 			lb, ub = round(min(self.conc)), round(max(self.conc))
 			xticks = np.array(range(lb-1, ub+2, 1))
 			xticklabels = [round(2**i) if i >=0 else 2.**i for i in xticks]
 			for i, label in enumerate(xticklabels):
-				if label < 1./64.: xticklabels[i] = "{:.1e}".format(label).replace("e-0", "e-")
+				if label < 1./64.: xticklabels[i] = "{:.1e}".format(
+							label).replace("e-0", "e-")
 				elif label < 1./4.: xticklabels[i] = "{:.3f}".format(label)
 				else: xticklabels[i] = str(label) 
 			return xticks, xticklabels
@@ -269,10 +307,9 @@ class DataPreviewer(tk.Frame):
 		xticks, xticklabels = calc_x_ticks()
 		self.plot1.set_xticks(xticks, minor=False)
 		self.plot1.set_xticklabels(xticklabels, rotation=90, fontsize=8)
-		# plot1.xticks(ticks=xticks, rotation=90, fontsize=8, labels=xticklabels)
-		# plot1.yticks(ticks=np.array(range(0, 5, 1))/4. , labels=np.array(range(0, 101, 25)) )
 		self.plot1.set_yticks(np.array(range(0, 5, 1))/4., minor=False)
-		self.plot1.set_yticklabels(np.array(range(0, 101, 25)), rotation=90, fontsize=8)
+		self.plot1.set_yticklabels(np.array(range(0, 101, 25)), 
+					rotation=90, fontsize=8)
 		self.plot1.grid(b=True, alpha = 0.5)
 		self.plot1.set_xlim([min(xticks), max(xticks)])
 		self.plot1.set_ylim([0,1])

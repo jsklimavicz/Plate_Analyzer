@@ -10,9 +10,12 @@ import warnings
 
 ET_VARS = ["equal-tailed", "equal", "et", "even", "even-tailed"]
 
-def parse_config_file(config_path = os.path.abspath('.config/analysis_config.txt'), **kwargs):
+def parse_config_file(
+        config_path = os.path.abspath('.config/analysis_config.txt'),
+        **kwargs):
     '''
-    Reads in the configuration file 'analysis_config.txt' and converts the specified data to the appropriate type. 
+    Reads in the configuration file 'analysis_config.txt' and converts the 
+    specified data to the appropriate type. 
     '''
     config_dict = default_config()
 
@@ -104,6 +107,7 @@ def default_config():
                     }
     return config_dict
 
+#DECORATOR
 def fix_num_output(func, *args, **kwargs):
     def fix_scinot(*args, **kwargs):
         return func(*args,**kwargs).replace("e+0","e").replace("E+0","e").replace("e-0","e-").replace("E-0","e-").replace("e+","e")

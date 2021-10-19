@@ -2,20 +2,12 @@
 #full_gui.py
 
 from tkinter import *
-from tkinter import ttk, filedialog, messagebox
-from tkinter.ttk import Label, Style
-import random
-import os
-from os import path, getcwd, mkdir
-from os.path import exists
-from datetime import datetime
+from tkinter import ttk
 import tkinter as tk
-from gui.tooltip import Tooltip #as Tooltip
-import gui.utils as pdu
+import os
 import platform
-import time
-from stats.main import analyze_data
-import multiprocessing
+
+import gui.utils as pdu
 from gui.imageframe.analysisframe import AnalysisFrame as AnalysisFrame
 from gui.statsframe.statsframe import StatsFrame as StatsFrame
 
@@ -25,9 +17,21 @@ from gui.statsframe.statsframe import StatsFrame as StatsFrame
 #############################################################################
 
 class App(tk.Tk):
+	'''
+	Creates the overal GUI for both the Image AI and for the statistics. 
+	These two interfaces are on different tabs.
+
+	tk.Tk
+	self.notebook
+	|--image_frame tab #For image analysis
+	|  |--AnalysisFrame
+	|--stats_frame tab #UID selection for highlighting in plot
+	|  |--StatsFrame
+
+	'''
 	def __init__(self):
 		super().__init__()
-		self.config = pdu.parse_config_file()
+		self.config = pdu.parse_config_file() #first look at configuration.
 		self.scale = self.det_scaling()
 		geom = [700* self.scale*1.5, 700* self.scale*1.0] 
 
@@ -55,6 +59,11 @@ class App(tk.Tk):
 		self.notebook.add(self.stats_frame, text='Statistics')
 
 	def det_scaling(self):
+		'''
+		Apparently Ubuntu20.04 changed its display code such that scaling is wonky. 
+		This makes the GUI on Ubuntu a more reasonable size, similar to what it would
+		be on Windows.
+		'''
 		operating_sys = platform.system()
 		scale = 1
 		if operating_sys == 'Linux':

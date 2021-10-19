@@ -25,24 +25,36 @@ def default_params_dict():
 
 class CI_finder:	
 	'''
-	Performs the curve-fitting and associated math for dose-response analysis for the bioassay.
+	Performs the curve-fitting and associated math for dose-response analysis
+	for the bioassay.
 	'''
 	default_options = default_params_dict()
 
-	def __init__(self, unique_plate_ids, live_count, dead_count, conc, include_now, options = None, **kwargs):
-		if unique_plate_ids is None or live_count is None or dead_count is None or conc is None:
-			raise ValueError("CI_finder requries plate_ids, live_count, dead_count, and conc values.")
+	def __init__(self, 
+				unique_plate_ids, 
+				live_count, 
+				dead_count, 
+				conc, 
+				include_now, 
+				options = None, 
+				**kwargs):
+		if unique_plate_ids is None or live_count is None or \
+				dead_count is None or conc is None:
+			raise ValueError("CI_finder requries plate_ids, live_count, " +\
+				"dead_count, and conc values.")
 		elif not (len(unique_plate_ids)== len(live_count) and 
 			len(unique_plate_ids)==len(dead_count) and 
 			len(unique_plate_ids)==len(conc) and 
 			len(unique_plate_ids)==len(include_now)):
-			raise ValueError("CI_finder requries plate_ids, live_count, dead_count, and conc to all be the same length.")
+			raise ValueError("CI_finder requries plate_ids, live_count, " +\
+				"dead_count, and conc to all be the same length.")
 		self.unique_plate_ids =  list(compress(unique_plate_ids, include_now))
 		self.live_count = np.array(list(compress(live_count, include_now)))
 		self.dead_count = np.array(list(compress(dead_count, include_now)))
 		self.conc = np.array(list(compress(conc, include_now)))
 		
-		self.uid_list = list(set(self.unique_plate_ids)) #for the purpose of determining if there are new UIDs included
+		#for the purpose of determining if there are new UIDs included
+		self.uid_list = list(set(self.unique_plate_ids))
 
 		self.n_trials = kwargs['n_trials']
 		self.options = self.default_options
@@ -56,7 +68,8 @@ class CI_finder:
 	#DECORATOR
 	def update_options(func, *args, **kwargs): 
 		'''
-		Decorator to update the options for this class if the options keyword is included. 
+		Decorator to update the options for this class if the options
+		keyword is included. 
 		'''
 		def inner(*args, **kwargs):
 			if "options" in kwargs:
@@ -66,49 +79,58 @@ class CI_finder:
 
 	@staticmethod
 	@utils.surpress_warnings
-	def ll3(b, probs, conc, sigma = 1000,weibull_param=[2,1]):
+	def ll3(b, probs, conc, sigma = 1000, weibull_param=[2,1]):
 		'''
 		Log-likelihood function of the three parameter dose-response curve 
-							    b3
+							    b2
 					y = ------------------
 						1 + exp(b0 + b1*x)
-		wherein priors are b0, b1 ~ MVN(0, sigma*I2) and b2 ~ Weibull(weibull_param).
+		wherein priors are b0, b1 ~ MVN(0, sigma*I2) and 
+		b2 ~ Weibull(weibull_params).
+
+		Paramerization of Weibull(x|l, k) = k/l * (x/l)^(k-1) * exp(-(x/l)**k)
+		I forget why I implemented this with Weibull 
+		instead of Beta, but it works fine so I haven't
+		changed it. 
 		'''
-		b0, b1, b3 = b
-		if (b3 <= 1e-10 or b3 > 1. ): return(1e10)
+		b0, b1, b2 = b
+		if (b2 <= 1e-10 or b2 > 1. ): return(1e10)
 		xi = np.exp(b0+b1*conc)
-		alpha = 1+xi
+		alpha = 1+xi # >1.0
 		l = np.log(alpha)
-		if (min(alpha)-b3 <= 1e-10): return(1e10)
+		if (min(alpha)-b2 <= 1e-10): return(1e10)
 		wk = weibull_param[0]
 		wl = weibull_param[1]*(wk/(wk-1))**(1/wk)
-		ll = -(b0**2 + b1**2)/(2*(sigma**2)) + sum(probs*np.log(alpha-b3)) + np.log(b3)*sum((1-probs)) - sum(l)
-		if b3 < 1 - 1e-9: 
-			ll += - ((b3/wl)**wk) + (wk-1)*np.log(b3) #+ np.log(wk) - wk*np.log(wl)
+		ll = -(b0**2 + b1**2)/(2*(sigma**2)) + sum(probs*np.log(alpha-b2)) +\
+				np.log(b2)*sum((1-probs)) - sum(l)
+		ll += -((b2/wl)**wk) + (wk-1)*np.log(b2) #+ np.log(wk) - wk*np.log(wl)
 		return(-ll)
 
 	@staticmethod
 	@utils.surpress_warnings
-	def ll3_grad(b, probs, conc,sigma = 1000,weibull_param=[2,1]):
+	def ll3_grad(b, probs, conc,sigma = 1000, weibull_param=[2,1]):
 		'''
-		Gradient of the log-likelihood function of the three parameter dose-response curve 
-							    b3
+		Gradient of the log-likelihood function of the three 
+		parameter dose-response curve 
+							    b2
 					y = ------------------
 						1 + exp(b0 + b1*x)
-		wherein priors are b0, b1 ~ MVN(0, sigma*I2) and b2 ~ Weibull(weibull_param).
+		wherein priors are b0, b1 ~ MVN(0, sigma*I2) and 
+		b2 ~ Weibull(weibull_params).
 		'''
-		b0, b1, b3 = b
+		b0, b1, b2 = b
 		xi = np.exp(b0+b1*conc)
 		alpha = 1+xi
-		d = (alpha - b3)
+		d = (alpha - b2)
 		m = probs*xi / d
 		l = xi/alpha
 		wk = weibull_param[0]
 		wl = weibull_param[1]*(wk/(wk-1))**(1/wk)
-		g1 = -b0/(sigma**2) + sum(m) - sum(l)
-		g2 = -b1/(sigma**2) + sum(conc*m) - sum(conc*l)
-		g4 = (wk-1)/b3 - (wk/b3)*((b3/wl)**wk) - sum(probs/d) + sum((1-probs)/b3)
-		return(np.array([-g1,-g2,-g4]))
+		g0 = -b0/(sigma**2) + sum(m) - sum(l)
+		g1 = -b1/(sigma**2) + sum(conc*m) - sum(conc*l)
+		g2 = (wk-1)/b2 - (wk/b2)*((b2/wl)**wk) - sum(probs/d) + \
+				sum((1-probs)/b2)
+		return(np.array([-g0,-g1,-g2]))
 
 	@staticmethod
 	@utils.surpress_warnings
@@ -123,14 +145,16 @@ class CI_finder:
 		b0, b1 = b
 		p_sum = sum(probs)
 		p_conc_sum = sum(probs*conc)
-		ll = -(b0**2 + b1**2)/(2*sigma**2) + b0*p_sum + b1*p_conc_sum - sum(np.log(1 + np.exp(b0+b1*conc)))
+		ll = -(b0**2 + b1**2)/(2*sigma**2) + b0*p_sum + b1*p_conc_sum - \
+				sum(np.log(1 + np.exp(b0+b1*conc)))
 		return(-ll)
 
 	@staticmethod
 	@utils.surpress_warnings
 	def ll2_grad(b, probs, conc, sigma = 1000):
 		'''
-		Gradient of the log-likelihood function of the two parameter dose-response curve 
+		Gradient of the log-likelihood function of the 
+		two parameter dose-response curve
 							    1
 					y = ------------------
 						1 + exp(b0 + b1*x)
@@ -171,13 +195,44 @@ class CI_finder:
 
 	def ll3_find_LC(self, quantiles):
 		'''
-		Given the list self.params of parameters from bootstrapping and the list of quantiles, this 
-		method returns the concentrations at which each of the quantiles is met. 
+		Given the list self.params of parameters from bootstrapping and the 
+		list of quantiles, this method returns the concentrations at which each
+		of the quantiles is met. 
 		'''
 		quant2 = np.tile(np.array(quantiles), (len(self.params),1))
-		params = np.reshape(np.repeat(np.array(self.params[:,0:2]), len(quantiles)), 
-			(self.params[:,0:2].shape[0], self.params[:,0:2].shape[1], len(quantiles)))
+		params = np.reshape(np.repeat(np.array(self.params[:,0:2]), 
+					len(quantiles)), 
+					(self.params[:,0:2].shape[0], 
+							self.params[:,0:2].shape[1], 
+							len(quantiles)))
 		return (np.log(1./quant2 - 1.)-params[:,0])/params[:,1]
+
+	@staticmethod
+	def estimate_initial_b(conc, probs, params = 3):
+		#no good way to estimate slope yet without a curve fit.
+		default_slope= 1
+
+		#estimate background mortality:
+		n_vals = round(0.2 * len(conc))
+
+		#sort the lists
+		zipped =  sorted(zip(conc, probs))
+		tuples = zip(*zipped)
+		conc, probs = [list(val) for val in  tuples]
+
+		if params == 3:
+			background_mort = sum(probs[:n_vals])/n_vals #ave
+			med = background_mort/2.
+		else:
+			med = 0.5
+
+		high_idx = np.where(probs > med)[0]
+		est_intercept= -conc[high_idx[-1]]/default_slope
+
+		if params == 3:
+			return np.array([est_intercept, default_slope, background_mort])
+		else:
+			return np.array([est_intercept, default_slope])
 
 	def fit_curve(self, probs):
 		'''
@@ -185,40 +240,38 @@ class CI_finder:
 		'''
 		#TODO: better methods of b estimation
 		#TODO: handle cases where EC50 is not going to be in the data :( 
+		
 		@utils.surpress_warnings
-		def fit_ll3(b3, probs):
+		def fit_ll3(b, probs):
 			'''
-			Inner function that attempts to fit the three-paremeter dose-response curve with the option-specified
-			method for minimization. If this method fails, the more computationally-expensive but better-behaved
-			Nelder-Mead method is used. 
+			Inner function that attempts to fit the three-paremeter dose-
+			response curve with the option-specified method for minimization.
+			If this method fails, the more computationally-expensive but 
+			better-behaved Nelder-Mead method is used. 
 			'''
-			res = minimize(self.ll3, b3, args = (probs, self.conc), method = self.options["FIT_METHOD"], jac = self.ll3_grad)
+			res = minimize(self.ll3, b, args = (probs, self.conc), 
+					method = self.options["FIT_METHOD"], jac = self.ll3_grad)
 			if not res.success:
-				res = minimize(self.ll3, b3, args = (probs, self.conc), method = 'Nelder-Mead')
+				res = minimize(self.ll3, b, args = (probs, self.conc), 
+					method = 'Nelder-Mead')
 			return res
-		default_b1 = median(self.conc)
-		n_vals = round(0.2 * len(self.conc))
-		idx = np.argpartition(self.conc, n_vals)
-		background_mort = sum(probs[idx[:n_vals]])/n_vals
-		med = background_mort/2.
+		
 		if self.options["CURVE_TYPE"].lower() == 'auto':
-			if background_mort > 0.15:
-				self.options["CURVE_TYPE"] = "ll3"
-			else:
-				self.options["CURVE_TYPE"] = "ll2"
-				med = 0.5
-		high_idx = np.where(probs > med)[0]
-		est_lc50 = self.conc[high_idx[-1]]
+			if background_mort > 0.10: self.options["CURVE_TYPE"] = "ll3"
+			else: self.options["CURVE_TYPE"] = "ll2"
+
 		if self.options["CURVE_TYPE"].lower() in ["2", "ll2", 2]:
-			b2 = np.array([est_lc50, default_b1])
-			return minimize(self.ll2, b2, args = (probs, self.conc), method = self.options["FIT_METHOD"], jac = self.ll2_grad)
+			b2 = self.estimate_initial_b(self.conc, probs, params = 2)
+			return minimize(self.ll2, b2, args = (probs, self.conc), 
+					method = self.options["FIT_METHOD"], jac = self.ll2_grad)
 		elif self.options["CURVE_TYPE"].lower() in ["3", "ll3", 3]:
-			b3 = np.array([est_lc50, default_b1, background_mort])
+			b3 = self.estimate_initial_b(self.conc, probs)
 			res = fit_ll3(b3, probs)
 			return res
 		elif self.options["CURVE_TYPE"].lower() in ["best", "aic"]:
-			b2 = np.array([est_lc50, default_b1])
-			res2 = minimize(self.ll2, b2, args = (probs, self.conc), method = self.options["FIT_METHOD"], jac = self.ll2_grad)
+			b2 = self.estimate_initial_b(self.conc, probs, params = 2)
+			res2 = minimize(self.ll2, b2, args = (probs, self.conc), 
+					method = self.options["FIT_METHOD"], jac = self.ll2_grad)
 			b3 = np.array([res2.x[0], res2.x[1], background_mort])
 			res3 = fit_ll3(b3, probs)
 			AIC2 = 4 - 2*res2.fun
@@ -227,8 +280,9 @@ class CI_finder:
 
 	def bootstrap_CIs(self):
 		'''
-		Driver for the bootstrapping process. Because the curvefitting is computationally
-		costly but is embrassingly parallel, this is best done in parallel. 
+		Driver for the bootstrapping process. Because the curvefitting is 
+		computationally costly but is embrassingly parallel, this is best 
+		done in parallel. 
 		'''
 		import multiprocessing
 		from joblib import Parallel, delayed
@@ -240,15 +294,17 @@ class CI_finder:
 									self.dead_count, 
 									size = self.options["BOOTSTRAP_ITERS"], 
 									scale = self.options["BETA_PRIOR"], 
-									null_scale = self.options["BETA_PRIOR_0"], 
+									null_scale = self.options["BETA_PRIOR_0"],
 									rho = self.options["RHO"])
 		#calculate point data points while we have the beta parameters. 
 		self.get_point_error_bars(beta_probs)
 		#possibility of having 2 or 3 parameters
 		self.params = np.zeros((self.options["BOOTSTRAP_ITERS"], 3))
 		cpu_count = multiprocessing.cpu_count() 
-		if self.options["BOOTSTRAP_ITERS"] > cpu_count : self.options["BOOTSTRAP_ITERS"] = cpu_count
-		dict_list = Parallel(n_jobs=self.options["BOOTSTRAP_ITERS"])(delayed(self.fit_curve)(row) for row in beta_probs)
+		if self.options["BOOTSTRAP_ITERS"] > cpu_count : 
+			self.options["BOOTSTRAP_ITERS"] = cpu_count
+		dict_list = Parallel(n_jobs = self.options["BOOTSTRAP_ITERS"])(delayed(
+					self.fit_curve)(row) for row in beta_probs)
 		for iter_count, res in enumerate(dict_list):
 			if len(res.x) == 3:
 				self.params[iter_count] = res.x
@@ -258,36 +314,41 @@ class CI_finder:
 		
 	def get_point_error_bars(self, beta_probs):
 		'''
-		Calculates the error bars for each data point based on the beta variables from the bootstrap samples. 
+		Calculates the error bars for each data point based on the beta
+		variables from the bootstrap samples. 
 		'''
 		lb = (1 - self.options["ERROR_BAR_CI"])/2.
 		ub = 1-lb
-		errors = np.quantile(beta_probs, [ub, lb], interpolation='linear', axis = 0)
+		errors = np.quantile(beta_probs, [ub, lb], 
+				interpolation='linear',
+				axis = 0)
 		probs = self.dead_count / (self.dead_count+self.live_count)
 		probs = np.tile(np.array(probs), (2,1))
 		self.error_bars = np.abs(errors-probs)
 
 	def calculate_curves(self):
 		'''
-		Calculates the value of the dose response curves at each value in self.x for each set of parameters. 
+		Calculates the value of the dose response curves at each value in
+		self.x for each set of parameters. 
 		'''
 		if self.points is not None: return
 		self.min_conc, self.max_conc = min(self.conc)-1, max(self.conc)+1
 		lb, ub = math.floor(self.min_conc), math.ceil(self.max_conc)
 		self.x = np.linspace(lb-1, ub+1, self.options["N_POINTS"])
 		self.points = np.zeros((len(self.params), self.options["N_POINTS"]))
-		for iter_count, row in enumerate(self.params): self.points[iter_count] = self.loglogit3(row, self.x)
+		for iter_count, row in enumerate(self.params): 
+			self.points[iter_count] = self.loglogit3(row, self.x)
 		self.find_r2()
 		# print(self.r2)
 
 	def find_r2(self):
 		'''
 		Finds the r**2 value of the curve using the formula 
-		r**2 = 1 - SS_{res}/SS_{tot}, where SS_{res} = sum(y_i - f_i)^2 for y_i being the response at
-		concentration i and the f_i the value of the dose-response at i, and SS_{tot} = sum(y_i - y_bar)^2, 
-		with y_bar being the average response across all concentrations. 
+		r**2 = 1 - SS_{res}/SS_{tot}, where SS_{res} = sum(y_i - f_i)^2 for 
+		y_i being the response at concentration i and the f_i the value of the
+		dose-response at i, and SS_{tot} = sum(y_i - y_bar)^2, with y_bar 
+		being the average response across all concentrations. 
 		'''
-		# center_curve = np.quantile(self.points, 0.5, interpolation='linear', axis = 0)
 		center_curve = np.median(self.points, axis = 0)
 		spline = CubicSpline(self.x, center_curve)
 		spline_vals = spline(self.conc)
@@ -306,7 +367,9 @@ class CI_finder:
 		if self.plot_quant is None: 
 			self.bootstrap_CIs()
 			self.calculate_curves()
-		self.plot_quant = utils.calc_ET_CI(self.points, CI_level = self.options["LC_CI"], resample = False)
+		self.plot_quant = utils.calc_ET_CI(self.points, 
+				CI_level = self.options["LC_CI"], 
+				resample = False)
 
 	def get_CIs(self, LC_VALUES = None, LC_CI = 0.95, log = False):
 		'''
@@ -328,27 +391,32 @@ class CI_finder:
 		Finds the confidence intervals for doses. 
 		'''
 		# print(self.options["CI_METHOD"])
-		func = utils.calc_ET_CI if self.options["CI_METHOD"].lower() in utils.ET_VARS else utils.calc_HPDI_CI
+		func = utils.calc_ET_CI if self.options["CI_METHOD"].lower() in \
+				utils.ET_VARS else utils.calc_HPDI_CI
 		EC_val_summary = func(EC_vals, CI_level = CI_val)
 		return EC_val_summary.T if EC_val_summary.ndim>1 else EC_val_summary
 
 	#Returns the LC50 credible interval 
 	def get_LC50_CI(self, CI_val=0.95, log = False): 
-
-		return  self.get_CIs(LC_VALUES = np.array([0.5]), LC_CI = 0.95, log=log).squeeze()
+		return  self.get_CIs(LC_VALUES = np.array([0.5]), 
+			LC_CI = 0.95, log=log).squeeze()
 
 	#Returns a slope credible interval via self.get_param_CI.
-	def get_slope_CI(self, CI_val=0.95): return self.get_param_CI(1, CI_val).reshape((-1))
+	def get_slope_CI(self, CI_val=0.95): 
+		return self.get_param_CI(1, CI_val).reshape((-1))
 
 	#Returns the baseline moretality estimate via self.get_param_CI.
-	def get_baseline_mort_CI(self, CI_val=0.95): return self.get_param_CI(2, CI_val).reshape((-1))
+	def get_baseline_mort_CI(self, CI_val=0.95): 
+		return self.get_param_CI(2, CI_val).reshape((-1))
 
 	def get_param_CI(self, parameter, CI_val):
 		'''
-		Produces a confidence interval for a parameter based on the bootstrapped fits. 
+		Produces a confidence interval for a parameter based on the 
+		bootstrapped fits. 
 		'''
 		if self.params is None: self.bootstrap_CIs()
-		func = utils.calc_ET_CI if self.options["CI_METHOD"].lower() in utils.ET_VARS else utils.calc_HPDI_CI
+		func = utils.calc_ET_CI if self.options["CI_METHOD"].lower() in \
+				utils.ET_VARS else utils.calc_HPDI_CI
 		return func(self.params[:,parameter], CI_level = CI_val)
 
 	def LC_kernel(self, LC_val = 0.5):
@@ -360,8 +428,8 @@ class CI_finder:
 
 	def plot_CIs(self):
 		'''
-		Produces a MerlinGrapher object set up with options and data for plotted points, 
-		error bars, best fit line, and line CI. 
+		Produces a MerlinGrapher object set up with options and data for 
+		plotted points, error bars, best fit line, and line CI. 
 		'''
 		lb = (1 - self.options["CURVE_CI"])/2
 		ub = 1 - lb
@@ -371,7 +439,8 @@ class CI_finder:
 									ub = self.plot_quant[2],
 									line = self.plot_quant[1],
 									conc = self.conc,
-									probs = self.live_count/(self.dead_count + self.live_count), 
+									probs = self.live_count/(self.dead_count +\
+											self.live_count), 
 									error_bars = self.error_bars,
 									n_trials = self.n_trials,
 									options = self.options)
@@ -379,7 +448,8 @@ class CI_finder:
 
 	def reset_curves(self):
 		'''
-		This function clears out the params, points, and CI lines to allow one do new bootstrapping.
+		This function clears out the params, points, and CI lines to allow one
+		do new bootstrapping.
 		'''
 		self.params = None
 		self.points = None
