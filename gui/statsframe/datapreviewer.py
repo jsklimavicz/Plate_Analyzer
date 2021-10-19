@@ -18,8 +18,7 @@ from itertools import compress
 from stats.curvell import CI_finder
 
 import math
-from scipy.optimize import minimize
-from scipy.special import gamma
+from scipy.optimize import minimize, least_squares
 
 class DataPreviewer(tk.Frame):
 	def __init__(self, parent, merlin_stats_obj, scale = 1):
@@ -252,9 +251,9 @@ class DataPreviewer(tk.Frame):
 		self.conc_orig = self.curr_data.data["conc"].copy() 
 		self.conc = self.conc_orig.copy() 
 		#calculate survival probability. 
-		self.probs = self.curr_data.data["live_count"]/ \
+		self.probs = np.array(self.curr_data.data["live_count"]/ \
 					(self.curr_data.data["live_count"] + \
-					self.curr_data.data["dead_count"])
+					self.curr_data.data["dead_count"]))
 		if self.stats_obj.options["JITTER"]: 
 			self.conc += np.random.uniform(
 					-self.stats_obj.options["JITTER_FACTOR"],
@@ -280,18 +279,30 @@ class DataPreviewer(tk.Frame):
 		lb, ub = round(min(self.conc_orig)), round(max(self.conc_orig))
 		num_points = 10 * (ub - lb + 2) + 1 #10 x-points (including both ends)
 		self.x = np.linspace(lb-1, ub+1, num_points)
-		b = CI_finder.estimate_initial_b(self.conc_orig, self.probs, params=3)
-		#Find the best fit. 
-		res = minimize(CI_finder.ll3, b, 
-				args = (1-self.probs, self.conc_orig), method = 'Nelder-Mead')
-		self.y = CI_finder.loglogit3(b = res.x, conc = self.x)
+		
+		#Find the best fit based on the number of parameters and curve-fitting
+		#method specified in the options. 
+		curve_type = self.stats_obj.options["CURVE_TYPE"].lower()
+		params = 2 if "2" in curve_type else 3
+		if "ls" in curve_type:
+			meth = least_squares 
+			func = CI_finder.least_squares_fit
+		else:
+			meth = minimize
+			func = CI_finder.ll2 if params == 2 else CI_finder.ll3
+
+		b = CI_finder.estimate_initial_b(self.conc_orig, self.probs, params=params)
+		res = meth(func, b, args=(1-self.probs, self.conc_orig))
+
+		fit = CI_finder.loglogit3 if len(res.x) == 3 else CI_finder.loglogit2
+		self.y = fit(b = res.x, conc = self.x)
 		self.plot_curve()
 		r2 = CI_finder.find_r2(self.x, self.y, self.conc_orig, self.probs)
 		lc50 = 2**(-res.x[0]/res.x[1])
 		max_allowed = 2**(ub+2)
 		min_allowed = 2**(lb-1)
 		
-		if lc50 < min_allowed or res.x[1] < 0: 
+		if lc50 < min_allowed: 
 			lc50 = f"ND"
 		elif lc50 > max_allowed: 
 			lc50 = f">{max_allowed} ppm"

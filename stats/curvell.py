@@ -1,5 +1,5 @@
 import math
-from scipy.optimize import minimize
+from scipy.optimize import minimize, least_squares
 from scipy.special import gamma
 from scipy.interpolate import CubicSpline
 import numpy as np
@@ -106,11 +106,31 @@ class CI_finder:
 		ll += -((b2/wl)**wk) + (wk-1)*np.log(b2) #+ np.log(wk) - wk*np.log(wl)
 		return(-ll)
 
+
 	@staticmethod
 	@utils.surpress_warnings
-	def ll3_grad(b, probs, conc,sigma = 1000, weibull_param=[2,1]):
+	def least_squares_fit(b, probs, conc):
 		'''
-		Gradient of the log-likelihood function of the three 
+		Dose-response curve for least-squares fitting. If len(b)=2, then 
+		b2 = 1; else if len(b)=3, then b2 = b[2]
+							    b2
+					y = ------------------
+						1 + exp(b0 + b1*x)
+		'''
+		if len(b) == 2:
+			return np.array(1-1/(1 + np.exp(b[0] + b[1]*conc)) - probs)
+		else:
+			if b[2] > 1:
+				return 1e10
+			else:
+				return np.array(1-b[2]/(1 + np.exp(b[0] + b[1]*conc)) - probs)
+
+
+	@staticmethod
+	@utils.surpress_warnings
+	def ll3_jac(b, probs, conc,sigma = 1000, weibull_param=[2,1]):
+		'''
+		Jacobian of the log-likelihood function of the three 
 		parameter dose-response curve 
 							    b2
 					y = ------------------
@@ -151,9 +171,9 @@ class CI_finder:
 
 	@staticmethod
 	@utils.surpress_warnings
-	def ll2_grad(b, probs, conc, sigma = 1000):
+	def ll2_jac(b, probs, conc, sigma = 1000):
 		'''
-		Gradient of the log-likelihood function of the 
+		Jacobian of the log-likelihood function of the 
 		two parameter dose-response curve
 							    1
 					y = ------------------
@@ -179,7 +199,7 @@ class CI_finder:
 						1 + exp(b0 + b1*x)
 		given b = [b0, b1] and x.
 		'''
-		return 1./(1.+ np.exp(-b[0] - conc * b[1]))
+		return 1./(1.+ np.exp(b[0] + conc * b[1]))
 
 	@staticmethod
 	@utils.surpress_warnings
@@ -208,13 +228,12 @@ class CI_finder:
 		return (np.log(1./quant2 - 1.)-params[:,0])/params[:,1]
 
 	@staticmethod
-	def estimate_initial_b(conc, probs, params = 3):
+	def estimate_initial_b(conc, probs, params = 3, rev = False):
 		'''
 		Produce an initial estimate of the starting vector for curve 
 		optimization. The slope defualts to 1, and the data is used to 
 		generate estimates of the baseline mortality and the LC50. 
 		'''
-
 		#no good way to estimate slope yet without a curve fit.
 		default_slope= 1
 		#estimate background mortality:
@@ -223,16 +242,23 @@ class CI_finder:
 		zipped =  sorted(zip(conc, probs))
 		tuples = zip(*zipped)
 		conc, probs = [list(val) for val in  tuples]
+		conc = np.array(conc)
+		probs = np.array(probs)
 
 		#set the lc50 y-value with(out) background mortality in consideration.
 		med = 0.5
 		if params == 3:
-			background_mort = sum(probs[:n_vals])/n_vals #ave
+			background_mort = sum( probs[:n_vals])/n_vals #ave
+			if rev: background_mort = 1-background_mort
 			med = background_mort/2.
 
 		#estimate the b0 parameter
 		high_idx = np.where(probs > med)[0]
-		est_intercept= -conc[high_idx[-1]]/default_slope
+
+		if len(high_idx) == 0: 
+			est_intercept = max(conc)
+		else:
+			est_intercept= -conc[high_idx[-1]]/default_slope
 
 		if params == 3:
 			return np.array([est_intercept, default_slope, background_mort])
@@ -255,30 +281,33 @@ class CI_finder:
 			better-behaved Nelder-Mead method is used. 
 			'''
 			res = minimize(self.ll3, b, args = (probs, self.conc), 
-					method = self.options["FIT_METHOD"], jac = self.ll3_grad)
+					method = self.options["FIT_METHOD"], jac = self.ll3_jac)
 			if not res.success:
 				res = minimize(self.ll3, b, args = (probs, self.conc), 
 					method = 'Nelder-Mead')
 			return res
 		
+		b2 = self.estimate_initial_b(self.conc, probs, params = 2, rev = True)
+		b3 = self.estimate_initial_b(self.conc, probs, params = 3, rev = True)
+
 		if self.options["CURVE_TYPE"].lower() == 'auto':
 			if background_mort > 0.10: self.options["CURVE_TYPE"] = "ll3"
 			else: self.options["CURVE_TYPE"] = "ll2"
 
 		if self.options["CURVE_TYPE"].lower() in ["2", "ll2", 2]:
-			b2 = self.estimate_initial_b(self.conc, probs, params = 2)
 			return minimize(self.ll2, b2, args = (probs, self.conc), 
-					method = self.options["FIT_METHOD"], jac = self.ll2_grad)
+					method = self.options["FIT_METHOD"], jac = self.ll2_jac)
 		elif self.options["CURVE_TYPE"].lower() in ["3", "ll3", 3]:
-			b3 = self.estimate_initial_b(self.conc, probs)
-			res = fit_ll3(b3, probs)
-			return res
+			return fit_ll3(b3, probs)
+		elif self.options["CURVE_TYPE"].lower() in ["ls3"]:
+			return least_squares(self.least_squares_fit, b3, args=(probs, self.conc))
+		elif self.options["CURVE_TYPE"].lower() in ["ls2"]:
+			return least_squares(self.least_squares_fit, b2, args=(probs, self.conc))
 		elif self.options["CURVE_TYPE"].lower() in ["best", "aic"]:
-			b2 = self.estimate_initial_b(self.conc, probs, params = 2)
 			res2 = minimize(self.ll2, b2, args = (probs, self.conc), 
-					method = self.options["FIT_METHOD"], jac = self.ll2_grad)
-			b3 = np.array([res2.x[0], res2.x[1], background_mort])
-			res3 = fit_ll3(b3, probs)
+					method = self.options["FIT_METHOD"], jac = self.ll2_jac)
+			b3p = np.array([res2.x[0], res2.x[1], background_mort])
+			res3 = fit_ll3(b3p, probs)
 			AIC2 = 4 - 2*res2.fun
 			AIC3 = 6 - 2*res3.fun
 			return res2 if AIC2 <= AIC3 else res3
@@ -310,6 +339,8 @@ class CI_finder:
 			self.options["BOOTSTRAP_ITERS"] = cpu_count
 		dict_list = Parallel(n_jobs = self.options["BOOTSTRAP_ITERS"])(delayed(
 					self.fit_curve)(row) for row in beta_probs)
+		# dict_list = Parallel(n_jobs = 1)(delayed(
+		# 			self.fit_curve)(row) for row in beta_probs)
 		for iter_count, res in enumerate(dict_list):
 			if len(res.x) == 3:
 				self.params[iter_count] = res.x

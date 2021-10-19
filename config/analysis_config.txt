@@ -111,8 +111,9 @@ CI_METHOD = HPDI
 #Specifies the type of curve to fit. Options are 'll2' for a two-parameter log-
 #logistic curve; 'll3' for a three-parameter log-logisitic curve, 'auto' for 
 #producing ll3 or ll2 depending on what the limiting behavior at low 
-#concentrations is, or 'best' to use the AIC of the ll3 and ll2 curves to pick
-#the better-fitting curve. 
+#concentrations is, 'best' to use the AIC of the ll3 and ll2 curves to pick
+#the better-fitting curve, "ls2" to use least-squares fitting of a two-
+#parameter curve, or "ls3" to fit a three-parameter least-squares curve.
 CURVE_TYPE = ll3
 
 
