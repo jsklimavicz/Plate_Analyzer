@@ -55,6 +55,7 @@ class DataPreviewer(tk.Frame):
 		|--self.fig_frame #The plot
 		|  |--self.canvas
 		|  |  |--self.fig
+		|  |  |--self.curve_data_label
 
 		'''
 
@@ -137,10 +138,11 @@ class DataPreviewer(tk.Frame):
 					sticky=N+S)
 		self.fig = Figure(figsize = (5,5), dpi = 150)
 		self.canvas = FigureCanvasTkAgg(self.fig, master=self.fig_frame)
-		self.canvas.get_tk_widget().grid(row=0, column=2, rowspan = 8, 
+		self.canvas.get_tk_widget().grid(row=0, column=3, rowspan = 8, 
 					columnspan = 8, sticky=N+S)
 		self.plot1 = self.fig.add_subplot(111)
-
+		self.curve_data_label = Label(self.fig_frame, text="") #Label
+		self.curve_data_label.grid(row=9, column=3, sticky=E)
 		#initialize a plot with the first compound. 
 		self.plotselect()
 
@@ -155,16 +157,18 @@ class DataPreviewer(tk.Frame):
 		if 0 <= selection < event.widget.size():
 			event.widget.selection_clear(0, tk.END)
 			event.widget.select_set(selection)
+			return True
+		return False
 
 	def uidselect_scroll(self, event):
 		#For arrow-based scrolling in the UID list.
-		self.scroll(event)
-		self.uidselect(event)
+		reselect = self.scroll(event)
+		if reselect: self.uidselect(event)
 
 	def plotselect_scroll(self, event):
 		#For arrow-based scrolling in the Compound list.
-		self.scroll(event)
-		self.plotselect(event)
+		reselect = self.scroll(event)
+		if reselect: self.plotselect(event)
 
 	def plotselect(self, event = None):
 		# Based on https://stackoverflow.com/a/12936031/8075803
@@ -268,15 +272,33 @@ class DataPreviewer(tk.Frame):
 		
 
 	def make_curve(self):
-		lb, ub = round(min(self.conc)), round(max(self.conc))
+		'''
+		Generates the x and y values to produce a best-fit ll3 curve. The
+		curve is fit using the maximum likelihood function in CI_Finder.ll3.
+		The curve is then used to generate an approximate LC50 and an R2. 
+		'''
+		lb, ub = round(min(self.conc_orig)), round(max(self.conc_orig))
 		num_points = 10 * (ub - lb + 2) + 1 #10 x-points (including both ends)
 		self.x = np.linspace(lb-1, ub+1, num_points)
-		b = CI_finder.estimate_initial_b(self.conc, self.probs, params = 3)
-		res = minimize(CI_finder.ll3, b, args = (1-self.probs, self.conc), method = 'Nelder-Mead')
-		print(b)
-		print(res.x)
+		b = CI_finder.estimate_initial_b(self.conc_orig, self.probs, params=3)
+		#Find the best fit. 
+		res = minimize(CI_finder.ll3, b, 
+				args = (1-self.probs, self.conc_orig), method = 'Nelder-Mead')
 		self.y = CI_finder.loglogit3(b = res.x, conc = self.x)
 		self.plot_curve()
+		r2 = CI_finder.find_r2(self.x, self.y, self.conc_orig, self.probs)
+		lc50 = 2**(-res.x[0]/res.x[1])
+		max_allowed = 2**(ub+2)
+		min_allowed = 2**(lb-1)
+		
+		if lc50 < min_allowed or res.x[1] < 0: 
+			lc50 = f"ND"
+		elif lc50 > max_allowed: 
+			lc50 = f">{max_allowed} ppm"
+		else: 
+			lc50 = f"{lc50.round(3)} ppm"
+		self.curve_data_label.config(
+					text=f"Approximate LC50: {lc50}  R2: {r2.round(3)}")
 
 	def plot_curve(self):
 		self.plot1.plot(self.x, self.y, ls = '-', c = 'blue')

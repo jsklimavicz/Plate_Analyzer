@@ -209,23 +209,28 @@ class CI_finder:
 
 	@staticmethod
 	def estimate_initial_b(conc, probs, params = 3):
+		'''
+		Produce an initial estimate of the starting vector for curve 
+		optimization. The slope defualts to 1, and the data is used to 
+		generate estimates of the baseline mortality and the LC50. 
+		'''
+
 		#no good way to estimate slope yet without a curve fit.
 		default_slope= 1
-
 		#estimate background mortality:
 		n_vals = round(0.2 * len(conc))
-
 		#sort the lists
 		zipped =  sorted(zip(conc, probs))
 		tuples = zip(*zipped)
 		conc, probs = [list(val) for val in  tuples]
 
+		#set the lc50 y-value with(out) background mortality in consideration.
+		med = 0.5
 		if params == 3:
 			background_mort = sum(probs[:n_vals])/n_vals #ave
 			med = background_mort/2.
-		else:
-			med = 0.5
 
+		#estimate the b0 parameter
 		high_idx = np.where(probs > med)[0]
 		est_intercept= -conc[high_idx[-1]]/default_slope
 
@@ -338,10 +343,14 @@ class CI_finder:
 		self.points = np.zeros((len(self.params), self.options["N_POINTS"]))
 		for iter_count, row in enumerate(self.params): 
 			self.points[iter_count] = self.loglogit3(row, self.x)
-		self.find_r2()
+		self.r2 = self.find_r2(fit_x = self.x, 
+			fit_y = np.median(self.points, axis = 0), 
+			conc = self.conc, 
+			probs = self.live_count / (self.dead_count+self.live_count))
 		# print(self.r2)
 
-	def find_r2(self):
+	@staticmethod
+	def find_r2(fit_x, fit_y, conc, probs):
 		'''
 		Finds the r**2 value of the curve using the formula 
 		r**2 = 1 - SS_{res}/SS_{tot}, where SS_{res} = sum(y_i - f_i)^2 for 
@@ -349,15 +358,13 @@ class CI_finder:
 		dose-response at i, and SS_{tot} = sum(y_i - y_bar)^2, with y_bar 
 		being the average response across all concentrations. 
 		'''
-		center_curve = np.median(self.points, axis = 0)
-		spline = CubicSpline(self.x, center_curve)
-		spline_vals = spline(self.conc)
-		probs = self.live_count / (self.dead_count+self.live_count)
+		spline = CubicSpline(fit_x, fit_y)
+		spline_vals = spline(conc)
 		start = 0
 		end = 10
 		sum_of_square_resids = sum((spline_vals - probs) ** 2)
 		sum_of_square_nofit = sum((probs - mean(probs)) ** 2)
-		self.r2 = 1- sum_of_square_resids/sum_of_square_nofit
+		return 1- sum_of_square_resids/sum_of_square_nofit
 
 	@update_options
 	def get_plot_CIs(self, quantiles = [.025, 0.5, 0.975], options=None):
