@@ -2,19 +2,16 @@
 #ioframe.py
 
 from tkinter import *
+import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from tkinter.ttk import Label, Style
 from tkcalendar import Calendar 
-import random
+
 import os
-from os import path, getcwd, mkdir
-from os.path import exists
 from datetime import datetime
-import tkinter as tk
+
 from gui.tooltip import Tooltip #as Tooltip
 import gui.utils as pdu
-import platform
-import time
 from stats.main import analyze_data
 
 #############################################################################
@@ -189,7 +186,7 @@ class IOFrame(ttk.Frame):
 			self.outputFolderEntry.insert(0,self.config['OUT_DIR'])
 
 	def __check_files__(self):
-		if not path.exists(self.config['IMG_DIR']): 
+		if not os.path.exists(self.config['IMG_DIR']): 
 			pdu.message_window(msg="Input file does not exist. Please select a valid input file.")
 			return False
 		try: 

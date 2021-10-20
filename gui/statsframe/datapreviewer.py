@@ -2,25 +2,27 @@
 #datapreviewer.py
 
 from tkinter import *
-from tkinter.ttk import Label
-import numpy as np
 import tkinter as tk
+from tkinter.ttk import Label
 
-from gui.tooltip import Tooltip
-from stats.main import analyze_data
-import matplotlib as mpl
+import math
+from scipy.optimize import minimize, least_squares
+from itertools import compress
+import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, 
 NavigationToolbar2Tk)
-from gui.utils import win_center
-from itertools import compress
-from stats.curvell import CI_finder
 
-import math
-from scipy.optimize import minimize, least_squares
+from stats.curvell import CI_finder
+from gui.tooltip import Tooltip
+from gui.utils import win_center
 
 class DataPreviewer(tk.Frame):
+	'''
+	Provides an interactive interface to preview the data that will be 
+	included in the statistical anlysis.
+	'''
 	def __init__(self, parent, merlin_stats_obj, scale = 1):
 		super(DataPreviewer, self).__init__() #initialize root
 		self.scale = scale

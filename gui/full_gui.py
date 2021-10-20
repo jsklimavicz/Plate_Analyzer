@@ -23,9 +23,9 @@ class App(tk.Tk):
 
 	tk.Tk
 	self.notebook
-	|--image_frame tab #For image analysis
+	|--self.image_frame tab #For image analysis
 	|  |--AnalysisFrame
-	|--stats_frame tab #UID selection for highlighting in plot
+	|--self.stats_frame tab #UID selection for highlighting in plot
 	|  |--StatsFrame
 
 	'''
@@ -39,6 +39,8 @@ class App(tk.Tk):
 		self.title('Merlin Bioassay Analyzer')
 
 		# create a notebook
+		style = ttk.Style()
+		style.theme_settings("default", {"TNotebook.Tab": {"configure": {"padding": [50, 20]}}})
 		self.notebook = ttk.Notebook(self)
 		self.notebook.pack(pady=10, expand=True)
 
@@ -48,6 +50,7 @@ class App(tk.Tk):
 							scale =self.scale,
 							width=geom[0], 
 							height=geom[1])
+
 		self.stats_frame = StatsFrame(self.notebook, 
 							config =self.config, 
 							scale =self.scale,

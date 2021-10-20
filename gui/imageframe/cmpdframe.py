@@ -2,18 +2,11 @@
 #cmpdframe.py
 
 from tkinter import *
-from tkinter import ttk, filedialog, messagebox
-from tkinter.ttk import Label, Style
-import random
-import os
-from os import path, getcwd, mkdir
-from os.path import exists
-from datetime import datetime
 import tkinter as tk
+from tkinter import ttk
+from tkinter.ttk import Label, Style
+
 from gui.tooltip import Tooltip #as Tooltip
-import platform
-import time
-from stats.main import analyze_data
 
 #############################################################################
 #                         For entering compound data

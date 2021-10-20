@@ -2,24 +2,18 @@
 #statsframe.py
 
 from tkinter import *
-from tkinter import ttk, filedialog, messagebox
-from tkinter.ttk import Label, Style
-from tkcalendar import Calendar 
-import random
-import os
-from os import path, getcwd, mkdir
-from os.path import exists
-from datetime import datetime
 import tkinter as tk
-from gui.tooltip import Tooltip #as Tooltip
-import threading
-import platform
+from tkinter import ttk
+from tkinter.ttk import Label, Style
+
 from threading import Thread
 import time
+
 from stats.main import analyze_data
+from gui.tooltip import Tooltip
 from gui.statsframe.dataselectionframe import DataSelectionFrame as DSF
 from gui.progmonitor import ProgMonitor
-from gui.statsframe.datapreviewer import DataPreviewer
+
 
 class StatsFrame(ttk.Frame):
 	def __init__(self, container, config, scale = 1, **kwargs):
@@ -38,45 +32,33 @@ class StatsFrame(ttk.Frame):
 
 		
 	def __create_widgets(self, scale = 1):
+		'''
+		Layout: 
+
+		self.container
+		self
+		|--self.selection_frame (Class DSF)
+		|--self.Statbutton (Button)
+		|--self.progmonitor (ProgMonitor)
+		'''
 
 		self.selection_frame = DSF(self, config = self.config, 
 				stats_obj = self.stats_obj, scale = self.scale)
-		self.selection_frame.grid(column=0, row=0, padx=10, pady=20)
-
-		self.PreviewData = Button(self, text="Preview Data", 
-				command = lambda: self.__preview_data())
-		self.PreviewData.grid(row=1, column=0, sticky=S)
-		self.PreviewData.config(height = 2)
-		msg = 'Opens a window to allow a preview of the data by compound.'
-		Tooltip(self.PreviewData, text=msg)
+		self.selection_frame.grid(column=0, row=0, padx=10, pady=20,
+				columnspan = 4)
 
 		# Button to run the analysis
 		self.Statbutton = Button(self, text="Run Statistics", 
 				command = lambda: self.__statistics_driver())
-		self.Statbutton.grid(row=2, column=0, sticky=S)
+		self.Statbutton.grid(row=1, column=1, sticky=E+W+S,
+				columnspan = 2)
 		self.Statbutton.config(height = 2)
 		msg = 'Performs statistical analysis of larval count data, including'+\
 				'dose-response curve fitting and LC calculations.'
 		Tooltip(self.Statbutton, text=msg)
 
 		self.progmonitor = ProgMonitor(self, run_button = self.Statbutton)
-		self.progmonitor.grid(row=3, column=0, sticky=S)
-
-	def __preview_data(self):
-		'''
-		Simple preprocessor to update the disallowed UIDs for the different 
-		compounds. 
-		'''
-		self.__stats_preprocessor() #update forbidden list
-		DataPreviewer(self, self.stats_obj, scale = self.scale)
-
-	def __stats_preprocessor(self):
-		'''
-		Simple preprocessor to update the disallowed UIDs for the different 
-		compounds. 
-		'''
-		disallowed_uids = self.selection_frame.get_disallowed_uids()
-		self.stats_obj.set_diallowed(disallowed_uids)
+		self.progmonitor.grid(row=2, column=0, sticky=S, columnspan = 4)
 
 	def __statistics_driver(self):
 		'''
@@ -85,7 +67,8 @@ class StatsFrame(ttk.Frame):
 		'''
 
 		#Update stats object with diallowed compounds
-		self.__stats_preprocessor()
+		disallowed_uids = self.selection_frame.get_disallowed_uids()
+		self.stats_obj.set_diallowed(disallowed_uids)
 
 		#Disable buttons to prevent weird things from happening. 
 		self.Statbutton['state'] = tk.DISABLED 

@@ -2,26 +2,19 @@
 #datatypeselectionframe.py
 
 from tkinter import *
-from tkinter import ttk, filedialog, messagebox
-from tkinter.ttk import Label, Style
-from tkcalendar import Calendar 
-import random
-import os
-from os import path, getcwd, mkdir
-from os.path import exists
-from datetime import datetime
 import tkinter as tk
-from gui.tooltip import Tooltip #as Tooltip
-import threading
-import platform
-from threading import Thread
-import time
-from stats.main import analyze_data
+from tkinter import ttk
 from tkinter.messagebox import askyesno, askokcancel, showinfo
+from tkinter.ttk import Label, Style
 
 import pickle
 import hashlib
 import hmac
+import os
+
+from gui.tooltip import Tooltip #as Tooltip
+from stats.main import analyze_data
+from gui.statsframe.datapreviewer import DataPreviewer
 
 class DataSelectionFrame(ttk.Frame):
 	cache_path = os.path.abspath('./stats/cache')
@@ -61,6 +54,27 @@ class DataSelectionFrame(ttk.Frame):
 		'''
 		Creates the interactive features necessary for excluding data from 
 		analysis. 
+
+		self.container
+		self (ttk.Frame) 
+		|--self.exclusionlabel (Label) 
+		|--self.exclusionEntry (OptionMenu) #Select category to remove data by.
+		|				Saves entry to self.exclusiontype
+		|--allow_disallow_frame (Frame)
+		|  |--self.allowedlabel (label)
+		|  |--self.disallowlabel (Label)
+		|  |--afrm (Frame) #Frame to give allowed list a scroll bar
+		|  |  |--self.allowed_list w/ scrollbar #allowed list
+		|  |--dfrm (Frame) #Frame to give disallowed list a scroll bar
+		|  |  |--self.disallowed_list w/ scrollbar #disallowed list 
+		|  |--self.disallowButton #to move items from the allowed list to 
+		|  |			the forbidden list
+		|  |--self.allowButton #to move items from the forbidden list to 
+		|  |			the allowed list
+		|  |--self.PreviewData #to preview the data
+		|  |--self.clearButton #to clear the forbidden list
+		|  |--self.cacheButton #to clear the cache
+
 		'''
 		s = ttk.Style()
 		s.configure("my.TButton", font = self.font)
@@ -75,33 +89,36 @@ class DataSelectionFrame(ttk.Frame):
 		self.exclusionEntry = OptionMenu(self, 
 							self.exclusiontype, 
 							*self.selection_options,
-							command=lambda _: self.list_update())
+							command=lambda _: self.__list_update())
 		self.exclusionEntry.grid(row=curr_row, column=1, 
 				columnspan = full_width,  sticky=EW, padx=10, pady=20)
+		self.exclusionEntry.config(height = 2)
 		msg = "Select the data type for excluding data from the analysis."
 		Tooltip(self.exclusionlabel, text=msg)
 		Tooltip(self.exclusionEntry, text=msg)
 
+
+		allow_disallow_frame= Frame(self)
+		allow_disallow_frame.grid(row=1, column=0, rowspan = 4, 
+					columnspan = 6, sticky=N+S)
 		#List labels
-		curr_row += 1 #1
-		self.allowedlabel = Label(self, text="Permitted List")
-		self.allowedlabel.grid(row=curr_row, column=0, sticky=E)
+		self.allowedlabel = Label(allow_disallow_frame, text="Permitted List")
+		self.allowedlabel.grid(row=0, column=0, sticky=W)
 		allow_msg = "Permitted categories. Data may be included only if it"+\
 				" does not match any group in the Excluded List."
 		Tooltip(self.allowedlabel, text=allow_msg)
-		self.disallowlabel = Label(self, text="Excluded List")
-		self.disallowlabel.grid(row=curr_row, column=4, sticky=E)
+		self.disallowlabel = Label(allow_disallow_frame, text="Excluded List")
+		self.disallowlabel.grid(row=0, column=4, sticky=W)
 		disallow_msg = "Excluded categories. Data matching any category in "+\
 				"this list will be excluded. This list only shows the "+\
 				"groups in the category selected by the dropdown menu above."
 		Tooltip(self.disallowlabel, text=disallow_msg)
 
 		#Lists
-		curr_row += 1 #2
 		# Scroll bar help from https://stackoverflow.com/a/24656407/8075803
 		#allowed List
-		afrm = Frame(self)
-		afrm.grid(row=curr_row, column=0, rowspan = 4, columnspan = 2, 
+		afrm = Frame(allow_disallow_frame)
+		afrm.grid(row=1, column=0, rowspan = 4, columnspan = 2, 
 					sticky=N+S)
 		scrollbar = Scrollbar(afrm, orient="vertical")
 		scrollbar.pack(side=RIGHT, fill=Y)
@@ -113,8 +130,8 @@ class DataSelectionFrame(ttk.Frame):
 		Tooltip(self.allowed_list, text=allow_msg)
 		
 		#disallowed List
-		dfrm = Frame(self)
-		dfrm.grid(row=curr_row, column=4, rowspan = 4, columnspan = 2, 
+		dfrm = Frame(allow_disallow_frame)
+		dfrm.grid(row=1, column=4, rowspan = 4, columnspan = 2, 
 					sticky=N+S)
 		scrollbar = Scrollbar(dfrm, orient="vertical")
 		scrollbar.pack(side=RIGHT, fill=Y)
@@ -125,63 +142,74 @@ class DataSelectionFrame(ttk.Frame):
 		scrollbar.config(command=self.disallowed_list.yview)
 		Tooltip(self.disallowed_list, text=disallow_msg)
 
-		#Allow/disallow buttons
-		curr_row += 1 #3
-		self.disallowButton = Button(self, text="Remove from sample >", 
+		#Disallow button
+		self.disallowButton = Button(allow_disallow_frame, 
+					text="Remove from sample >",
 					command = lambda: self.disallow())
-		self.disallowButton.grid(row=curr_row, column=2, 
+		self.disallowButton.grid(row=2, column=2, 
 					sticky=S, padx=10, pady=20)
 		self.disallowButton.config(height = 2)
 		msg = "Move selected group(s) from the Permitted List to the "+\
 				"Excluded List"
 		Tooltip(self.disallowButton, text=msg)	
 
-		curr_row += 1 #4
-		self.allowButton = Button(self, text="< Add to sample", 
+		#Allow button
+		self.allowButton = Button(allow_disallow_frame, 
+					text="< Add to sample", 
 					command = lambda: self.allow())
-		self.allowButton.grid(row=curr_row, column=2, 
+		self.allowButton.grid(row=3, column=2, 
 					sticky=S, padx=10, pady=20)
 		self.allowButton.config(height = 2)
 		msg = "Move selected group(s) from the Excluded List to the "+\
 				"Permitted List"
 		Tooltip(self.allowButton, text=msg)
 
+		#Preview Button
+		self.PreviewData = Button(allow_disallow_frame, text="Preview Data", 
+				command = lambda: self.__preview_data())
+		self.PreviewData.grid(row=5, column=0, sticky=E+W+S, 
+				columnspan = 2, padx=10, pady=20)
+		self.PreviewData.config(height = 2)
+		msg = 'Opens a window to allow a preview of the data by compound.'
+		Tooltip(self.PreviewData, text=msg)
+
 		#Button to clear excluded list. 
-		curr_row += 3 #7
-		self.clearButton = Button(self, text="Clear Excluded List", 
-				command = lambda: self.clear_list())
-		self.clearButton.grid(row = curr_row, column=4, 
-				sticky=S, padx=10, pady=20)
+		self.clearButton = Button(allow_disallow_frame, 
+				text="Clear Excluded List",
+				command = lambda: self.__clear_list())
+		self.clearButton.grid(row = 5, column=4, 
+				sticky=E+W+S, padx=10, pady=20)
 		self.clearButton.config(height = 2)
 		Tooltip(self.clearButton, 
 				text="Clear all groups from the Excluded List.")
 
 		#Button to clear cache. 
-		self.clearButton = Button(self, text="Clear Calculated Stats", 
-				command = lambda: self.clear_stats())
-		self.clearButton.grid(row = curr_row, column=5, 
-				sticky=S, padx=10, pady=20)
-		self.clearButton.config(height = 2)
+		self.cacheButton = Button(allow_disallow_frame, 
+				text="Clear Calculated Stats", 
+				command = lambda: self.__clear_stats())
+		self.cacheButton.grid(row = 5, column=5, 
+				sticky=E+W+S, padx=10, pady=20)
+		self.cacheButton.config(height = 2)
 		msg ="Clear the calculated stats. This removes all past calculated "+\
 				"dose-response curve data, but does not remove any larval "+\
 				"count files."
 		Tooltip(self.clearButton, text=msg)
 
-		self.list_update()
+		self.__list_update()
 
 	def disallow(self): 
 		#Remove data from the allowed list.
 		for i in self.allowed_list.curselection():
 			self.forbidden_list.append(self.allowed_ids[i])
-		self.list_update()
+		self.__list_update()
 
 	def allow(self): 
 		#Move group from the disallowed list back to the allowed list.
 		for i in self.disallowed_list.curselection():
 			self.forbidden_list.remove(self.disallowed_ids[i])
-		self.list_update()
+		self.__list_update()
 
-	def clear_list(self): 
+	def __clear_list(self): 
 		#Remove all groups from the forbidden list if confirmed.
 		msg = "Are you sure you want to clear all values from the excluded "+\
 				"list? Currently, this list contains " 
@@ -196,9 +224,9 @@ class DataSelectionFrame(ttk.Frame):
 		answer = askyesno(title = "Clear Excluded List?", message = msg)
 		if answer: 
 			self.forbidden_list = []
-			self.list_update()
+			self.__list_update()
 
-	def clear_stats(self): 
+	def __clear_stats(self): 
 		'''
 		Deletes the entire cache. Obviously this is a permanent thing, but we
 		need to make sure the user knows this. 
@@ -222,10 +250,21 @@ class DataSelectionFrame(ttk.Frame):
 			rm_cache=askokcancel(title="Calculated statistics cleared",
 				message = msg)
 			if rm_cache:
-				self.delete_cache()
+				self.__delete_cache()
 				self.container.quit()
 
-	def delete_cache(self): 
+	def __preview_data(self):
+		'''
+		Simple preprocessor to update the disallowed UIDs for the different 
+		compounds. 
+		'''
+		#update forbidden list
+		disallowed_uids = self.__get_disallowed_uids()
+		self.stats_obj.set_diallowed(disallowed_uids)
+
+		DataPreviewer(self, self.stats_obj, scale = self.scale)
+
+	def __delete_cache(self): 
 		cache_path = self.stats_obj.cache_path
 		
 		remove_files = [
@@ -239,7 +278,7 @@ class DataSelectionFrame(ttk.Frame):
 			try: os.remove(file) 
 			except FileNotFoundError: pass
 
-	def list_update(self):
+	def __list_update(self):
 		var = self.exclusiontype.get()
 		if var == "Compound": self.var_list = self.by_name
 		elif var == "Reference ID": self.var_list = self.by_id
@@ -274,7 +313,7 @@ class DataSelectionFrame(ttk.Frame):
 		self.by_plate = sorted(list(set([f'{a[1]}_Plate_{a[2]}' for a in UID_breakdown])))
 		self.by_row = sorted(list(set([f'{a[1]}_Plate_{a[2]}_Row_{a[3]}' for a in UID_breakdown])))
 
-	def get_disallowed_uids(self):
+	def __get_disallowed_uids(self):
 		disallowed = []
 		for uid in self.uid_list:
 			for item in self.forbidden_list:

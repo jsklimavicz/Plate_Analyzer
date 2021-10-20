@@ -11,13 +11,17 @@ from tkinter import ttk
 import tkinter as tk
 
 def win_center(window, w, h):
+    '''
+    Centers a window and adjusts its size.
+    '''
     window.withdraw()
-    window.update_idletasks()  # Update "requested size" from geometry manager
+    window.update_idletasks()  #Update "requested size" from geometry manager
     window.geometry('%dx%d' % (w, h))
     x = (window.winfo_screenwidth() - w) / 2
     y = (window.winfo_screenheight() - h) / 2
     window.geometry('+%d+%d' % (x, y))
-    # This seems to draw the window frame immediately, so only call deiconify() after setting correct window position
+    #This seems to draw the window frame immediately, so only call deiconify()
+    #after setting correct window position
     window.deiconify()
 
 def message_window(title="", msg=""):
@@ -36,7 +40,8 @@ def refresh_output_dir(img_path):
     return f"{dir_basename[0]}_{dir_basename[1]}"
 
 def output_filename_formater(config_dict):
-    csv_name = config_dict['ORIG_CSV_NAME'] if "ORIG_CSV_NAME" in config_dict else'larval_counts_$f.csv'
+    csv_name = config_dict['ORIG_CSV_NAME'] if "ORIG_CSV_NAME" in \
+                config_dict else'larval_counts_$f.csv'
     currdate = datetime.today()
     currdate_str = currdate.strftime(config_dict["FILE_DATE_FORMAT"])
     path = os.path.basename(config_dict["MOST_RECENT_IMG_DIR"])
@@ -55,6 +60,11 @@ def output_filename_formater(config_dict):
     return csv_name, currdate, dirdate, yesterday
 
 def parse_config_file(verbose = 0):
+    '''
+    This method reads in imput from the program configuration file, and
+    replaces default values for the configuration dictionary if they are
+    found in the file.
+    '''
     root = os.path.abspath('.')
     config_file_path = os.path .join(root, 'config/config.txt')
     #defaults
@@ -85,25 +95,30 @@ def parse_config_file(verbose = 0):
                 (key, val) = line.split('=')
                 key = key.strip()
                 val = val.strip().strip('"').strip("'")
-                if key in ['SAVE_INTMD', 'SAVE_MASK', 'SAVE_BBOX', 'VERBOSE_CSV']: val = True if "true" in val.lower() else False
+                if key in ['SAVE_INTMD', 'SAVE_MASK', 'SAVE_BBOX', 'VERBOSE_CSV']: 
+                    val = True if "true" in val.lower() else False
                 config_dict[key] = val
     except IOError:
-        msg = f'''Configuration file was not found. The config.txt file should be present in the \
-same directory as the main executable for this program. Continuing with default values.'''
+        msg = 'Configuration file was not found. The config.txt file '+\
+                'should be present in the same directory as the main '+\
+                'executable for this program. Continuing with default values.'
         message_window(title="Configuration File Problem", msg=msg)
     except ValueError:
-        msg = '''Configuration file was found but is not formatted correctly. Please be sure that each line is empty, \
-or contains exactly one equal sign, or starts with # (comments). Check line {line_count} of the config file.\
-Continuing with default values.'''
+        msg = 'Configuration file was found but is not formatted correctly.'+\
+        ' Please be sure that each line is empty, or contains exactly one '+\
+        f'equal sign, or starts with # (comments). Check line {line_count} '+\
+        'of the config file. Continuing with default values.'
         message_window(title="Configuration File Problem", msg=msg)
-
-
 
     config_dict['ORIG_CSV_NAME'] = config_dict['CSV_NAME']
     config_dict["MOST_RECENT_IMG_DIR"] = find_most_recent_img_dir(config_dict)
     dir_basename = os.path.basename(config_dict["MOST_RECENT_IMG_DIR"]).split("_")
     config_dict['IMG_DIR_ID'] = f"{dir_basename[0]}_{dir_basename[1]}"
-    config_dict["CSV_NAME"], config_dict["CURR_DATE"], config_dict["DIR_DATE"], config_dict["PREV_DATE"] = output_filename_formater(config_dict)
+    d1, d2, d3, d4 = output_filename_formater(config_dict)
+    config_dict["CSV_NAME"] = d1 
+    config_dict["CURR_DATE"] = d2 
+    config_dict["DIR_DATE"] = d3 
+    config_dict["PREV_DATE"] = d4
     
     '''
     Extract a plate number from the file path name if specified. Note that the 
@@ -116,7 +131,8 @@ Continuing with default values.'''
         # print(penultimate_directory)
         plate_split = penultimate_directory.split("plate")
         if len(plate_split) >=1: 
-            plate_num = re.match(r'\d', plate_split[1]) #find first digit after the plate split.
+            #find first digit after the plate split.
+            plate_num = re.match(r'\d', plate_split[1]) 
             if plate_num : config_dict['PLATE_NUMBER'] = plate_num.group(0)
 
     if verbose > 2: print(config_dict)
@@ -124,6 +140,10 @@ Continuing with default values.'''
     return config_dict
 
 def find_most_recent_img_dir(config_dict):
+    '''
+    Finds and returns the directory with the most recent modificatino date 
+    in the parent image search directory specified in the configuration file.
+    '''
     if "IMG_DIR" in config_dict: 
         #find most recent folder that matches Cytation file structure
         dirs = [x[0] for x in walk(config_dict["IMG_DIR"])]
