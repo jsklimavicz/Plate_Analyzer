@@ -258,9 +258,11 @@ class MerlinAnalyzer:
 			rel_done = False
 			LC_done = False
 
+			biol, tech = cmpd.get_rep_counts()
+
 			for item in header:
 				if item.lower() in 'compound': line.append(cmpd.data["name"])
-				elif 'rows' in item.lower(): line.append(str(cmpd.data["n_trials"]))
+				elif 'rows' in item.lower(): line.append(str(tech))
 				elif item.lower() in 'slope': 
 					line.append(utils.format_lc_val(slope_info[1]))
 				elif 'slope' in item.lower() and 'ci' in item.lower(): 
@@ -277,7 +279,7 @@ class MerlinAnalyzer:
 						LC_done = True
 				elif "codes" in item.lower(): line.append('"' + ", ".join(list(set([i for i in cmpd.data["ids"]]))) + '"')
 				elif "date" in item.lower(): line.append('"' + ", ".join(list(set([i for i in cmpd.data["test_dates"]]))) + '"')
-				elif "bio" in item.lower(): line.append(f"{len(cmpd.data['test_dates'])}")
+				elif "bio" in item.lower(): line.append(f"{biol}")
 				elif item == "R2": line.append(utils.format_lc_val(cmpd.curve_data.r2))
 				elif "comment" in item.lower():
 					comment = comment if len(comment) == 1 else comment[1:len(comment)] 
@@ -385,14 +387,17 @@ class MerlinAnalyzer:
 				
 			lc50med = utils.format_lc_val(lc50med)
 			lc50CI = '[' + utils.format_lc_val(lc50lb) + ', ' + utils.format_lc_val(lc50ub) + ']'
+			
+			biol, tech = cmpd.get_rep_counts()
+
 			LW.make_cmpd_graph(image_dir = pdf_path, 
 				name = cmpd_name, 
 				lc50 = lc50med, 
 				lc50CI = lc50CI, 
 				lcTrue = lcTrue,
 				R2 = utils.format_lc_val(cmpd.curve_data.r2), 
-				bio_reps = len(cmpd.data['test_dates']),
-				tech_reps = str(cmpd.data["n_trials"]))
+				bio_reps = biol,
+				tech_reps = tech)
 
 		self.message = "Archiving data."
 		self.progress = 96.0  #update progress for each compound

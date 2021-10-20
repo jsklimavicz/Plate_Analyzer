@@ -103,8 +103,8 @@ class CI_finder:
 		wl = weibull_param[1]*(wk/(wk-1))**(1/wk)
 		#note: from benchmarking, b0*b0 is approximately 3x faster than b0**2 for a float.
 		ll = -(b0*b0 + b1*b1)/(2*sigma_squared) + sum(probs*np.log(alpha-b2)) +\
-				np.log(b2)*sum((1-probs)) - sum(l)
-		ll += -((b2/wl)**wk) + (wk-1)*np.log(b2) #+ np.log(wk) - wk*np.log(wl)
+				math.log(b2)*sum((1-probs)) - sum(l)
+		ll += -((b2/wl)**wk) + (wk-1)*math.log(b2) #+ np.log(wk) - wk*np.log(wl)
 		return(-ll)
 
 

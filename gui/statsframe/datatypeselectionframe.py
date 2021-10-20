@@ -146,9 +146,17 @@ class DataTypeSelectionFrame(ttk.Frame):
 		self.list_update()
 
 	def clear_list(self): 
-		#Remove all groups from the forbidden list if user provides confirmation. 
-		msg = "Are you sure you want to clear all values from the excluded list? Currently, this list contains " + \
-		", ".join(self.forbidden_list[0:-1]) + f" and {self.forbidden_list[-1]}."
+		#Remove all groups from the forbidden list if confirmed.
+		msg = "Are you sure you want to clear all values from the excluded "+\
+				"list? Currently, this list contains " 
+		if len(self.forbidden_list) >= 2:
+			msg += ", ".join(self.forbidden_list[0:-1]) + \
+					f" and {self.forbidden_list[-1]}."
+		# elif len(self.forbidden_list) == 2:
+		# 	msg += f"{self.forbidden_list[0]} and {self.forbidden_list[1]}."
+		elif len(self.forbidden_list) == 1: 
+			msg += f"{self.forbidden_list[0]}."
+
 		answer = askyesno(title = "Clear Excluded List?", message = msg)
 		if answer: 
 			self.forbidden_list = []

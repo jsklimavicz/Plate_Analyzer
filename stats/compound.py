@@ -2,6 +2,7 @@ import numpy as np
 from stats.curvell import CI_finder
 import matplotlib.pyplot as plt
 from stats.merlin_grapher import MerlinGrapher
+from itertools import compress
 
 class Compound:
 	'''
@@ -55,6 +56,17 @@ class Compound:
 		CA = Compound(**self.data)
 		CA.options = self.options
 		return CA
+
+	def get_rep_counts(self):
+		'''
+		Returns the number of biological and technical reps (in that order)
+		'''
+		curr_IDs = list(compress(self.data["unique_plate_ids"], self.data["include_now"]))
+		#set biological reps based on the number of distinct dates
+		biol = len(set([s.split("_")[1] for s in curr_IDs]))
+		#set technical reps based on the number of distinct IDs
+		tech =len(set(curr_IDs))
+		return biol, tech
 
 
 	def __add__(self, other):
