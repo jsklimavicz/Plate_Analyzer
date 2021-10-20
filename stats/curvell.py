@@ -182,8 +182,6 @@ class CI_finder:
 		wherein prior is b0, b1 ~ MVN(0, sigma*I2).
 		'''
 		b0, b1 = b
-		p_sum = sum(probs)
-		p_conc_sum = sum(probs*conc)
 		xi = np.exp(b0+b1*conc)
 		l = xi/(xi+1)
 		g1 = -b0/sigma**2 + sum(probs) - sum(l)

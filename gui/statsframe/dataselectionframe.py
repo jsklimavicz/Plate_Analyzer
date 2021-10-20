@@ -259,7 +259,7 @@ class DataSelectionFrame(ttk.Frame):
 		compounds. 
 		'''
 		#update forbidden list
-		disallowed_uids = self.__get_disallowed_uids()
+		disallowed_uids = self.get_disallowed_uids()
 		self.stats_obj.set_diallowed(disallowed_uids)
 
 		DataPreviewer(self, self.stats_obj, scale = self.scale)
@@ -313,7 +313,7 @@ class DataSelectionFrame(ttk.Frame):
 		self.by_plate = sorted(list(set([f'{a[1]}_Plate_{a[2]}' for a in UID_breakdown])))
 		self.by_row = sorted(list(set([f'{a[1]}_Plate_{a[2]}_Row_{a[3]}' for a in UID_breakdown])))
 
-	def __get_disallowed_uids(self):
+	def get_disallowed_uids(self):
 		disallowed = []
 		for uid in self.uid_list:
 			for item in self.forbidden_list:
