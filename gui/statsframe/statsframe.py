@@ -17,7 +17,7 @@ import platform
 from threading import Thread
 import time
 from stats.main import analyze_data
-from gui.statsframe.datatypeselectionframe import DataTypeSelectionFrame as DTSF
+from gui.statsframe.dataselectionframe import DataSelectionFrame as DSF
 from gui.progmonitor import ProgMonitor
 from gui.statsframe.datapreviewer import DataPreviewer
 
@@ -27,9 +27,10 @@ class StatsFrame(ttk.Frame):
 		self.container = container
 		self.scale = scale
 		self.config = config
-		self.stats_obj = analyze_data(config_path = self.config["STATS_CONFIG_PATH"],
-										MASK_RCNN_SAVE = 'True',
-										MASK_RCNN_SAVE_NAME = 'larval_counts.csv')
+		self.stats_obj = analyze_data(
+					config_path = self.config["STATS_CONFIG_PATH"],
+					MASK_RCNN_SAVE = 'True',
+					MASK_RCNN_SAVE_NAME = 'larval_counts.csv')
 		self.stats_obj.collect_data()
 
 		self.__create_widgets()
@@ -38,18 +39,25 @@ class StatsFrame(ttk.Frame):
 		
 	def __create_widgets(self, scale = 1):
 
-		self.selection_frame = DTSF(self, config = self.config, stats_obj = self.stats_obj, scale = self.scale)
+		self.selection_frame = DSF(self, config = self.config, 
+				stats_obj = self.stats_obj, scale = self.scale)
 		self.selection_frame.grid(column=0, row=0, padx=10, pady=20)
 
-		self.PreviewData = Button(self, text="Preview Data", command = lambda: self.__preview_data())
+		self.PreviewData = Button(self, text="Preview Data", 
+				command = lambda: self.__preview_data())
 		self.PreviewData.grid(row=1, column=0, sticky=S)
 		self.PreviewData.config(height = 2)
+		msg = 'Opens a window to allow a preview of the data by compound.'
+		Tooltip(self.PreviewData, text=msg)
 
 		# Button to run the analysis
-		self.Statbutton = Button(self, text="Run Statistics", command = lambda: self.__statistics_driver())
+		self.Statbutton = Button(self, text="Run Statistics", 
+				command = lambda: self.__statistics_driver())
 		self.Statbutton.grid(row=2, column=0, sticky=S)
 		self.Statbutton.config(height = 2)
-		Tooltip(self.Statbutton, text='Performs statistical analysis of larval count data, including dose-response curve fitting and LC calculations.')
+		msg = 'Performs statistical analysis of larval count data, including'+\
+				'dose-response curve fitting and LC calculations.'
+		Tooltip(self.Statbutton, text=msg)
 
 		self.progmonitor = ProgMonitor(self, run_button = self.Statbutton)
 		self.progmonitor.grid(row=3, column=0, sticky=S)

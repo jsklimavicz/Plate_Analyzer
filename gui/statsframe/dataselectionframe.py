@@ -17,24 +17,24 @@ import platform
 from threading import Thread
 import time
 from stats.main import analyze_data
-from tkinter.messagebox import askyesno
+from tkinter.messagebox import askyesno, askokcancel, showinfo
 
 import pickle
 import hashlib
 import hmac
 
-class DataTypeSelectionFrame(ttk.Frame):
+class DataSelectionFrame(ttk.Frame):
 	cache_path = os.path.abspath('./stats/cache')
 	sha_key = b'james is awesome'
 	forb_hash = ".forbiddenhash"
 	forb_pick = "forbidden." + "pickle"
 	def __init__(self, container, config, stats_obj, scale = 1, **kwargs):
 		super().__init__(container, **kwargs)
+		self.container = container
 		self.scale = scale
 		self.config = config
 		self.textbox_width=60
 		self.font = ('Arial', 12*self.scale)
-		super().__init__(container)
 		self.stats_obj = stats_obj
 
 		self.uid_list = self.stats_obj.get_uid_list()
@@ -48,14 +48,19 @@ class DataTypeSelectionFrame(ttk.Frame):
 		self.columnconfigure(4, weight=2)
 		self.columnconfigure(5, weight=2)
 
-		self.selection_options = ["Compound", "Reference ID", "Date", "Plate ID", "Row ID"]
+		self.selection_options = ["Compound", 
+								"Reference ID", 
+								"Date", 
+								"Plate ID", 
+								"Row ID"]
 		self.forbidden_list = self.load_forbidden_list()
 
 		self.__create_widgets()
 
 	def __create_widgets(self):
 		'''
-		Creates the interactive features necessary for excluding data from analysis. 
+		Creates the interactive features necessary for excluding data from 
+		analysis. 
 		'''
 		s = ttk.Style()
 		s.configure("my.TButton", font = self.font)
@@ -71,7 +76,8 @@ class DataTypeSelectionFrame(ttk.Frame):
 							self.exclusiontype, 
 							*self.selection_options,
 							command=lambda _: self.list_update())
-		self.exclusionEntry.grid(row=curr_row, column=1, columnspan = full_width,  sticky=EW, padx=10, pady=20)
+		self.exclusionEntry.grid(row=curr_row, column=1, 
+				columnspan = full_width,  sticky=EW, padx=10, pady=20)
 		msg = "Select the data type for excluding data from the analysis."
 		Tooltip(self.exclusionlabel, text=msg)
 		Tooltip(self.exclusionEntry, text=msg)
@@ -80,12 +86,14 @@ class DataTypeSelectionFrame(ttk.Frame):
 		curr_row += 1 #1
 		self.allowedlabel = Label(self, text="Permitted List")
 		self.allowedlabel.grid(row=curr_row, column=0, sticky=E)
-		allow_msg = "Permitted categories. Data may be included only if it does not match any group in the Excluded List."
+		allow_msg = "Permitted categories. Data may be included only if it"+\
+				" does not match any group in the Excluded List."
 		Tooltip(self.allowedlabel, text=allow_msg)
 		self.disallowlabel = Label(self, text="Excluded List")
 		self.disallowlabel.grid(row=curr_row, column=4, sticky=E)
-		disallow_msg = "Excluded categories. Data matching any category in this list will be excluded. " + \
-					"This list only shows the groups in the category selected by the dropdown menu above."
+		disallow_msg = "Excluded categories. Data matching any category in "+\
+				"this list will be excluded. This list only shows the "+\
+				"groups in the category selected by the dropdown menu above."
 		Tooltip(self.disallowlabel, text=disallow_msg)
 
 		#Lists
@@ -93,43 +101,71 @@ class DataTypeSelectionFrame(ttk.Frame):
 		# Scroll bar help from https://stackoverflow.com/a/24656407/8075803
 		#allowed List
 		afrm = Frame(self)
-		afrm.grid(row=curr_row, column=0, rowspan = 4, columnspan = 2, sticky=N+S)
+		afrm.grid(row=curr_row, column=0, rowspan = 4, columnspan = 2, 
+					sticky=N+S)
 		scrollbar = Scrollbar(afrm, orient="vertical")
 		scrollbar.pack(side=RIGHT, fill=Y)
-		self.allowed_list = Listbox(afrm, selectmode='multiple',exportselection=0,yscrollcommand=scrollbar.set, width = self.textbox_width)
+		self.allowed_list = Listbox(afrm, selectmode='multiple',
+					exportselection=0, yscrollcommand=scrollbar.set, 
+					width = self.textbox_width)
 		self.allowed_list.pack(expand = True, fill = Y)
 		scrollbar.config(command=self.allowed_list.yview)
 		Tooltip(self.allowed_list, text=allow_msg)
 		
 		#disallowed List
 		dfrm = Frame(self)
-		dfrm.grid(row=curr_row, column=4, rowspan = 4, columnspan = 2, sticky=N+S)
+		dfrm.grid(row=curr_row, column=4, rowspan = 4, columnspan = 2, 
+					sticky=N+S)
 		scrollbar = Scrollbar(dfrm, orient="vertical")
 		scrollbar.pack(side=RIGHT, fill=Y)
-		self.disallowed_list = Listbox(dfrm, selectmode='multiple',exportselection=0,yscrollcommand=scrollbar.set, width = self.textbox_width)
+		self.disallowed_list = Listbox(dfrm, selectmode='multiple',
+					exportselection=0, yscrollcommand=scrollbar.set, 
+					width = self.textbox_width)
 		self.disallowed_list.pack(expand = True, fill = Y)
 		scrollbar.config(command=self.disallowed_list.yview)
 		Tooltip(self.disallowed_list, text=disallow_msg)
 
 		#Allow/disallow buttons
 		curr_row += 1 #3
-		self.disallowButton = Button(self, text="Remove from sample >", command = lambda: self.disallow())
-		self.disallowButton.grid(row=curr_row, column=2, sticky=S, padx=10, pady=20)
+		self.disallowButton = Button(self, text="Remove from sample >", 
+					command = lambda: self.disallow())
+		self.disallowButton.grid(row=curr_row, column=2, 
+					sticky=S, padx=10, pady=20)
 		self.disallowButton.config(height = 2)
-		Tooltip(self.disallowButton, text="Move selected group(s) from the Permitted List to the Excluded List")	
+		msg = "Move selected group(s) from the Permitted List to the "+\
+				"Excluded List"
+		Tooltip(self.disallowButton, text=msg)	
 
 		curr_row += 1 #4
-		self.allowButton = Button(self, text="< Add to sample", command = lambda: self.allow())
-		self.allowButton.grid(row=curr_row, column=2, sticky=S, padx=10, pady=20)
+		self.allowButton = Button(self, text="< Add to sample", 
+					command = lambda: self.allow())
+		self.allowButton.grid(row=curr_row, column=2, 
+					sticky=S, padx=10, pady=20)
 		self.allowButton.config(height = 2)
-		Tooltip(self.allowButton, text="Move selected group(s) from the Excluded List to the Permitted List")
+		msg = "Move selected group(s) from the Excluded List to the "+\
+				"Permitted List"
+		Tooltip(self.allowButton, text=msg)
 
 		#Button to clear excluded list. 
 		curr_row += 3 #7
-		self.clearButton = Button(self, text="Clear Excluded List", command = lambda: self.clear_list())
-		self.clearButton.grid(row = curr_row, column=4, sticky=S, padx=10, pady=20)
+		self.clearButton = Button(self, text="Clear Excluded List", 
+				command = lambda: self.clear_list())
+		self.clearButton.grid(row = curr_row, column=4, 
+				sticky=S, padx=10, pady=20)
 		self.clearButton.config(height = 2)
-		Tooltip(self.clearButton, text="Clear all groups from the Excluded List.")
+		Tooltip(self.clearButton, 
+				text="Clear all groups from the Excluded List.")
+
+		#Button to clear cache. 
+		self.clearButton = Button(self, text="Clear Calculated Stats", 
+				command = lambda: self.clear_stats())
+		self.clearButton.grid(row = curr_row, column=5, 
+				sticky=S, padx=10, pady=20)
+		self.clearButton.config(height = 2)
+		msg ="Clear the calculated stats. This removes all past calculated "+\
+				"dose-response curve data, but does not remove any larval "+\
+				"count files."
+		Tooltip(self.clearButton, text=msg)
 
 		self.list_update()
 
@@ -161,6 +197,47 @@ class DataTypeSelectionFrame(ttk.Frame):
 		if answer: 
 			self.forbidden_list = []
 			self.list_update()
+
+	def clear_stats(self): 
+		'''
+		Deletes the entire cache. Obviously this is a permanent thing, but we
+		need to make sure the user knows this. 
+		'''
+		msg = "WARNING! Deleting the calculated stats will require " +\
+			"recalculating all dose-response curve data. This action " +\
+			"does NOT remove any larval count files. Are you sure you " +\
+			"wish to procede?" 
+
+		answer = askokcancel(title = "WARNING!", message = msg)
+		if answer: 
+			for cmpd_name, cmpd in self.stats_obj.cmpd_data.items():
+				self.stats_obj.cmpd_data[cmpd_name] = \
+							self.stats_obj.cmpd_data[cmpd_name].reset_curves()
+			msg = "You have deleted the calculated statistics. Do you also "+\
+					"wish to delete the cached data?\n\nWARNING: This "+\
+					"action cannot be undone. This will remove cached "+\
+					"statistical data, but will not remove any larval count "+\
+					"files. This program will also be closed. Do you still "+\
+					"wish to proceed?"
+			rm_cache=askokcancel(title="Calculated statistics cleared",
+				message = msg)
+			if rm_cache:
+				self.delete_cache()
+				self.container.quit()
+
+	def delete_cache(self): 
+		cache_path = self.stats_obj.cache_path
+		
+		remove_files = [
+				#remove the picked larval count data and hash
+				os.path.join(cache_path, self.stats_obj.archivefilename),
+				os.path.join(cache_path, self.stats_obj.picklesha1hash),
+				#remove the pickled forbidden list and hash
+				os.path.join(self.cache_path, self.forb_hash),
+				os.path.join(self.cache_path, self.forb_pick)]
+		for file in remove_files:
+			try: os.remove(file) 
+			except FileNotFoundError: pass
 
 	def list_update(self):
 		var = self.exclusiontype.get()
@@ -228,7 +305,8 @@ class DataTypeSelectionFrame(ttk.Frame):
 				pickle_hash = file.read().strip()
 			with open(os.path.join(self.cache_path, self.forb_pick), 'rb') as file:
 				pickled_data = file.read()
-			digest =  hmac.new(self.sha_key, pickled_data, hashlib.sha1).hexdigest()
+			digest =  hmac.new(self.sha_key, pickled_data, 
+						hashlib.sha1).hexdigest()
 
 			if pickle_hash == digest:
 				unpickled_data = pickle.loads(pickled_data)
