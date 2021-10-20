@@ -119,12 +119,12 @@ class CI_finder:
 						1 + exp(b0 + b1*x)
 		'''
 		if len(b) == 2:
-			return np.array(1-1/(1 + np.exp(b[0] + b[1]*conc)) - probs)
+			return np.array((1-1/(1 + np.exp(b[0] + b[1]*conc)) - probs)**2)
 		else:
 			if b[2] > 1:
 				return 1e10
 			else:
-				return np.array(1-b[2]/(1 + np.exp(b[0] + b[1]*conc)) - probs)
+				return np.array((1-b[2]/(1 + np.exp(b[0] + b[1]*conc)) - probs)**2)
 
 
 	@staticmethod
