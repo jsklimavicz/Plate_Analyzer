@@ -17,7 +17,7 @@ struct ll3_param {
   double *conc;
   int probs_size;
   double sigsquare;
-  double weib[2] ;
+  double *beta ;
 };
 
 struct ls_param {
@@ -26,35 +26,39 @@ struct ls_param {
   int probs_size;
 };
 
+
+/*Three-parameter log-likelihood*/
 void ll3f(const size_t n, 
 	const double *x, 
 	void * fparams, 
 	double *fval);
 
-// double ll2f(const size_t n, 
-// 	const double *x, 
-// 	void *fparams, 
-// 	double *fval);
-
-// void ll2df(const size_t n, 
-// 	const double *x,
-// 	void *fparams,
-// 	double *grad) ;
-
 void ll3df(const size_t n, 
-	const double * b,
-	void * fparams,
-	double * grad) ;
-
-// void ll2fdf(const size_t n, 
-// 	const double *x,
-// 	void *fparams,
-// 	double *fval,
-// 	double *grad) ;
+  const double * b,
+  void * fparams,
+  double * grad) ;
 
 void ll3fdf(const size_t n, 
-	const double * b,
-	void * fparams,
+  const double * b,
+  void * fparams,
+  double *fval,
+  double *grad) ;
+
+
+/*Two-parameter log-likelihood*/
+void ll2f(const size_t n, 
+	const double *x, 
+	void *fparams, 
+	double *fval);
+
+void ll2df(const size_t n, 
+	const double *x,
+	void *fparams,
+	double *grad) ;
+
+void ll2fdf(const size_t n, 
+	const double *x,
+	void *fparams,
 	double *fval,
 	double *grad) ;
 

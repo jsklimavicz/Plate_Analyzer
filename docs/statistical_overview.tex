@@ -206,11 +206,11 @@ Using the likelihood function $\mc L_3(\bm \theta | \bm b) = f(\bm b | \bm \thet
 \begin{align*}
 \ell_3(\bm b | \bm \theta) &= \ln \mc L_3(\bm \theta | \bm b) \\
 &= \ln( kf(\bm b)f(\bm b | \bm \theta)) \\
-&=\ln k + \ln \left(\frac{1}{2\pi \sigma^2} \exp \left(\frac{b_0^2 + b_1^2}{2\sigma^2} \right) \right) + \ln \left(\frac{\beta^\alpha}{\Gamma(a)} b_2^{\alpha-1}e^{-\beta b_2}\right) + \ln\prod_{i=1}^n \left( (1+\xi_i)^{b_2}-1 \right)^{\theta_i} \\
+&=\ln k + \ln \left(\frac{1}{2\pi \sigma^2} \exp \left(-\frac{b_0^2 + b_1^2}{2\sigma^2} \right) \right) + \ln \left(\frac{\beta^\alpha}{\Gamma(a)} b_2^{\alpha-1}e^{-\beta b_2}\right) + \ln\prod_{i=1}^n \left( (1+\xi_i)^{b_2}-1 \right)^{\theta_i} \\
 &\qquad - \ln \prod_{i=1}^n (1+\xi_i)^{b_2} \\
-&= \ln k - \ln(2\pi) - 2 \ln \sigma + \frac{b_0^2 + b_1^2}{2\sigma^2} + \ln \left( \frac{\beta^\alpha}{\Gamma(\alpha)} \right) + (\alpha-1)\ln b_2 -\beta b_2 \\
+&= \ln k - \ln(2\pi) - 2 \ln \sigma - \frac{b_0^2 + b_1^2}{2\sigma^2} + \ln \left( \frac{\beta^\alpha}{\Gamma(\alpha)} \right) + (\alpha-1)\ln b_2 -\beta b_2 \\
 &\qquad + \sum_{i=1}^n \theta_i \ln \left((1+\xi_i)^{b_2}-1\right) - b_2\sum_{i=1}^n  \ln (1+\xi_i) \\
-&\cong - 2 \ln \sigma + \frac{b_0^2 + b_1^2}{2\sigma^2} + (\alpha-1)\ln b_2 -\beta b_2  + \sum_{i=1}^n \theta_i \ln \left((1+\xi_i)^{b_2}-1\right) - b_2\sum_{i=1}^n  \ln (1+\xi_i)
+&\cong - 2 \ln \sigma - \frac{b_0^2 + b_1^2}{2\sigma^2} + (\alpha-1)\ln b_2 -\beta b_2  + \sum_{i=1}^n \theta_i \ln \left((1+\xi_i)^{b_2}-1\right) - b_2\sum_{i=1}^n  \ln (1+\xi_i)
 \end{align*}
 for constant hyperparameters $\sigma, \alpha, \beta$ after removal of constant terms.
 
@@ -223,8 +223,8 @@ The gradient of the three-parameter log-likelihood function, $\nabla \ell_2(\bm 
 \end{align*}
 where 
 \begin{align*}
-\frac{\partial \ell_3 (\bm b | \bm \theta)}{\partial b_0}   &= \frac{b_0}{\sigma^2} + b_2 \sum_{i=1}^n \frac{\theta_i \xi_i\left(1+\xi_i \right)^{b_2-1}}{(1+\xi_i)^{b_2} - 1} - b_2 \sum_{i=1}^n \frac{\xi_i}{1+ \xi_i} \\
-\frac{\partial \ell_3 (\bm b | \bm \theta)}{\partial b_1}   &= \frac{b_1}{\sigma^2} + b_2 \sum_{i=1}^n \frac{\theta_i x_i \xi_i\left(1+ \xi_i\right)^{b_2-1}}{(1+\xi_i)^{b_2} - 1} - b_2 \sum_{i=1}^n \frac{x_i \xi_i}{1+\xi_i} \\
+\frac{\partial \ell_3 (\bm b | \bm \theta)}{\partial b_0}   &= -\frac{b_0}{\sigma^2} + b_2 \sum_{i=1}^n \frac{\theta_i \xi_i\left(1+\xi_i \right)^{b_2-1}}{(1+\xi_i)^{b_2} - 1} - b_2 \sum_{i=1}^n \frac{\xi_i}{1+ \xi_i} \\
+\frac{\partial \ell_3 (\bm b | \bm \theta)}{\partial b_1}   &= -\frac{b_1}{\sigma^2} + b_2 \sum_{i=1}^n \frac{\theta_i x_i \xi_i\left(1+ \xi_i\right)^{b_2-1}}{(1+\xi_i)^{b_2} - 1} - b_2 \sum_{i=1}^n \frac{x_i \xi_i}{1+\xi_i} \\
 \frac{\partial \ell_3 (\bm b | \bm \theta)}{\partial b_2}   &= \frac{\alpha -1}{b_2} - \beta + \sum_{i=1}^n \frac{\theta_i (1+\xi_i)^{b_2}\ln(1+\xi_i)}{(1+\xi_i)^{b_2}-1}  -\sum_{i=1}^n  \ln (1+\xi_i).
 \end{align*}
 
@@ -240,10 +240,10 @@ H_{\ell_3} = \begin{bmatrix}[2.2]
 \end{align*}
 where
 \begin{align*}
-\dfrac{\partial^2 \ell_3(\bm b | \bm \theta)}{\partial b_0 ^2} &=  \frac{1}{\sigma^2} + b_2 \sum_{i=1}^n \frac{\theta_i \xi_i (1+\xi_i)^{b_2-2}((1+\xi_i)^{b_2} - 1 - b_2 \xi_i)}{\left((1+\xi_i)^{b_2} - 1 \right)^2} -b_2 \sum_{i=1}^n \frac{ \xi_i}{(1+\xi_i )^2}\\
+\dfrac{\partial^2 \ell_3(\bm b | \bm \theta)}{\partial b_0 ^2} &=  -\frac{1}{\sigma^2} + b_2 \sum_{i=1}^n \frac{\theta_i \xi_i (1+\xi_i)^{b_2-2}((1+\xi_i)^{b_2} - 1 - b_2 \xi_i)}{\left((1+\xi_i)^{b_2} - 1 \right)^2} -b_2 \sum_{i=1}^n \frac{ \xi_i}{(1+\xi_i )^2}\\
 \dfrac{\partial^2 \ell_3(\bm b | \bm \theta)}{\partial b_0 \partial b_1} &= \dfrac{\partial^2 \ell_3(\bm b | \bm \theta)}{\partial b_1 \partial b_0} =  b_2 \sum_{i=1}^n \frac{\theta_ix_i \xi_i (1+\xi_i)^{b_2-2}((1+\xi_i)^{b_2} - 1 - b_2 \xi_i)}{\left((1+\xi_i)^{b_2} - 1 \right)^2} -b_2 \sum_{i=1}^n \frac{x_i \xi_i}{(1+\xi_i )^2}\\
 \dfrac{\partial^2 \ell_3(\bm b | \bm \theta)}{\partial b_0 \partial b_2} &= \dfrac{\partial^2 \ell_3(\bm b | \bm \theta)}{\partial b_2 \partial b_0} = \sum_{i=1}^n \frac{\theta_i\xi_i(1+\xi_i)^{b_2-1}\left((1+\xi_i)^{b_2}- b_2 \ln (1+\xi_i) -1 \right)}{\left((1+\xi_i)^{b_2} - 1 \right)^2} - \sum_{i=1}^n \frac{\xi_i}{1+\xi_i}\\
-\dfrac{\partial^2 \ell_3(\bm b | \bm \theta)}{\partial b_1 ^2} &= \frac{1}{\sigma^2} + b_2 \sum_{i=1}^n \frac{\theta_i x_i^2\xi_i (1+\xi_i)^{b_2-2}((1+\xi_i)^{b_2} - 1-b_2 \xi_i)}{\left((1+\xi_i)^{b_2} - 1 \right)^2} -b_2 \sum_{i=1}^n \frac{x_i^2 \xi_i}{(1+\xi_i )^2}\\
+\dfrac{\partial^2 \ell_3(\bm b | \bm \theta)}{\partial b_1 ^2} &= -\frac{1}{\sigma^2} + b_2 \sum_{i=1}^n \frac{\theta_i x_i^2\xi_i (1+\xi_i)^{b_2-2}((1+\xi_i)^{b_2} - 1-b_2 \xi_i)}{\left((1+\xi_i)^{b_2} - 1 \right)^2} -b_2 \sum_{i=1}^n \frac{x_i^2 \xi_i}{(1+\xi_i )^2}\\
 \dfrac{\partial^2 \ell_3(\bm b | \bm \theta)}{\partial b_1 \partial b_2} &= \dfrac{\partial^2 \ell_3(\bm b | \bm \theta)}{\partial b_2 \partial b_1} =  \sum_{i=1}^n \frac{\theta_i x_i\xi_i(1+\xi_i)^{b_2-1}\left((1+\xi_i)^{b_2}- b_2 \ln (1+\xi_i) -1 \right)}{\left((1+\xi_i)^{b_2} - 1 \right)^2} - \sum_{i=1}^n \frac{x_i\xi_i}{1+\xi_i}\\
 \dfrac{\partial^2 \ell_3(\bm b | \bm \theta)}{\partial b_2 ^2} &= \frac{1-\alpha}{b_2^2} - \sum_{i=1}^n \frac{\theta_i(1+\xi_i)^{b_2}\ln ^2(1+\xi_i)}{\left((1+\xi_i)^{b_2} - 1 \right)^2} \\
 \end{align*}
@@ -271,11 +271,26 @@ Using the likelihood function $\mc L_{3^\prime}(\bm \theta | \bm b) = f(\bm b | 
 \ell_{3^\prime}(\bm b | \bm \theta) &= \ln \mc L_{3^\prime}(\bm \theta | \bm b) \\
 &= \ln \left( k \cdot \frac{1}{2\pi \sigma^2} \exp\left(-\frac{b_0^2+b_1^2}{2 \sigma^2}\right) \cdot \frac{\Gamma (\alpha+\beta)}{\Gamma(\alpha)\Gamma(\beta)} b_2^{\alpha-1}(1-b_2)^{\beta -1} \cdot \prod_{i=1}^n \frac{\left(1+\xi_i -b_2\right)^{\theta_i}b_2^{1-\theta_i}}{1+\xi_i}\right) \\
 &= \ln k - \ln 2\pi -2 \ln \sigma - \frac{b_0^2 + b_1^2}{2\sigma^2} + \ln \Gamma(\alpha + \beta) - \ln \Gamma(\alpha) - \ln \Gamma(\beta) + (\alpha-1)\ln b_2 \\
-&\qquad+ (\beta-1)\ln (1-b_2) + \sum_{i=1}^n \theta_i \ln(1 + \xi_i -b_2) + \sum_{i=1}^n (1-\theta_i)b_2 - \sum_{i=1}^n \ln(1+\xi_i) \\
+&\qquad+ (\beta-1)\ln (1-b_2) + \sum_{i=1}^n \theta_i \ln(1 + \xi_i -b_2) + \sum_{i=1}^n (1-\theta_i)\ln b_2 - \sum_{i=1}^n \ln(1+\xi_i) \\
 &\cong - \frac{b_0^2 + b_1^2}{2\sigma^2}  + (\alpha-1)\ln b_2 + (\beta-1)\ln (1-b_2) + \sum_{i=1}^n \theta_i \ln(1 + \xi_i -b_2) + \sum_{i=1}^n (1-\theta_i)\ln b_2 \\
 &\qquad - \sum_{i=1}^n \ln(1+\xi_i)
 \end{align*}
 for constant hyperparameters $\sigma, \alpha, \beta$ after removal of constant terms.
+
+\subsubsection{Optimization of the log-likelihood function: The gradient}
+The gradient of the three-parameter (scaled) log-likelihood function, $\nabla \ell_2(\bm b | \bm \theta)$, is given by
+\begin{align*}
+\nabla \ell_3(\bm b | \bm \theta) &= \begin{pmatrix}
+\dfrac{\partial \ell_3}{\partial b_0},   & \dfrac{\partial \ell_3}{\partial b_1} , & \dfrac{\partial \ell_3}{\partial b_2} 
+\end{pmatrix}^T,
+\end{align*}
+where 
+\begin{align*}
+\frac{\partial \ell_3 (\bm b | \bm \theta)}{\partial b_0}   &= -\frac{b_0}{\sigma^2} + \sum_{i=1}^n \frac{\theta_i\xi_i}{1+\xi_i - b_2} - \sum_{i=1}^n \frac{\xi_i}{1+ \xi_i} \\
+\frac{\partial \ell_3 (\bm b | \bm \theta)}{\partial b_1}   &= -\frac{b_1}{\sigma^2} + \sum_{i=1}^n \frac{\theta_i \xi_i x_i}{1+\xi_i - b_2} - \sum_{i=1}^n \frac{\xi_i x_i}{1+ \xi_i} \\
+\frac{\partial \ell_3 (\bm b | \bm \theta)}{\partial b_2}   &= \frac{\alpha -1}{b_2} - \frac{\beta-1}{1-b_2} + \sum_{i=1}^n \frac{-\theta_i }{1+\xi_i- b_2}  + \sum_{i=1}^n \frac{1-\theta_i}{b_2}.
+\end{align*}
+
 
 \subsection{Four-Parameter Logistic Curve (Scale and Shape Parameters)}
 We now explore a four-parameter logistic curve given by the formula

@@ -11,6 +11,7 @@ from stats.merlin_grapher import MerlinGrapher
 from time import time
 import stats.utils as utils
 from itertools import compress
+from stats.functionfit import FunctionFit
 
 def default_params_dict():
 	param_dict = {"BOOTSTRAP_ITERS": 1000,  
@@ -78,32 +79,32 @@ class CI_finder:
 
 	@staticmethod
 	@utils.surpress_warnings
-	def ll3(b, probs, conc, sigma_squared = 1e6, weibull_param=[2,1]):
+	def ll3(b, probs, conc, sigma_squared = 1e6, beta_param=[1.5,1.01]):
 		'''
 		Log-likelihood function of the three parameter dose-response curve 
 							    b2
 					y = ------------------
 						1 + exp(b0 + b1*x)
 		wherein priors are b0, b1 ~ MVN(0, sigma*I2) and 
-		b2 ~ Weibull(weibull_params).
-
-		Paramerization of Weibull(x|l, k) = k/l * (x/l)^(k-1) * exp(-(x/l)**k)
-		I forget why I implemented this with Weibull 
-		instead of Beta, but it works fine so I haven't
-		changed it. 
+		b2 ~ Beta(beta_param).
 		'''
 		b0, b1, b2 = b
-		if (b2 <= 1e-10 or b2 > 1. ): return(1e10)
+		if (b2 <= 1e-10 ): return(1e10)
 		xi = np.exp(b0+b1*conc)
 		alpha = 1+xi # >1.0
-		l = np.log(alpha)
-		if (min(alpha)-b2 <= 1e-10): return(1e10)
-		wk = weibull_param[0]
-		wl = weibull_param[1]*(wk/(wk-1))**(1/wk)
+		# l = np.log(alpha)
+		if (min(1+xi)-b2 <= 1e-10): return(1e10)
+		ba = beta_param[0]
+		bb = beta_param[1]
 		#note: from benchmarking, b0*b0 is approximately 3x faster than b0**2 for a float.
-		ll = -(b0*b0 + b1*b1)/(2*sigma_squared) + sum(probs*np.log(alpha-b2)) +\
-				math.log(b2)*sum((1-probs)) - sum(l)
-		ll += -((b2/wl)**wk) + (wk-1)*math.log(b2) #+ np.log(wk) - wk*np.log(wl)
+		#MVN Prior
+		ll = -(b0*b0 + b1*b1)/(2*sigma_squared) 
+
+		#Beta Prior
+		ll += (ba-1)*math.log(b2) + (bb-1)*math.log(1-b2)
+
+		#terms
+		ll += sum(probs*np.log(alpha-b2) - np.log(alpha) + (1-probs)*math.log(b2))
 		return(-ll)
 
 
@@ -136,21 +137,22 @@ class CI_finder:
 					y = ------------------
 						1 + exp(b0 + b1*x)
 		wherein priors are b0, b1 ~ MVN(0, sigma*I2) and 
-		b2 ~ Weibull(weibull_params).
+		b2 ~ Beta(beta_param).
 		'''
 		b0, b1, b2 = b
+
+		ba = beta_param[0]
+		bb = beta_param[1]
+
 		xi = np.exp(b0+b1*conc)
 		alpha = 1+xi
 		d = (alpha - b2)
-		m = probs*xi / d
-		l = xi/alpha
-		wk = weibull_param[0]
-		wl = weibull_param[1]*(wk/(wk-1))**(1/wk)
-		g0 = -b0/(sigma_squared) + sum(m) - sum(l)
-		g1 = -b1/(sigma_squared) + sum(conc*m) - sum(conc*l)
-		g2 = (wk-1)/b2 - (wk/b2)*((b2/wl)**wk) - sum(probs/d) + \
-				sum((1-probs)/b2)
+
+		g0 = -b0/sigma_squared + sum(probs * xi/( d) - xi/(alpha))
+		g1 = -b1/sigma_squared + sum(conc * xi *(probs/(d) - 1/(alpha)) )
+		g2 = (ba-1)/b2 - (bb-1)/(1-b2) + sum(-probs/(d)) + sum((1-probs)/b2)
 		return(np.array([-g0,-g1,-g2]))
+
 
 	@staticmethod
 	@utils.surpress_warnings
@@ -271,20 +273,23 @@ class CI_finder:
 		#TODO: handle cases where EC50 is not going to be in the data :( 
 		
 		@utils.surpress_warnings
-		def fit_ll3(b, probs):
+		def fit_ll3(b, probs, functionFitter):
 			'''
 			Inner function that attempts to fit the three-paremeter dose-
 			response curve with the option-specified method for minimization.
 			If this method fails, the more computationally-expensive but 
 			better-behaved Nelder-Mead method is used. 
 			'''
-			res = minimize(self.ll3, b, args = (probs, self.conc), 
-					method = self.options["FIT_METHOD"], jac = self.ll3_jac)
-			if not res.success:
-				res = minimize(self.ll3, b, args = (probs, self.conc), 
-					method = 'Nelder-Mead')
-			return res
+
+			# res = minimize(self.ll3, b, args = (probs, self.conc), 
+			# 		method = self.options["FIT_METHOD"], jac = self.ll3_jac)
+			# if not res.success:
+			# 	res = minimize(self.ll3, b, args = (probs, self.conc), 
+			# 		method = 'Nelder-Mead')
+			# return res
+			return functionFitter.min_ll3(b, probs, self.conc )
 		
+		functionFitter = FunctionFit()
 		b2 = self.estimate_initial_b(self.conc, probs, params = 2, rev = True)
 		b3 = self.estimate_initial_b(self.conc, probs, params = 3, rev = True)
 
@@ -294,21 +299,21 @@ class CI_finder:
 
 		if self.options["CURVE_TYPE"].lower() in ["2", "ll2", 2]:
 			return minimize(self.ll2, b2, args = (probs, self.conc), 
-					method = self.options["FIT_METHOD"], jac = self.ll2_jac)
+					method = self.options["FIT_METHOD"], jac = self.ll2_jac).x
 		elif self.options["CURVE_TYPE"].lower() in ["3", "ll3", 3]:
-			return fit_ll3(b3, probs)
+			return fit_ll3(b3, probs,functionFitter)
 		elif self.options["CURVE_TYPE"].lower() in ["ls3"]:
-			return least_squares(self.least_squares_fit, b3, args=(probs, self.conc))
+			return least_squares(self.least_squares_fit, b3, args=(probs, self.conc)).x
 		elif self.options["CURVE_TYPE"].lower() in ["ls2"]:
-			return least_squares(self.least_squares_fit, b2, args=(probs, self.conc))
+			return least_squares(self.least_squares_fit, b2, args=(probs, self.conc)).x
 		elif self.options["CURVE_TYPE"].lower() in ["best", "aic"]:
 			res2 = minimize(self.ll2, b2, args = (probs, self.conc), 
 					method = self.options["FIT_METHOD"], jac = self.ll2_jac)
 			b3p = np.array([res2.x[0], res2.x[1], background_mort])
-			res3 = fit_ll3(b3p, probs)
+			res3 = fit_ll3(b3p, probs, functionFitter)
 			AIC2 = 4 - 2*res2.fun
 			AIC3 = 6 - 2*res3.fun
-			return res2 if AIC2 <= AIC3 else res3
+			return res2.x if AIC2 <= AIC3 else res3.x
 
 	def bootstrap_CIs(self):
 		'''
@@ -340,10 +345,10 @@ class CI_finder:
 		# dict_list = Parallel(n_jobs = 1)(delayed(
 		# 			self.fit_curve)(row) for row in beta_probs)
 		for iter_count, res in enumerate(dict_list):
-			if len(res.x) == 3:
-				self.params[iter_count] = res.x
+			if len(res) == 3:
+				self.params[iter_count] = res
 			else:
-				self.params[iter_count,0:2] = res.x
+				self.params[iter_count,0:2] = res
 				self.params[iter_count,2] = 1.
 		
 	def get_point_error_bars(self, beta_probs):
