@@ -1,6 +1,5 @@
 import math
 from scipy.optimize import minimize, least_squares
-from scipy.special import gamma
 from scipy.interpolate import CubicSpline
 import numpy as np
 from stats.corr_beta import corr_beta_vars
@@ -184,8 +183,8 @@ class CI_finder:
 		b0, b1 = b
 		xi = np.exp(b0+b1*conc)
 		l = xi/(xi+1)
-		g1 = -b0/sigma**2 + sum(probs) - sum(l)
-		g2 = -b1/sigma**2 + sum(conc*probs) - sum(conc*l)
+		g1 = -b0/sigma_squared + sum(probs) - sum(l)
+		g2 = -b1/sigma_squared + sum(conc*probs) - sum(conc*l)
 		return(np.array([-g1,-g2]))
 
 	@staticmethod

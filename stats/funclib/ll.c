@@ -1,16 +1,20 @@
+/* ll.c
+ * Contains the log-likelihood functions and jacobians for curve-fitting.
+ * Also contains the error function for least squares fitting. 
+ */
+
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
 
-/* globals */
-double LB = 1.E-10;
-double DEF_SS = 1.0E6;
-double DEF_WEIB[2] = {2.0, 1.0};
-double DEF_RETURN = 1E10;
+#include "ll.h"
 
 double ll3_full(const double *b, 
-	const double *probs, const double *conc, const int probs_size, 
-	const double sigsquare, const double *weib)
+	const double *probs, 
+	const double *conc, 
+	const int probs_size, 
+	const double sigsquare, 
+	const double *weib)
 {
 	/*
 	Log-likelihood function of the three parameter dose-response curve 
@@ -49,7 +53,9 @@ double ll3_full(const double *b,
 
 
 double ll2_full(const double *b, 
-	const double *probs, const double *conc, const int probs_size, 
+	const double *probs, 
+	const double *conc, 
+	const int probs_size, 
 	const double sigsquare)
 {
 	/*
@@ -71,8 +77,11 @@ double ll2_full(const double *b,
 }
 
 
-double *ll2_jac_full(const double *b, 
-	 const double *probs, const double *conc, const int probs_size, 
+void ll2_jac_full(const double *b, 
+	 const double *probs, 
+	 const double *conc, 
+	 const int probs_size, 
+	 double *g, //returned vector
 	 const double sigsquare) 
 {
 	/*
@@ -83,7 +92,6 @@ double *ll2_jac_full(const double *b,
 					1 + exp(b0 + b1*x)
 	wherein prior is b0, b1 ~ MVN(0, sigma*I2).
 	*/
-	double *g = malloc(2*sizeof(double));
 
 	g[0] = b[0]/sigsquare;
 	g[1] = b[1]/sigsquare;
@@ -97,12 +105,15 @@ double *ll2_jac_full(const double *b,
 		g[0] -= probs[i] - alpha;
 		g[1] -= conc[i]*probs[i] - alpha * conc[i];
 	}
-	return g;
 }
 
-double *ll3_jac_full(const double *b, 
-	 const double *probs, const double *conc, const int probs_size, 
-	 const double sigsquare, const double *weib) 
+void ll3_jac_full(const double *b, 
+	 const double *probs, 
+	 const double *conc, 
+	 const int probs_size, 
+	 double *g, //returned vector
+	 const double sigsquare, 
+	 const double *weib) 
 {
 	/*
 	Jacobian of the log-likelihood function  of the two parameter 
@@ -116,7 +127,7 @@ double *ll3_jac_full(const double *b,
 	double wk = weib[0];
 	double wl = weib[1] * pow(wk/(wk-1.0), 1/wk);
 
-	double *g = malloc(3*sizeof(double));
+	// double *g = malloc(3*sizeof(double));
 
 	g[0] = b[0]/sigsquare;
 	g[1] = b[1]/sigsquare;
@@ -139,11 +150,12 @@ double *ll3_jac_full(const double *b,
 		g[1] -= conc[i]*(m - l);
 		g[2] -= (1-probs[i])/b[2] - probs[i]/d;
 	}
-	return g;
 }
 
-double ls(const double *b,const double *probs, 
-	const double *conc, const int probs_size, 
+double ls(const double *b,
+	const double *probs, 
+	const double *conc, 
+	const int probs_size, 
 	const int num_param) 
 {
 	/*
@@ -165,7 +177,9 @@ double ls(const double *b,const double *probs,
 }
 
 
-
+/* 
+WRAPPER FUNCTIONS
+*/
 double ll3(const double *b, 
 	 const double *probs,
 	 const double *conc, 
@@ -180,6 +194,25 @@ double ll2(const double *b,
 	 const int probs_size) 
 {
 	return ll2_full(b, probs, conc, probs_size, DEF_SS);
+}
+
+void ll2j(const double *b, 
+	 const double *probs, 
+	 const double *conc, 
+	 const int probs_size, 
+	 double *g) //g is the returned gradient.
+{
+	ll2_jac_full(b, probs, conc, probs_size, g, DEF_SS);
+}
+
+void ll3j(const double *b, 
+	 const double *probs, 
+	 const double *conc, 
+	 const int probs_size, 
+	 double *g) //g is the returned gradient.
+{
+
+	ll3_jac_full(b, probs, conc, probs_size, g, DEF_SS, DEF_WEIB);
 }
 
 double ls2(const double *b,const double *probs, 
