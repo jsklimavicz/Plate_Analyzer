@@ -28,7 +28,7 @@ struct ls_param {
 
 void ll3f(const size_t n, 
 	const double *x, 
-	struct ll3_param * fparams, 
+	void * fparams, 
 	double *fval);
 
 // double ll2f(const size_t n, 
@@ -43,7 +43,7 @@ void ll3f(const size_t n,
 
 void ll3df(const size_t n, 
 	const double * b,
-	struct ll3_param * fparams,
+	void * fparams,
 	double * grad) ;
 
 // void ll2fdf(const size_t n, 
@@ -52,11 +52,11 @@ void ll3df(const size_t n,
 // 	double *fval,
 // 	double *grad) ;
 
-// void ll3fdf(const size_t n, 
-// 	const double *x,
-// 	void *fparams,
-// 	double *fval,
-// 	double *grad) ;
+void ll3fdf(const size_t n, 
+	const double * b,
+	void * fparams,
+	double *fval,
+	double *grad) ;
 
 
 // double ls(const double *b,

@@ -165,7 +165,8 @@ if __name__ == "__main__":
 	# for i in range(n):
 	# 	ll3(np.array(b), np.array(probs), np.array(conc))
 	# t1 = time.time()
-	print(f"LL3 Numpy: {(t1-t0)/n*1e6:.3f} us; Val: {ll3(np.array(b), np.array(probs), np.array(conc))}")
+	res = minimize(ll3, b, args = (probs, conc), method = 'BFGS', jac = ll3_jac)
+	print(f"LL3 Numpy: {(t1-t0)/n*1e6:.3f} us; Val: {res.x}")
 
 	# t0 = time.time()
 	# for i in range(n):

@@ -24,7 +24,7 @@ double DEF_RETURN = 1E10;
 
 void ll3f(const size_t n, 
 	const double *b, 
-	struct ll3_param * fparams, 
+	void * fparams, 
 	double * fval) {
 	/*
 	Log-likelihood function of the three parameter dose-response curve 
@@ -35,11 +35,13 @@ void ll3f(const size_t n,
 	b2 ~ Weibull(weibull_params).
 	*/
 
-	const double * probs = fparams->probs;
-	const double * conc = fparams->conc;
-	const double sigsquare = fparams->sigsquare;
-	const int probs_size = fparams->probs_size;
-	const double * weib = fparams->weib;
+	struct ll3_param *par = (struct ll3_param *) fparams;
+
+	const double * probs = par->probs;
+	const double * conc = par->conc;
+	const double sigsquare = par->sigsquare;
+	const int probs_size = par->probs_size;
+	const double * weib = par->weib;
 
 
 	if (b[2] < LB) { 
@@ -64,15 +66,16 @@ void ll3f(const size_t n,
 			return; 
 		}
 		*fval -= probs[i]*(log(alpha-b[2]) - lb2) - log(alpha);
-		*fval -= lb2;
 		// printf("After %i: ll = %f \n", i, ll);
 	}
+	*fval -= lb2 * probs_size;
+	// printf(" %f \n", *fval);
 }
 
 
 void ll3df(const size_t n, 
 	const double * b,
-	struct ll3_param * fparams,
+	void * fparams,
 	double * grad) 
 {
 	/*
@@ -84,11 +87,13 @@ void ll3df(const size_t n,
 	wherein prior is b0, b1 ~ MVN(0, sigma*I2) and 
 	b2 ~ Weibull(weibull_params).
 	*/
-	const double * probs = fparams->probs;
-	const double * conc = fparams->conc;
-	const double sigsquare = fparams->sigsquare;
-	const int probs_size = fparams->probs_size;
-	const double * weib = fparams->weib;
+	struct ll3_param *par = (struct ll3_param *) fparams;
+
+	const double * probs = par->probs;
+	const double * conc = par->conc;
+	const double sigsquare = par->sigsquare;
+	const int probs_size = par->probs_size;
+	const double * weib = par->weib;
 
 	double wk = weib[0];
 	double wl = weib[1] * pow(wk/(wk-1.0), 1/wk);
@@ -96,7 +101,7 @@ void ll3df(const size_t n,
 
 	grad[0] = b[0]/sigsquare;
 	grad[1] = b[1]/sigsquare;
-	grad[2] = -(wk-1)/b[2] + (wk/b[2]) * pow((b[2]/wl),wk);
+	grad[2] = -(wk-1)/b[2] - (wk/b[2]) * pow((b[2]/wl),wk);
 
 	double xi, alpha, d, m, l;
 	// Only iterate through probs and conc arrays once and
@@ -111,6 +116,16 @@ void ll3df(const size_t n,
 		grad[1] -= conc[i]*(m - l);
 		grad[2] -= (1-probs[i])/b[2] - probs[i]/d;
 	}
+}
+
+void ll3fdf(const size_t n, 
+	const double *b,
+	void * fparams,
+	double *fval,
+	double *grad) 
+{
+	ll3f(n, b, fparams, fval);
+	ll3df(n, b, fparams, grad);
 }
 
 // double ll2_full(const double *b, 

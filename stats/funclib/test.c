@@ -15,13 +15,39 @@ int main(){
 
 	double grad[3] = {0,0,0};
 
-	ll3f(3, b, &fparam, &fval);
+	// ll3f(3, b, &fparam, &fval);
 
-	ll3df(3, b, &fparam, grad);
+	// ll3df(3, b, &fparam, grad);
 
+	ll3fdf(3, b, &fparam, &fval, grad);
 	printf("%f\n", fval);
-
 	printf("%f, %f, %f\n", grad[0], grad[1], grad[2]);
+
+  	double minimum;
+  	struct multimin_params optim_par = {.1,1e-2,200,1e-3,1e-5,7,-1};
+
+	  double xmin[3], xmax[3];
+	  unsigned type[3];
+
+  	  /* minimum constrained in [-1,2]x(-5,5] */
+	type[0]=3;
+	xmin[0]=10;
+	xmax[0]=-10;
+
+	type[1]=3;
+	xmin[1]=-5;
+	xmax[1]=5;
+
+	type[2]=3;
+	xmin[2]=0;
+	xmax[2]=1;
+  	// optim_par.verbosity=10;
+
+  	// printf("%u", optim_par.method);
+
+  	multimin(3, b, &minimum,type,xmin,xmax,&ll3f,&ll3df,&ll3fdf, (void *) &fparam, optim_par);
+
+  	printf("unconstrained minimum %e at [%f, %f, %f]\n",minimum,b[0],b[1],b[2]);
 
 	return 0;
 }
