@@ -4,9 +4,9 @@
 #IMG_DIR=C:\Cytation Images
 #OUT_DIR=C:\Users\BiotekDT.TYRATECH\Documents\Analyzed Images
 
-IMG_DIR=/home/jklimavicz/Documents/Merlin_Images
-OUT_DIR=/home/jklimavicz/Documents/test_output
-STATS_CONFIG_PATH = /home/jklimavicz/Documents/Plate_Analyzer/config/analysis_config.txt
+IMG_DIR= ./examples/image_analysis/input
+OUT_DIR= ./examples/image_analysis/output
+STATS_CONFIG_PATH = ./config/analysis_config.txt
 
 ###################################################
 #               Default GUI Options               #

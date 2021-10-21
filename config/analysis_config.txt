@@ -2,9 +2,9 @@
 #                 Saving Options                  #
 ###################################################
 
-INPUT_PATH = /home/jklimavicz/Documents/test_output
-KEY_PATH = /home/jklimavicz/Documents/merlin_stats_in/key.csv
-SAVE_PATH = /home/jklimavicz/Documents/merlin_stats_out
+INPUT_PATH = ./examples/stats/input/plate_file_structure
+KEY_PATH = ./examples/stats/input/key.csv
+SAVE_PATH = ./examples/stats/output
 #ARCHIVE_PATH = ./stats
 
 ###################################################
