@@ -32,8 +32,8 @@ def ll3(b, probs, conc, sigma_squared = 1e6, weibull_param=[2,1]):
 			math.log(b2)*sum((1-probs)) - sum(l)
 	ll += -((b2/wl)**wk) + (wk-1)*math.log(b2) #+ np.log(wk) - wk*np.log(wl)
 
-	# ll2 = -(b0*b0 + b1*b1)/(2*sigma_squared)  -((b2/wl)**wk) + (wk-1)*math.log(b2)
-	# # print(f"Before start: ll = {ll2}")
+	ll2 = -(b0*b0 + b1*b1)/(2*sigma_squared)  -((b2/wl)**wk) + (wk-1)*math.log(b2)
+	print(f"Before start: ll = {ll2}")
 
 	# for i in range(len(conc)):
 	# 	ll2 += probs[i]*math.log(alpha[i]-b2) + math.log(b2)*(1-probs[i]) - l[i]
@@ -108,39 +108,46 @@ if __name__ == "__main__":
 	so_file = "./ll.so"
 	cfunc = CDLL(so_file)
 
-	conc = np.array([8, 4, 2, 1, 0.5, 0.25, 0.125, 0.0625, 0.03125, 0.015625, 0, 16, 8, 4, 2, 1, 0.5, 0.25, 0.125, 0.0625, 0.03125]*4)
-	probs = np.array([0, 0, 0, 0, 0.6875, 0.846153846153846, 1, 0.857142857142857, 0.923076923076923, 0.954545454545455, 0.875, 0, 0, 0, 0, 0, 0, 0, 0.083333333333333, 0.15, 0.916666666666667]*4)
-	b = [.70,-1.191,.92]
+	conc = np.array([8, 4, 2, 1, 0.5, 0.25, 0.125, 0.0625, 0.03125, 0.015625, 0, 16, 8, 4, 2, 1, 0.5, 0.25, 0.125, 0.0625, 0.03125])
+	probs = np.array([0, 0, 0, 0, 0.6875, 0.846153846153846, 1, 0.857142857142857, 0.923076923076923, 0.954545454545455, 0.875, 0, 0, 0, 0, 0, 0, 0, 0.083333333333333, 0.15, 0.916666666666667])
+	b = [.90,-1.191,.92]
 
 	t0 = time.time()
 	t1 = time.time()
 	n=1
 
-	ll3c = cfunc.ll3
-	b_type = c_double * len(b)
-	data_type = c_double * len(probs)
-	weib_type = c_double * 2
-	ll3c.restype = c_double
+	# ll3c = cfunc.ll3
+	# b_type = c_double * len(b)
+	# data_type = c_double * len(probs)
+	# weib_type = c_double * 2
+	# ll3c.restype = c_double
 
-	n = 200
-	t0 = time.time()
-	for i in range(n):
-		# ll3(np.array(b), np.array(probs), np.array(conc))
-		res = minimize(ll3, b, args = (probs, conc), 
-					method = 'Nelder-Mead')
-	t1 = time.time()
-	print(f"LL3 Numpy: {(t1-t0)/n*1e3:.3f} ms; Val: {res.x}")
+	# n = 200
+	# t0 = time.time()
+	# for i in range(n):
+	# 	# ll3(np.array(b), np.array(probs), np.array(conc))
+	# 	res = minimize(ll3, b, args = (probs, conc), 
+	# 				method = 'BFGS', jac = ll3_jac)
+	# t1 = time.time()
+	# print(f"LL3 Numpy: {(t1-t0)/n*1e3:.3f} ms; Val: {res.x}")
 
-	def wll3c(b, probs, conc, lp):
-		return ll3c(b_type(*b), probs, conc, lp)
+	# def wll3c(b, probs, conc, lp):
+	# 	return ll3c(b_type(*b), probs, conc, lp)
 
-	t0 = time.time()
-	for i in range(n):
-		# ll3(np.array(b), np.array(probs), np.array(conc))
-		res = minimize(wll3c, b, args = (data_type(*probs), data_type(*conc), c_int(len(probs))), 
-					method = 'Nelder-Mead')
-	t1 = time.time()
-	print(f"LL3 Numpy: {(t1-t0)/n*1e3:.3f} ms; Val: {res.x}")
+	# ll3jc = cfunc.ll3j
+	# ll3jc.restype = POINTER(b_type)
+	# g = b_type(*([1]*3))
+	# def wll3gc(b, probs, conc, lp):
+	# 	ll3jc(b_type(*b), probs, conc, lp, g)
+	# 	return [g[0], g[1], g[2]]
+
+	# t0 = time.time()
+	# for i in range(n):
+	# 	# ll3(np.array(b), np.array(probs), np.array(conc))
+	# 	res = minimize(wll3c, b, args = (data_type(*probs), data_type(*conc), c_int(len(probs))), 
+	# 				method = 'BFGS', jac = wll3gc)
+	# t1 = time.time()
+	# print(f"LL3 Numpy: {(t1-t0)/n*1e3:.3f} ms; Val: {res.x}")
 
 
 
@@ -158,7 +165,7 @@ if __name__ == "__main__":
 	# for i in range(n):
 	# 	ll3(np.array(b), np.array(probs), np.array(conc))
 	# t1 = time.time()
-	# print(f"LL3 Numpy: {(t1-t0)/n*1e6:.3f} us; Val: {ll3(np.array(b), np.array(probs), np.array(conc))}")
+	print(f"LL3 Numpy: {(t1-t0)/n*1e6:.3f} us; Val: {ll3(np.array(b), np.array(probs), np.array(conc))}")
 
 	# t0 = time.time()
 	# for i in range(n):
