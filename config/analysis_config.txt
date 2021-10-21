@@ -114,7 +114,7 @@ CI_METHOD = HPDI
 #concentrations is, 'best' to use the AIC of the ll3 and ll2 curves to pick
 #the better-fitting curve, "ls2" to use least-squares fitting of a two-
 #parameter curve, or "ls3" to fit a three-parameter least-squares curve.
-CURVE_TYPE = ll3
+CURVE_TYPE = ls3
 
 
 ###################################################
