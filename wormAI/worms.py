@@ -1,7 +1,25 @@
-"""
-For Mask R-CNN for Merlin bioassay.
+# wormAI/worms.py
+# This file is a component of Plate_Analyzer, which can count Drosophila
+# L1 larvae, classify them as alive or dead, and determine dose-repsonse
+# information based on live/dead count data. 
 
-"""
+# Copyright (C) 2021 James Klimavicz
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# Based on Mask R-CNN by Waleed Abdulla at Matterport, Inc. under MIT
+# License (see MIT License at wormAI/LICENSE)
 
 import os
 import sys
@@ -86,18 +104,6 @@ class WormDataset(utils.Dataset):
         annotations = [a for a in annotations if a['regions']]
         # print(len(annotations))
 
-        # exit()
-        # # Add images
-        # for a in annotations:
-        #     # Get the x, y coordinaets of points of the polygons that make up
-        #     # the outline of each object instance. These are stores in the
-        #     # shape_attributes (see json format above)
-        #     # The if condition is needed to support VIA versions 1.x and 2.x.
-        #     if type(a['regions']) is dict:
-        #         polygons = [r['shape_attributes'] for r in a['regions'].values()]
-        #     else:
-        #         polygons = [r['shape_attributes'] for r in a['regions']] 
-
         for a in annotations:
             polygons = [r['shape_attributes'] for r in a['regions']]
             # print("polygons:")
@@ -168,51 +174,42 @@ class WormDataset(utils.Dataset):
             super(self.__class__, self).image_reference(image_id)
 
 
-def train(model):
-    """Train the model."""
-    # Training dataset.
-    dataset_train = WormDataset()
-    dataset_train.load_worms(args.dataset, "train")
-    dataset_train.prepare()
+# def train(model):
+#     """Train the model."""
+#     # Training dataset.
+#     dataset_train = WormDataset()
+#     dataset_train.load_worms(args.dataset, "train")
+#     dataset_train.prepare()
 
-    # Validation dataset
-    dataset_val = WormDataset()
-    dataset_val.load_worms(args.dataset, "val")
-    dataset_val.prepare()
-
-    # *** This training schedule is an example. Update to your needs ***
-    # Since we're using a very small dataset, and starting from
-    # COCO trained weights, we don't need to train too long.
-
-    # model.train(dataset_train, dataset_val,
-    #             learning_rate=config.LEARNING_RATE,
-    #             epochs=25,
-    #             layers='heads')
+#     # Validation dataset
+#     dataset_val = WormDataset()
+#     dataset_val.load_worms(args.dataset, "val")
+#     dataset_val.prepare()
 
     # print("Training all layers heads")
     # model.train(dataset_train, dataset_val,
     #             learning_rate=config.LEARNING_RATE,
-    #             epochs=20,
-    #             layers='4+')
-
-
-    # print("Training all layers heads")
-    # model.train(dataset_train, dataset_val,
-    #             learning_rate=config.LEARNING_RATE,
-    #             epochs=40,
+    #             epochs=120,
     #             layers='all')
+
 
     # print("Training all layers heads")
     # model.train(dataset_train, dataset_val,
     #             learning_rate=config.LEARNING_RATE/10,
-    #             epochs=40,
+    #             epochs=180,
     #             layers='all')
 
-    print("Training all layers heads")
-    model.train(dataset_train, dataset_val,
-                learning_rate=config.LEARNING_RATE/100,
-                epochs=50,
-                layers='all')
+    # print("Training all layers heads")
+    # model.train(dataset_train, dataset_val,
+    #             learning_rate=config.LEARNING_RATE/40,
+    #             epochs=220,
+    #             layers='all')
+
+    # print("Training all layers heads")
+    # model.train(dataset_train, dataset_val,
+    #             learning_rate=config.LEARNING_RATE/100,
+    #             epochs=250,
+    #             layers='all')
 
 # def color_splash(image, mask):
 #     """Apply color splash effect.

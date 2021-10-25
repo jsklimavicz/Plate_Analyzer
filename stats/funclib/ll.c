@@ -31,8 +31,8 @@ double ll3_full(const double *b,
 	double wk = weib[0];
 	double wl = weib[1] * pow(wk/(wk-1.0), 1/wk);
 	double lb2 = log(b[2]);
-	double ll = (b[0] * b[0] + b[1]*b[1])/(2.0*sigsquare)
-		+ pow((b[2]/wl),wk) + (wk-1)*log(b[2]);
+	double ll = (b[0]*b[0] + b[1]*b[1])/(2.0*sigsquare)
+		+ pow((b[2]/wl),wk) - (wk-1)*log(b[2]);
 
 	// printf("Before start: ll = %f \n", ll);
 
