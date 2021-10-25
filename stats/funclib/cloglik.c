@@ -1,3 +1,25 @@
+/*
+cloglik.c
+This file is a component of Plate_Analyzer, which can count Drosophila
+L1 larvae, classify them as alive or dead, and determine dose-repsonse
+information based on live/dead count data. 
+
+Copyright (C) 2021 James Klimavicz
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 #include "multimin.h"
 #include "ll_mod.h"
 #include "cloglik.h"
@@ -86,17 +108,8 @@ void ll3_array_min(
 	xmax[2]=1;
 
 	for (int i = 0; i<n_iters; i++){
-		// for(int j =0; j<probs_size; j++){
-		// 	printf("%f", probs[i][j]);
-		// }
-		// printf("\n");
 		fparam.probs = probs[i];
 		multimin(3, b[i], &minimum, type, xmin, xmax, &ll3f,&ll3df,&ll3fdf, (void *) &fparam, optim_par);
-		// for(int j =0; j<3; j++){
-		// 	printf("%f ", b[i][j]);
-		// }
-		// printf("\n");
-	}
 
 }
 

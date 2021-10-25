@@ -6,7 +6,7 @@ Copyright (c) 2017 Matterport, Inc.
 Licensed under the MIT License (see LICENSE for details)
 Written by Waleed Abdulla
 
-Edited by James Klimavicz (c) 2021
+Modified for use in Plate_Analyzer by James Klimavcz 2021
 """
 
 import os
