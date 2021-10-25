@@ -61,7 +61,7 @@ void ll2_min(double *b, //The minimal value that is found.
 	double sigsquare)
 {
 	struct ll2_param fparam = { .probs = probs, .conc = conc, .sigsquare = sigsquare, .probs_size = probs_size};
-  	struct multimin_params optim_par = {.1,1e-2,20,1e-3,1e-5,5,10};
+  	struct multimin_params optim_par = {.1,1e-2,20,1e-3,1e-5,5,0};
 
 	double xmin[2], xmax[2];
 	unsigned type[2];
@@ -74,7 +74,7 @@ void ll2_min(double *b, //The minimal value that is found.
 	xmin[1]=-5;
 	xmax[1]=5;
 
-	multimin(2, b, &minimum, type, xmin, xmax,&ll3f,&ll3df,&ll3fdf, (void *) &fparam, optim_par);
+	multimin(2, b, &minimum, type, xmin, xmax,&ll2f,&ll2df,&ll2fdf, (void *) &fparam, optim_par);
 }
 
 void ll3_array_min(
@@ -110,6 +110,7 @@ void ll3_array_min(
 	for (int i = 0; i<n_iters; i++){
 		fparam.probs = probs[i];
 		multimin(3, b[i], &minimum, type, xmin, xmax, &ll3f,&ll3df,&ll3fdf, (void *) &fparam, optim_par);
+	}
 
 }
 
@@ -117,13 +118,13 @@ void ll2_array_min(
 	int probs_size, 
 	int n_iters,
 	double b[][n_iters], //The minima value that are found. Should be of size n_iters x 3
-	double probs[][n_iters], //Should be of size n_iters x probs_size
+	double probs[][probs_size], //Should be of size n_iters x probs_size
 	double *conc, 
 	double minimum, //The function value
 	double sigsquare)
 {
 	struct ll2_param fparam = { .probs = probs[0], .conc = conc, .sigsquare = sigsquare, .probs_size = probs_size};
-  	struct multimin_params optim_par = {.1,1e-2,20,1e-3,1e-5,5,10};
+  	struct multimin_params optim_par = {.1,1e-2,20,1e-3,1e-5,5,0};
 
 	double xmin[2], xmax[2];
 	unsigned type[2];
@@ -138,6 +139,6 @@ void ll2_array_min(
 
 	for (int i = 0; i<n_iters; i++){
 		fparam.probs = probs[i];
-		multimin(2, b[i], &minimum, type, xmin, xmax, &ll3f,&ll3df,&ll3fdf, (void *) &fparam, optim_par);
+		multimin(2, b[i], &minimum, type, xmin, xmax, &ll2f,&ll2df,&ll2fdf, (void *) &fparam, optim_par);
 	}
 }

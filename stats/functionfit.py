@@ -46,6 +46,14 @@ class FunctionFit():
 					c_double, 
 					c_double, 
 					np.ctypeslib.ndpointer(dtype=np.float64, ndim=1, flags='C_CONTIGUOUS'))
+			#Set LL2 vars
+			self.ll2c = self.cloglik.ll2_min
+			self.ll2c.argtypes = (np.ctypeslib.ndpointer(dtype=np.float64, ndim=1, flags='C_CONTIGUOUS'), 
+					np.ctypeslib.ndpointer(dtype=np.float64, ndim=1, flags='C_CONTIGUOUS'), 
+					np.ctypeslib.ndpointer(dtype=np.float64, ndim=1, flags='C_CONTIGUOUS'), 
+					c_int, 
+					c_double, 
+					c_double)
 		else:
 			self.cloglik = None
 			self.use_C_lib = False
@@ -64,6 +72,21 @@ class FunctionFit():
 		else:
 			res = minimize(self.__ll3p, b, args = (probs, self.conc), 
 					method = 'BFGS', jac = __ll3p_jac)
+			return res.x
+
+	def min_ll2(self, b, probs, conc):
+		if self.use_C_lib:
+			funmin = 0
+			self.ll2c(b, 
+					probs, 
+					conc, 
+					len(probs), 
+					funmin,
+					self.SS)
+			return b
+		else:
+			res = minimize(self.__ll2p, b, args = (probs, self.conc), 
+					method = 'BFGS', jac = __ll2p_jac)
 			return res.x
 
 	@staticmethod

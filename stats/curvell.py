@@ -294,20 +294,11 @@ class CI_finder:
 		
 		@utils.surpress_warnings
 		def fit_ll3(b, probs, functionFitter):
-			'''
-			Inner function that attempts to fit the three-paremeter dose-
-			response curve with the option-specified method for minimization.
-			If this method fails, the more computationally-expensive but 
-			better-behaved Nelder-Mead method is used. 
-			'''
-
-			# res = minimize(self.ll3, b, args = (probs, self.conc), 
-			# 		method = self.options["FIT_METHOD"], jac = self.ll3_jac)
-			# if not res.success:
-			# 	res = minimize(self.ll3, b, args = (probs, self.conc), 
-			# 		method = 'Nelder-Mead')
-			# return res
 			return functionFitter.min_ll3(b, probs, self.conc )
+
+		@utils.surpress_warnings
+		def fit_ll2(b, probs, functionFitter):
+			return functionFitter.min_ll2(b, probs, self.conc )
 		
 		functionFitter = FunctionFit()
 		b2 = self.estimate_initial_b(self.conc, probs, params = 2, rev = True)
@@ -318,8 +309,7 @@ class CI_finder:
 			else: self.options["CURVE_TYPE"] = "ll2"
 
 		if self.options["CURVE_TYPE"].lower() in ["2", "ll2", 2]:
-			return minimize(self.ll2, b2, args = (probs, self.conc), 
-					method = self.options["FIT_METHOD"], jac = self.ll2_jac).x
+			return fit_ll2(b3, probs,functionFitter)
 		elif self.options["CURVE_TYPE"].lower() in ["3", "ll3", 3]:
 			return fit_ll3(b3, probs,functionFitter)
 		elif self.options["CURVE_TYPE"].lower() in ["ls3"]:
@@ -327,9 +317,8 @@ class CI_finder:
 		elif self.options["CURVE_TYPE"].lower() in ["ls2"]:
 			return least_squares(self.least_squares_fit, b2, args=(probs, self.conc)).x
 		elif self.options["CURVE_TYPE"].lower() in ["best", "aic"]:
-			res2 = minimize(self.ll2, b2, args = (probs, self.conc), 
-					method = self.options["FIT_METHOD"], jac = self.ll2_jac)
-			b3p = np.array([res2.x[0], res2.x[1], background_mort])
+			res2 = fit_ll2(b3, probs,functionFitter)
+			b3p = np.array([res2[0], res2[1], background_mort])
 			res3 = fit_ll3(b3p, probs, functionFitter)
 			AIC2 = 4 - 2*res2.fun
 			AIC3 = 6 - 2*res3.fun
