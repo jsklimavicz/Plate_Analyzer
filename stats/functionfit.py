@@ -39,25 +39,38 @@ class FunctionFit():
 		else:
 			lib_path = None
 		if os.path.exists(lib_path):
-			self.cloglik = func(lib_path)
-			self.use_C_lib = True
-			#Set LL3 vars
-			self.ll3c = self.cloglik.ll3_min
-			self.ll3c.argtypes = (np.ctypeslib.ndpointer(dtype=np.float64, ndim=1, flags='C_CONTIGUOUS'), 
-					np.ctypeslib.ndpointer(dtype=np.float64, ndim=1, flags='C_CONTIGUOUS'), 
-					np.ctypeslib.ndpointer(dtype=np.float64, ndim=1, flags='C_CONTIGUOUS'), 
-					c_int, 
-					c_double, 
-					c_double, 
-					np.ctypeslib.ndpointer(dtype=np.float64, ndim=1, flags='C_CONTIGUOUS'))
-			#Set LL2 vars
-			self.ll2c = self.cloglik.ll2_min
-			self.ll2c.argtypes = (np.ctypeslib.ndpointer(dtype=np.float64, ndim=1, flags='C_CONTIGUOUS'), 
-					np.ctypeslib.ndpointer(dtype=np.float64, ndim=1, flags='C_CONTIGUOUS'), 
-					np.ctypeslib.ndpointer(dtype=np.float64, ndim=1, flags='C_CONTIGUOUS'), 
-					c_int, 
-					c_double, 
-					c_double)
+			#necessary for the case when the library loads but is not working,
+			#e.g. because gsl is on not the system. 
+			try:
+				self.cloglik = func(lib_path)
+				self.use_C_lib = True
+				#Set LL3 vars
+				self.ll3c = self.cloglik.ll3_min
+				self.ll3c.argtypes = (np.ctypeslib.ndpointer(dtype=np.float64,
+												ndim=1, flags='C_CONTIGUOUS'),
+						np.ctypeslib.ndpointer(dtype=np.float64, 
+												ndim=1, flags='C_CONTIGUOUS'),
+						np.ctypeslib.ndpointer(dtype=np.float64, 
+												ndim=1, flags='C_CONTIGUOUS'),
+						c_int, 
+						c_double, 
+						c_double, 
+						np.ctypeslib.ndpointer(dtype=np.float64, 
+												ndim=1, flags='C_CONTIGUOUS'))
+				#Set LL2 vars
+				self.ll2c = self.cloglik.ll2_min
+				self.ll2c.argtypes = (np.ctypeslib.ndpointer(dtype=np.float64,
+												ndim=1, flags='C_CONTIGUOUS'),
+						np.ctypeslib.ndpointer(dtype=np.float64,
+												ndim=1, flags='C_CONTIGUOUS'),
+						np.ctypeslib.ndpointer(dtype=np.float64, 
+												ndim=1, flags='C_CONTIGUOUS'),
+						c_int, 
+						c_double, 
+						c_double)
+			except:
+				self.use_C_lib =  False
+				self.cloglik = None
 		else:
 			self.cloglik = None
 			self.use_C_lib = False
@@ -112,7 +125,8 @@ class FunctionFit():
 		if (min(1+xi)-b2 <= 1e-10): return(1e10)
 		ba = beta_param[0]
 		bb = beta_param[1]
-		#note: from benchmarking, b0*b0 is approximately 3x faster than b0**2 for a float.
+		# note: from benchmarking, b0*b0 is approximately 3x faster than 
+		# b0**2 for a float.
 		#MVN Prior
 		ll = -(b0*b0 + b1*b1)/(2*sigma_squared) 
 
@@ -120,7 +134,8 @@ class FunctionFit():
 		ll += (ba-1)*math.log(b2) + (bb-1)*math.log(1-b2)
 
 		#terms
-		ll += sum(probs*np.log(alpha-b2) - np.log(alpha) + (1-probs)*math.log(b2))
+		ll += sum(probs*np.log(alpha-b2) - np.log(alpha) + \
+					(1-probs)*math.log(b2))
 		return(-ll)
 
 	@staticmethod
