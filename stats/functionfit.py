@@ -19,6 +19,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from ctypes import *
+import ctypes
 import numpy as np
 import os
 import platform
