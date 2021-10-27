@@ -32,10 +32,14 @@ class FunctionFit():
 		p = platform.platform()
 		if "linux" in p.lower():
 			lib_path = "./stats/funclib/cloglik.so"
+			func = CDLL
 		elif "windows" in p.lower():
 			lib_path = "./stats/funclib/cloglik.dll"
+			func = ctypes.WinDLL
+		else:
+			lib_path = None
 		if os.path.exists(lib_path):
-			self.cloglik = CDLL(lib_path)
+			self.cloglik = func(lib_path)
 			self.use_C_lib = True
 			#Set LL3 vars
 			self.ll3c = self.cloglik.ll3_min
