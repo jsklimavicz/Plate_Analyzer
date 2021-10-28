@@ -95,6 +95,8 @@ class FunctionFit():
 		else:
 			self.cloglik = None
 			self.use_C_lib = False
+		if not self.use_C_lib:
+			from scipy.optimize import minimize
 
 	def array_ll3(self, b_input, prob_array, conc_list):
 		if not self.use_C_lib: return False
