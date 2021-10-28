@@ -209,26 +209,23 @@ void array_ll2_ll3_AIC(
 
 	for (int i = 0; i<n_iters; i++){
 		fparam3.probs = probs[i];
+		//ll2 curve fit
 		multimin(2, b[i], &minimum[i], type, xmin, xmax,&ll2f,&ll2df,&ll2fdf,
 					(void *) &fparam3, optim_par);
-		
 		double min2;
 		double b2[3] = {b[i][0], b[i][1], 1.0};
-		//calculate a modified log-likelihood.
-		ll_all_AIC(b2, &fparam3, &min2);
+		ll_all_AIC(b2, &fparam3, &min2);//calculate a modified log-likelihood.
 
+		//ll3 curve fit
 		multimin(3, b[i], &minimum[i], type, xmin, xmax, &ll3f,&ll3df,&ll3fdf,
 					(void *) &fparam3, optim_par);
-		//calculate a modified log-likelihood.
-
 		double min3; 
 		double b3[3] = {b[i][0], b[i][1], b[i][2]};
-		ll_all_AIC(b3, &fparam3, &min3);
+		ll_all_AIC(b3, &fparam3, &min3);//calculate a modified log-likelihood.
 
-
+		//
 		double AIC2 = 4 - min2 * 2;
 		double AIC3 = 6 - min3 * 2;
-
 
 		if (AIC2 < AIC3) {
 			//Then 2-param is a better fit.
