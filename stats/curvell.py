@@ -19,7 +19,6 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import math
-from scipy.optimize import minimize, least_squares
 from scipy.interpolate import CubicSpline
 import numpy as np
 from stats.corr_beta import corr_beta_vars
@@ -105,118 +104,6 @@ class CI_finder:
 
 	@staticmethod
 	@utils.surpress_warnings
-	def ll3(b, probs, conc, sigma_squared = 1e6, beta_param=[1.5,1.01]):
-		'''
-		Log-likelihood function of the three parameter dose-response curve 
-							    b2
-					y = ------------------
-						1 + exp(b0 + b1*x)
-		wherein priors are b0, b1 ~ MVN(0, sigma*I2) and 
-		b2 ~ Beta(beta_param).
-		'''
-		b0, b1, b2 = b
-		if (b2 <= 1e-10 ): return(1e10)
-		xi = np.exp(b0+b1*conc)
-		alpha = 1+xi # >1.0
-		# l = np.log(alpha)
-		if (min(1+xi)-b2 <= 1e-10): return(1e10)
-		ba = beta_param[0]
-		bb = beta_param[1]
-		#note: from benchmarking, b0*b0 is approximately 3x faster than b0**2 for a float.
-		#MVN Prior
-		ll = -(b0*b0 + b1*b1)/(2*sigma_squared) 
-
-		#Beta Prior
-		ll += (ba-1)*math.log(b2) + (bb-1)*math.log(1-b2)
-
-		#terms
-		ll += sum(probs*np.log(alpha-b2) - np.log(alpha) + (1-probs)*math.log(b2))
-		return(-ll)
-
-
-	@staticmethod
-	@utils.surpress_warnings
-	def least_squares_fit(b, probs, conc):
-		'''
-		Dose-response curve for least-squares fitting. If len(b)=2, then 
-		b2 = 1; else if len(b)=3, then b2 = b[2]
-							    b2
-					y = ------------------
-						1 + exp(b0 + b1*x)
-		'''
-		if len(b) == 2:
-			return np.array((1-1/(1 + np.exp(b[0] + b[1]*conc)) - probs)**2)
-		else:
-			if b[2] > 1:
-				return 1e10
-			else:
-				return np.array((1-b[2]/(1 + np.exp(b[0] + b[1]*conc)) - probs)**2)
-
-
-	@staticmethod
-	@utils.surpress_warnings
-	def ll3_jac(b, probs, conc,sigma_squared = 1e6, weibull_param=[2,1]):
-		'''
-		Jacobian of the log-likelihood function of the three 
-		parameter dose-response curve 
-							    b2
-					y = ------------------
-						1 + exp(b0 + b1*x)
-		wherein priors are b0, b1 ~ MVN(0, sigma*I2) and 
-		b2 ~ Beta(beta_param).
-		'''
-		b0, b1, b2 = b
-
-		ba = beta_param[0]
-		bb = beta_param[1]
-
-		xi = np.exp(b0+b1*conc)
-		alpha = 1+xi
-		d = (alpha - b2)
-
-		g0 = -b0/sigma_squared + sum(probs * xi/( d) - xi/(alpha))
-		g1 = -b1/sigma_squared + sum(conc * xi *(probs/(d) - 1/(alpha)) )
-		g2 = (ba-1)/b2 - (bb-1)/(1-b2) + sum(-probs/(d)) + sum((1-probs)/b2)
-		return(np.array([-g0,-g1,-g2]))
-
-
-	@staticmethod
-	@utils.surpress_warnings
-	def ll2(b, probs, conc, sigma_squared = 1e6):
-		'''
-		Log-likelihood function of the two parameter dose-response curve 
-							    1
-					y = ------------------
-						1 + exp(b0 + b1*x)
-		wherein prior is b0, b1 ~ MVN(0, sigma*I2).
-		'''
-		b0, b1 = b
-		p_sum = sum(probs)
-		p_conc_sum = sum(probs*conc)
-		ll = -(b0*b0 + b1*b1)/(2*sigma_squared) + b0*p_sum + b1*p_conc_sum - \
-				sum(np.log(1 + np.exp(b0+b1*conc)))
-		return(-ll)
-
-	@staticmethod
-	@utils.surpress_warnings
-	def ll2_jac(b, probs, conc, sigma_squared = 1e6):
-		'''
-		Jacobian of the log-likelihood function of the 
-		two parameter dose-response curve
-							    1
-					y = ------------------
-						1 + exp(b0 + b1*x)
-		wherein prior is b0, b1 ~ MVN(0, sigma*I2).
-		'''
-		b0, b1 = b
-		xi = np.exp(b0+b1*conc)
-		l = xi/(xi+1)
-		g1 = -b0/sigma_squared + sum(probs) - sum(l)
-		g2 = -b1/sigma_squared + sum(conc*probs) - sum(conc*l)
-		return(np.array([-g1,-g2]))
-
-	@staticmethod
-	@utils.surpress_warnings
 	def loglogit2(b, conc): 
 		'''
 		Calculates the values of the two parameter dose-response curve 
@@ -295,16 +182,6 @@ class CI_finder:
 		'''
 		Curve-fitting driver. 
 		'''
-		#TODO: better methods of b estimation
-		#TODO: handle cases where EC50 is not going to be in the data :( 
-		
-		@utils.surpress_warnings
-		def fit_ll3(b, probs):
-			return functionFitter.min_ll3(b, probs, self.conc )
-
-		@utils.surpress_warnings
-		def fit_ll2(b, probs):
-			return functionFitter.min_ll2(b, probs, self.conc )
 		
 		functionFitter = FunctionFit()
 
@@ -316,26 +193,22 @@ class CI_finder:
 			else: self.options["CURVE_TYPE"] = "ll2"
 
 		if self.options["CURVE_TYPE"].lower() in ["2", "ll2", 2]:
-			return fit_ll2(b3, probs)
+			return functionFitter.min_ll2(b2, probs, self.conc)
 		elif self.options["CURVE_TYPE"].lower() in ["3", "ll3", 3]:
-			return fit_ll3(b3, probs)
+			return functionFitter.min_ll3(b3, probs, self.conc)
 		elif self.options["CURVE_TYPE"].lower() in ["ls3"]:
-			return least_squares(self.least_squares_fit, b3, args=(probs, self.conc)).x
+			return functionFitter.min_ls(b3, probs, self.conc)
 		elif self.options["CURVE_TYPE"].lower() in ["ls2"]:
-			return least_squares(self.least_squares_fit, b2, args=(probs, self.conc)).x
+			return functionFitter.min_ls(b2, probs, self.conc)
 		elif self.options["CURVE_TYPE"].lower() in ["best", "aic"]:
-			res2 = fit_ll2(b3, probs)
-			b3p = np.array([res2[0], res2[1], background_mort])
-			res3 = fit_ll3(b3p, probs)
-			AIC2 = 4 - 2*res2.fun
-			AIC3 = 6 - 2*res3.fun
-			return res2.x if AIC2 <= AIC3 else res3.x
+			return functionFitter.min_llAIC(b3, probs, self.conc)
+
 
 	def array_curve(self, beta_probs, *args, **kwargs):
 		'''
-		Curve-fitting by passing a full array of probs to a C library for speed. 
+		Curve-fitting by passing a full array of probs to a C library for speed and
+		to prevent using too many function references in Windows.
 		'''
-
 		niters, nprobs = beta_probs.shape
 		
 		probs = self.dead_count / (self.dead_count+self.live_count)
@@ -352,19 +225,12 @@ class CI_finder:
 			else: self.options["CURVE_TYPE"] = "ll2"
 
 		if self.options["CURVE_TYPE"].lower() in ["2", "ll2", 2]:
-			b, funmin = functionFitter.array_ll2(b2, beta_probs, self.conc)
-			return np.c_[b, np.ones(len(b))]
+			return  functionFitter.array_ll2(b2, beta_probs, self.conc)
 		elif self.options["CURVE_TYPE"].lower() in ["3", "ll3", 3]:
-			# print(b3)
-			b, funmin = functionFitter.array_ll3(b3, beta_probs, self.conc)
-			return b
-		# elif self.options["CURVE_TYPE"].lower() in ["ls3"]:
-		# 	return least_squares(self.least_squares_fit, b3, args=(probs, self.conc)).x
-		# elif self.options["CURVE_TYPE"].lower() in ["ls2"]:
-		# 	return least_squares(self.least_squares_fit, b2, args=(probs, self.conc)).x
+			return functionFitter.array_ll3(b3, beta_probs, self.conc)
 		elif self.options["CURVE_TYPE"].lower() in ["best", "aic"]:
-			b, funmin = functionFitter.array_ll23AIC(b3, beta_probs, self.conc)
-			return b
+			return functionFitter.array_ll23AIC(b3, beta_probs, self.conc)
+
 
 	def bootstrap_CIs(self):
 		'''
@@ -386,39 +252,39 @@ class CI_finder:
 									rho = self.options["RHO"])
 		#calculate point data points whilst we have the beta parameters. 
 		self.get_point_error_bars(beta_probs)
-		cpu_count = multiprocessing.cpu_count() 
-		if self.options["NCPU"] > cpu_count : 
-				self.options["NCPU"] = cpu_count
+		cc = multiprocessing.cpu_count() 
+		#if user wants more cpus than exist, set to the number of actual cpus
+		cu = cc if self.options["NCPU"] > cc else self.options["NCPU"]
+		if cu <=0: cu += cc + 1#in case cpus is set to a negative number 
+				
 
-		array_curve_fit = True
+		functionFitter = FunctionFit()
+		use_array_method = True
+		if "ls" in self.options["CURVE_TYPE"].lower(): use_array_method = False
 
-		if array_curve_fit:
+		if (functionFitter.use_C_lib and use_array_method):
 			#first make a list of arrays for parallel computing
-			div = self.options["NCPU"] if self.options["NCPU"] > 0 else cpu_count
-			groups = div*2
+			# make divisions based on number of cpus to use
+			groups = cu*2
+			if groups > self.options["BOOTSTRAP_ITERS"]: #there are more iters
+				#than there are bootstrap iters... 
+				groups = 0;
+				cu = 1
+
 			breaks = np.round(np.linspace(0,self.options["BOOTSTRAP_ITERS"],groups+1))
 			beta_prob_list = []
 			for i in range(groups):
-				# print(int(breaks[i]),int(breaks[i+1]))
 				beta_prob_list.append(beta_probs[int(breaks[i]):int(breaks[i+1]),:])
-			# print(beta_prob_list)
-			dict_list = Parallel(n_jobs = -1)(delayed(self.array_curve)(beta_probs) \
+			dict_list = Parallel(n_jobs = 1)(delayed(self.array_curve)(beta_probs) \
 						for beta_probs in beta_prob_list)
-			# zip([self]*len(self.well_ID_list), self.well_ID_list)
-			# dict_list = [*answer for answer in dict_list]
-			self.params = []
-			for answer in dict_list:
-				self.params = [*self.params, *answer]
-			self.params = np.array(self.params)
+			#unpack the dictionary (list of list of answers to np.array of answers)
+			self.params =  np.array([item for answer in dict_list for item in answer])
 			# print(self.params)
-			# # self.params = self.array_curve(beta_probs)
-			# exit()
 
 		else:
 			#possibility of having 2 or 3 parameters
 			self.params = np.zeros((self.options["BOOTSTRAP_ITERS"], 3))
-
-			dict_list = Parallel(n_jobs = self.options["BOOTSTRAP_ITERS"])(delayed(
+			dict_list = Parallel(n_jobs = 1)(delayed(
 						self.fit_curve)(row) for row in beta_probs)
 			# dict_list = Parallel(n_jobs = 1)(delayed(
 			# 			self.fit_curve)(row) for row in beta_probs)
@@ -429,7 +295,7 @@ class CI_finder:
 				else:
 					self.params[iter_count,0:2] = res
 					self.params[iter_count,2] = 1.
-		
+		print(self.params)
 	def get_point_error_bars(self, beta_probs):
 		'''
 		Calculates the error bars for each data point based on the beta

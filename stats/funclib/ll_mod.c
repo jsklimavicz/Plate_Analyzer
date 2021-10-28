@@ -125,8 +125,6 @@ void ll_all_AIC(const double *b,
 	} else {
 		double alpha;
 		double lb2 = log(b[2]);
-		// const double * beta = par->beta;
-		// *fval += (beta[0]-1)*lb2 + (beta[1]-1)*log(1-b[2]);
 		for (int i = 0; i < probs_size; i++) {
 			alpha = 1.0 + pow(M_E, b[0] + b[1]*conc[i]);
 			*fval += probs[i]*(log(alpha-b[2]) - lb2) - log(alpha);
