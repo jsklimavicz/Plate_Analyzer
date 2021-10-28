@@ -94,6 +94,48 @@ void ll3f(const size_t n,
 }
 
 
+/*
+Function to recalculate log-likelihood for comparison in AIC. Because the
+ln(1-b[2]) term is undefined for b[2] >=1, we do not include the 
+contribution of the beta prior for the ll2 case (or when b[2] is very 
+close to 1).
+Sign is also opposite as we are now concerned with the actual ll function,
+instead of its additive inverse for optimization (via minimization)
+*/
+void ll_all_AIC(const double *b, 
+	void *fparams, 
+	double *fval) 
+{
+	struct ll3_param *par = (struct ll3_param *) fparams;
+
+	const double * probs = par->probs;
+	const double * conc = par->conc;
+	const double sigsquare = par->sigsquare;
+	const int probs_size = par->probs_size;
+
+	*fval = -(b[0] * b[0] + b[1]*b[1])/(2.0*sigsquare); //MVN prior
+	//if b2 is (nearly) 1, then use the ll2 calculation. 
+	if (fabs(b[2] - 1) < 1E-6) {
+		double xi, x;
+		for (int i = 0; i < probs_size; i++) {
+			x = b[0] + b[1]*conc[i];
+			xi = pow(M_E, x);
+			*fval += x*probs[i] - log(1.0 + xi);
+		}
+	} else {
+		double alpha;
+		double lb2 = log(b[2]);
+		// const double * beta = par->beta;
+		// *fval += (beta[0]-1)*lb2 + (beta[1]-1)*log(1-b[2]);
+		for (int i = 0; i < probs_size; i++) {
+			alpha = 1.0 + pow(M_E, b[0] + b[1]*conc[i]);
+			*fval += probs[i]*(log(alpha-b[2]) - lb2) - log(alpha);
+		}
+		*fval += lb2 * probs_size;
+	}
+
+}
+
 void ll3df(const size_t n, 
 	const double * b,
 	void * fparams,

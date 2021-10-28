@@ -43,6 +43,12 @@ def default_params_dict():
 				 }
 	return param_dict
 
+def unwrap_array_fit(arg, **kwarg):
+	return CI_finder.array_curve(*arg, **kwarg)
+
+def unwrap_curve_fit(arg, **kwarg):
+	return CI_finder.fit_curve(*arg, **kwarg)
+
 class CI_finder:	
 	'''
 	Performs the curve-fitting and associated math for dose-response analysis
@@ -293,36 +299,72 @@ class CI_finder:
 		#TODO: handle cases where EC50 is not going to be in the data :( 
 		
 		@utils.surpress_warnings
-		def fit_ll3(b, probs, functionFitter):
+		def fit_ll3(b, probs):
 			return functionFitter.min_ll3(b, probs, self.conc )
 
 		@utils.surpress_warnings
-		def fit_ll2(b, probs, functionFitter):
+		def fit_ll2(b, probs):
 			return functionFitter.min_ll2(b, probs, self.conc )
 		
 		functionFitter = FunctionFit()
+
 		b2 = self.estimate_initial_b(self.conc, probs, params = 2, rev = True)
 		b3 = self.estimate_initial_b(self.conc, probs, params = 3, rev = True)
+
+		if self.options["CURVE_TYPE"].lower() == 'auto':
+			if b3[2] > 0.10: self.options["CURVE_TYPE"] = "ll3"
+			else: self.options["CURVE_TYPE"] = "ll2"
+
+		if self.options["CURVE_TYPE"].lower() in ["2", "ll2", 2]:
+			return fit_ll2(b3, probs)
+		elif self.options["CURVE_TYPE"].lower() in ["3", "ll3", 3]:
+			return fit_ll3(b3, probs)
+		elif self.options["CURVE_TYPE"].lower() in ["ls3"]:
+			return least_squares(self.least_squares_fit, b3, args=(probs, self.conc)).x
+		elif self.options["CURVE_TYPE"].lower() in ["ls2"]:
+			return least_squares(self.least_squares_fit, b2, args=(probs, self.conc)).x
+		elif self.options["CURVE_TYPE"].lower() in ["best", "aic"]:
+			res2 = fit_ll2(b3, probs)
+			b3p = np.array([res2[0], res2[1], background_mort])
+			res3 = fit_ll3(b3p, probs)
+			AIC2 = 4 - 2*res2.fun
+			AIC3 = 6 - 2*res3.fun
+			return res2.x if AIC2 <= AIC3 else res3.x
+
+	def array_curve(self, beta_probs, *args, **kwargs):
+		'''
+		Curve-fitting by passing a full array of probs to a C library for speed. 
+		'''
+
+		niters, nprobs = beta_probs.shape
+		
+		probs = self.dead_count / (self.dead_count+self.live_count)
+		b2 = self.estimate_initial_b(self.conc, probs, params = 2, rev = True)
+		b2 = np.repeat([b2], niters, axis=0)
+		b3 = self.estimate_initial_b(self.conc, probs, params = 3, rev = True)
+		background_mort = b3[2]
+		b3 = np.repeat([b3], niters, axis=0)
+
+		functionFitter = FunctionFit()
 
 		if self.options["CURVE_TYPE"].lower() == 'auto':
 			if background_mort > 0.10: self.options["CURVE_TYPE"] = "ll3"
 			else: self.options["CURVE_TYPE"] = "ll2"
 
 		if self.options["CURVE_TYPE"].lower() in ["2", "ll2", 2]:
-			return fit_ll2(b3, probs,functionFitter)
+			b, funmin = functionFitter.array_ll2(b2, beta_probs, self.conc)
+			return np.c_[b, np.ones(len(b))]
 		elif self.options["CURVE_TYPE"].lower() in ["3", "ll3", 3]:
-			return fit_ll3(b3, probs,functionFitter)
-		elif self.options["CURVE_TYPE"].lower() in ["ls3"]:
-			return least_squares(self.least_squares_fit, b3, args=(probs, self.conc)).x
-		elif self.options["CURVE_TYPE"].lower() in ["ls2"]:
-			return least_squares(self.least_squares_fit, b2, args=(probs, self.conc)).x
+			# print(b3)
+			b, funmin = functionFitter.array_ll3(b3, beta_probs, self.conc)
+			return b
+		# elif self.options["CURVE_TYPE"].lower() in ["ls3"]:
+		# 	return least_squares(self.least_squares_fit, b3, args=(probs, self.conc)).x
+		# elif self.options["CURVE_TYPE"].lower() in ["ls2"]:
+		# 	return least_squares(self.least_squares_fit, b2, args=(probs, self.conc)).x
 		elif self.options["CURVE_TYPE"].lower() in ["best", "aic"]:
-			res2 = fit_ll2(b3, probs,functionFitter)
-			b3p = np.array([res2[0], res2[1], background_mort])
-			res3 = fit_ll3(b3p, probs, functionFitter)
-			AIC2 = 4 - 2*res2.fun
-			AIC3 = 6 - 2*res3.fun
-			return res2.x if AIC2 <= AIC3 else res3.x
+			b, funmin = functionFitter.array_ll23AIC(b3, beta_probs, self.conc)
+			return b
 
 	def bootstrap_CIs(self):
 		'''
@@ -342,23 +384,51 @@ class CI_finder:
 									scale = self.options["BETA_PRIOR"], 
 									null_scale = self.options["BETA_PRIOR_0"],
 									rho = self.options["RHO"])
-		#calculate point data points while we have the beta parameters. 
+		#calculate point data points whilst we have the beta parameters. 
 		self.get_point_error_bars(beta_probs)
-		#possibility of having 2 or 3 parameters
-		self.params = np.zeros((self.options["BOOTSTRAP_ITERS"], 3))
 		cpu_count = multiprocessing.cpu_count() 
-		if self.options["BOOTSTRAP_ITERS"] > cpu_count : 
-			self.options["BOOTSTRAP_ITERS"] = cpu_count
-		dict_list = Parallel(n_jobs = self.options["BOOTSTRAP_ITERS"])(delayed(
-					self.fit_curve)(row) for row in beta_probs)
-		# dict_list = Parallel(n_jobs = 1)(delayed(
-		# 			self.fit_curve)(row) for row in beta_probs)
-		for iter_count, res in enumerate(dict_list):
-			if len(res) == 3:
-				self.params[iter_count] = res
-			else:
-				self.params[iter_count,0:2] = res
-				self.params[iter_count,2] = 1.
+		if self.options["NCPU"] > cpu_count : 
+				self.options["NCPU"] = cpu_count
+
+		array_curve_fit = True
+
+		if array_curve_fit:
+			#first make a list of arrays for parallel computing
+			div = self.options["NCPU"] if self.options["NCPU"] > 0 else cpu_count
+			groups = div*2
+			breaks = np.round(np.linspace(0,self.options["BOOTSTRAP_ITERS"],groups+1))
+			beta_prob_list = []
+			for i in range(groups):
+				# print(int(breaks[i]),int(breaks[i+1]))
+				beta_prob_list.append(beta_probs[int(breaks[i]):int(breaks[i+1]),:])
+			# print(beta_prob_list)
+			dict_list = Parallel(n_jobs = -1)(delayed(self.array_curve)(beta_probs) \
+						for beta_probs in beta_prob_list)
+			# zip([self]*len(self.well_ID_list), self.well_ID_list)
+			# dict_list = [*answer for answer in dict_list]
+			self.params = []
+			for answer in dict_list:
+				self.params = [*self.params, *answer]
+			self.params = np.array(self.params)
+			# print(self.params)
+			# # self.params = self.array_curve(beta_probs)
+			# exit()
+
+		else:
+			#possibility of having 2 or 3 parameters
+			self.params = np.zeros((self.options["BOOTSTRAP_ITERS"], 3))
+
+			dict_list = Parallel(n_jobs = self.options["BOOTSTRAP_ITERS"])(delayed(
+						self.fit_curve)(row) for row in beta_probs)
+			# dict_list = Parallel(n_jobs = 1)(delayed(
+			# 			self.fit_curve)(row) for row in beta_probs)
+			
+			for iter_count, res in enumerate(dict_list):
+				if len(res) == 3:
+					self.params[iter_count] = res
+				else:
+					self.params[iter_count,0:2] = res
+					self.params[iter_count,2] = 1.
 		
 	def get_point_error_bars(self, beta_probs):
 		'''

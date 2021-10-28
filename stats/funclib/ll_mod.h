@@ -84,6 +84,10 @@ void ll2fdf(const size_t n,
 	double *fval,
 	double *grad) ;
 
+void ll_all_AIC(const double *b, 
+  void * fparams, 
+  double *fval);
+
 
 // double ls(const double *b,
 // 	const double *probs, 

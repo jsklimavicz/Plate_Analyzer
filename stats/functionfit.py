@@ -19,6 +19,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from ctypes import *
+import ctypes
 import numpy as np
 import os
 import platform
@@ -44,36 +45,97 @@ class FunctionFit():
 			try:
 				self.cloglik = func(lib_path)
 				self.use_C_lib = True
+
+				#Single shot optimizers
+				single_min_params = [np.ctypeslib.ndpointer(dtype=np.float64,
+												ndim=1, flags='C_CONTIGUOUS'),
+						np.ctypeslib.ndpointer(dtype=np.float64, 
+												ndim=1, flags='C_CONTIGUOUS'),
+						np.ctypeslib.ndpointer(dtype=np.float64, 
+												ndim=1, flags='C_CONTIGUOUS'),
+						c_int, 
+						c_double, 
+						c_double, 
+						np.ctypeslib.ndpointer(dtype=np.float64, 
+												ndim=1, flags='C_CONTIGUOUS')]
 				#Set LL3 vars
 				self.ll3c = self.cloglik.ll3_min
-				self.ll3c.argtypes = (np.ctypeslib.ndpointer(dtype=np.float64,
-												ndim=1, flags='C_CONTIGUOUS'),
-						np.ctypeslib.ndpointer(dtype=np.float64, 
-												ndim=1, flags='C_CONTIGUOUS'),
-						np.ctypeslib.ndpointer(dtype=np.float64, 
-												ndim=1, flags='C_CONTIGUOUS'),
-						c_int, 
-						c_double, 
-						c_double, 
-						np.ctypeslib.ndpointer(dtype=np.float64, 
-												ndim=1, flags='C_CONTIGUOUS'))
+				self.ll3c.argtypes = (single_min_params)
 				#Set LL2 vars
 				self.ll2c = self.cloglik.ll2_min
-				self.ll2c.argtypes = (np.ctypeslib.ndpointer(dtype=np.float64,
+				self.ll2c.argtypes = (single_min_params[:-1])
+
+				#Array-based optimizers
+				array_min_params = [c_int, #number of probs/trial
+						c_int, #number of iters
+						np.ctypeslib.ndpointer(dtype=np.float64, #minima
+												ndim=2, flags='C_CONTIGUOUS'),
+						np.ctypeslib.ndpointer(dtype=np.float64, #prob array
+												ndim=2, flags='C_CONTIGUOUS'),
+						np.ctypeslib.ndpointer(dtype=np.float64, #conc
 												ndim=1, flags='C_CONTIGUOUS'),
-						np.ctypeslib.ndpointer(dtype=np.float64,
+						np.ctypeslib.ndpointer(dtype=np.float64, #func vals
 												ndim=1, flags='C_CONTIGUOUS'),
-						np.ctypeslib.ndpointer(dtype=np.float64, 
-												ndim=1, flags='C_CONTIGUOUS'),
-						c_int, 
-						c_double, 
-						c_double)
+						c_double, #sigma**2
+						np.ctypeslib.ndpointer(dtype=np.float64, #beta perams
+												ndim=1, flags='C_CONTIGUOUS')]
+				#LL3 Array minimizer
+				self.ll3ca = self.cloglik.ll3_array_min
+				self.ll3ca.argtypes = (array_min_params)
+				#LL2 Array minimizer
+				self.ll2ca = self.cloglik.ll2_array_min
+				self.ll2ca.argtypes = (array_min_params[:-1]) #all but beta params
+				#AIC-based best LL picker Array minimizer
+				self.ll23aAIC = self.cloglik.array_ll2_ll3_AIC
+				self.ll23aAIC.argtypes = (array_min_params)
+
 			except:
 				self.use_C_lib =  False
 				self.cloglik = None
 		else:
 			self.cloglik = None
 			self.use_C_lib = False
+
+	def array_ll3(self, b_input, prob_array, conc_list):
+		if not self.use_C_lib: return False
+		niters, prob_ct = prob_array.shape
+		funmin = np.zeros(niters)
+		self.ll3ca(prob_ct,
+					niters,
+					b_input, #must be size niters * 3
+					prob_array, #must be size niters * prob_ct
+					conc_list, #must be length prob_ct
+					funmin,
+					self.SS,
+					self.BP)
+		return b_input, funmin
+
+	def array_ll2(self, b_input, prob_array, conc_list):
+		if not self.use_C_lib: return False
+		niters, prob_ct = prob_array.shape
+		funmin = np.zeros(niters)
+		self.ll2ca(prob_ct,
+					niters,
+					b_input, #must be size niters * 2
+					prob_array, #must be size niters * prob_ct
+					conc_list, #must be length prob_ct
+					funmin,
+					self.SS)
+		return b_input, funmin
+
+	def array_ll23AIC(self, b_input, prob_array, conc_list):
+		if not self.use_C_lib: return False
+		niters, prob_ct = prob_array.shape
+		funmin = np.zeros(niters)
+		self.ll23aAIC(prob_ct,
+					niters,
+					b_input, #must be size niters * 3
+					prob_array, #must be size niters * prob_ct
+					conc_list, #must be length prob_ct
+					funmin,
+					self.SS,
+					self.BP)
+		return b_input, funmin
 
 	def min_ll3(self, b, probs, conc):
 		if self.use_C_lib:

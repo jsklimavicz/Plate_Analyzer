@@ -21,7 +21,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 
-void ll3_min(double *b, //The minimal value that is found.
+void ll3_min(double *b, //The val to be minimized.
 	double *probs, 
 	double *conc, 
 	int probs_size, 
@@ -29,7 +29,7 @@ void ll3_min(double *b, //The minimal value that is found.
 	double sigsquare, 
 	double *beta);
 
-void ll2_min(double *b, //The minimal value that is found.
+void ll2_min(double *b, //The val to be minimized.
 	double *probs, 
 	double *conc, 
 	int probs_size, 
@@ -39,18 +39,41 @@ void ll2_min(double *b, //The minimal value that is found.
 void ll3_array_min(
 	int probs_size, 
 	int n_iters,
-	double b[][n_iters], //The minima value that are found. Should be of size n_iters x 3
+	double b[][3], //The vals to be minimized. Should be of size n_iters x 3
 	double probs[][probs_size], //Should be of size n_iters x probs_size
 	double *conc, 
-	double minimum, //The function value
+	double *minimum, //The function values
 	double sigsquare, 
 	double *beta);
 
 void ll2_array_min(
 	int probs_size, 
 	int n_iters,
-	double b[][n_iters], //The minima value that are found. Should be of size n_iters x 3
+	double b[][2], //The vals to be minimized. Should be of size n_iters x 3
 	double probs[][probs_size], //Should be of size n_iters x probs_size
 	double *conc, 
-	double minimum, //The function value
+	double *minimum, //The function values
 	double sigsquare);
+
+/*
+This function for for calculating both the ll2 curve and the ll3 curve, and
+then the AIC is used to determine whether the 2-parameter or 3-parameter curve
+should be used. 
+*/
+void ll2_ll3_AIC(double *b, // The vals to be minimized. Must have length 3.
+	double *probs, 
+	double *conc, 
+	int probs_size, 
+	double minimum, //The function value
+	double sigsquare,
+	double *beta);
+
+void array_ll2_ll3_AIC(
+	int probs_size, 
+	int n_iters,
+	double b[][3], //The minima value that are found. Should be of size n_iters x 3
+	double probs[][probs_size], //Should be of size n_iters x probs_size
+	double *conc, 
+	double *minimum, //The function value
+	double sigsquare, 
+	double *beta);
