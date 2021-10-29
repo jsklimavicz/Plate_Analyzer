@@ -1,5 +1,5 @@
 /*
-cloglik.c
+stats/funclib/cloglik.c
 This file is a component of Plate_Analyzer, which can count Drosophila
 L1 larvae, classify them as alive or dead, and determine dose-repsonse
 information based on live/dead count data. 
