@@ -77,3 +77,20 @@ void array_ll2_ll3_AIC(
 	double *minimum, //The function value
 	double sigsquare, 
 	double *beta);
+
+void ls_driver(
+	const int nparam, //number of parameters to use
+	const int n, //number of data points
+	double *user_b, //initial guess for b (and output). Must be len 3
+	double *x, //concentration values
+	double *y,// y-values
+	const int method); 
+
+void ls_array_min(
+	const int nparam,
+	const int probs_size, 
+	const int n_iters,
+	double b[][3], //The vals to be minimized. Should be of size n_iters x 3
+	double *conc,
+	double probs[][probs_size], //Should be of size n_iters x probs_size
+	const int method);

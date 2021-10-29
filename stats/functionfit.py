@@ -30,6 +30,15 @@ import math
 class FunctionFit():
 	SS = 1.0e6
 	BP=np.array([1.5,1.01])
+	'''
+	Least squares methods:
+	LS_METHOD = 0: Levenberg-Marquardt
+	LS_METHOD = 1: Levenberg-Marquardt with geodesic acceleration
+	LS_METHOD = 2: Dogleg
+	LS_METHOD = 3: Double dogleg
+	LS_METHOD = 4: 2D subspace
+	'''
+	LS_METHOD = 4
 
 	def __init__(self):
 		p = platform.platform()
@@ -65,7 +74,7 @@ class FunctionFit():
 				#LL3 minimzer
 				self.ll3c = self.cloglik.ll3_min
 				self.ll3c.argtypes = (single_min_params)
-				
+
 				#LL2 minimzer
 				self.ll2c = self.cloglik.ll2_min
 				#all but beta params
@@ -101,6 +110,32 @@ class FunctionFit():
 				#AIC-based best LL picker Array minimizer
 				self.ll23aAIC = self.cloglik.array_ll2_ll3_AIC
 				self.ll23aAIC.argtypes = (array_min_params)
+
+
+				#Least-Squares fitters
+				#Single Curve
+				self.lsfit = self.cloglik.ls_driver
+				self.lsfit.argtypes = (c_int, #number of parameters (2 or 3)
+				c_int, # number of data points
+				np.ctypeslib.ndpointer(dtype=np.float64, #input b
+											ndim=1, flags='C_CONTIGUOUS'),
+				np.ctypeslib.ndpointer(dtype=np.float64, #conc values
+											ndim=1, flags='C_CONTIGUOUS'),
+				np.ctypeslib.ndpointer(dtype=np.float64, #prob values
+											ndim=1, flags='C_CONTIGUOUS'))
+
+				#Array
+				self.lsarray = self.cloglik.ls_array_min
+				self.lsarray.argtypes = (c_int, #number of parameters (2 or 3)
+				c_int, # number of data points
+				c_int, # n_iters
+				np.ctypeslib.ndpointer(dtype=np.float64, #input b
+											ndim=2, flags='C_CONTIGUOUS'),
+				np.ctypeslib.ndpointer(dtype=np.float64, #conc values
+											ndim=1, flags='C_CONTIGUOUS'),
+				np.ctypeslib.ndpointer(dtype=np.float64, #prob values
+											ndim=2, flags='C_CONTIGUOUS'))
+
 
 				self.use_C_lib = True
 			except:
@@ -168,6 +203,35 @@ class FunctionFit():
 									conc_list, sigma_squared, beta_param)
 		return b_input
 
+	def array_ls(self, nparam, b_input, prob_array, conc_list, ls_method = LS_METHOD):
+		if self.use_C_lib:
+			niters, prob_ct = prob_array.shape
+			self.lsarray(nparam, 
+					prob_ct, 
+					niters,
+					b_input, 
+					conc_list, 
+					prob_array, 
+					ls_method)
+		else:
+			for i in range(niters):
+				b_input[i] = self.ll_ls(b_input[i], prob_array[i], 
+									conc_list, sigma_squared, beta_param)
+		return b_input
+
+	def min_ls(self, nparam, b, probs, conc, ls_method = LS_METHOD):
+		if self.use_C_lib:
+			nprob = len(probs)
+			self.lsfit(nparam, 
+					nprob, 
+					b, 
+					conc, 
+					probs, 
+					ls_method)
+			return b
+		else:
+			return self.ll_ls(nparam, b, probs, conc)
+
 	def min_ll3(self, b, probs, conc, sigma_squared = SS, beta_param=BP):
 		if self.use_C_lib:
 			funmin = 0
@@ -215,9 +279,9 @@ class FunctionFit():
 
 	@staticmethod
 	@utils.surpress_warnings
-	def min_ls(self, b, probs, conc):
+	def ll_ls(self, nparam,b, probs, conc):
 		return least_squares(FunctionFit.least_squares_error,
-							b, args=(probs, conc)).x
+							b, args=(nparam, probs, conc)).x
 
 	@staticmethod
 	@utils.surpress_warnings
@@ -353,7 +417,7 @@ class FunctionFit():
 
 	@staticmethod
 	@utils.surpress_warnings
-	def least_squares_error(b, probs, conc):
+	def least_squares_error(b, nparam,probs, conc):
 		'''
 		Dose-response curve for least-squares fitting. If len(b)=2, then 
 		b2 = 1; else if len(b)=3, then b2 = b[2]
@@ -361,7 +425,7 @@ class FunctionFit():
 					y = ------------------
 						1 + exp(b0 + b1*x)
 		'''
-		if len(b) == 2:
+		if nparam == 2:
 			return np.array((1-1/(1 + np.exp(b[0] + b[1]*conc)) - probs)**2)
 		else:
 			if b[2] > 1:

@@ -23,6 +23,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "multimin.h"
 #include "ll_mod.h"
 #include "cloglik.h"
+#include "ls.h"
+#include <gsl/gsl_blas.h>
+#include <gsl/gsl_multifit_nlinear.h>
+#include <time.h>
 
 void ll3_min(double *b, //The minimal value that is found.
 	double *probs, 
@@ -238,3 +242,86 @@ void array_ll2_ll3_AIC(
 		}
 	}
 }
+
+
+void ls_driver(const int nparam, //number of parameters to use
+	const int n, //number of data points
+	double *user_b, //initial guess for b (and output). Must be len 3
+	double *x, //concentration values
+	double *y, // y-values
+	const int method) //for picking solving method
+{
+	gsl_vector *f = gsl_vector_alloc(n);
+	gsl_vector *b = gsl_vector_alloc(nparam);
+	gsl_multifit_nlinear_fdf fdf;
+	gsl_multifit_nlinear_parameters fdf_params =
+		gsl_multifit_nlinear_default_parameters();
+	struct data fit_data = {.x = x,
+							.y = y,
+							.n = n};
+
+	/* define LL2/LL3 least squares functions and params */
+	gsl_vector_set(b, 0, user_b[0]);
+	gsl_vector_set(b, 1, user_b[1]);
+	fdf.n = n;
+	fdf.p = nparam;
+	fdf.params = &fit_data;
+	if (nparam == 2){
+		fdf.f = ls2_func_f;
+		fdf.df = ls2_func_df;
+		fdf.fvv = ls2_func_fvv;
+	} else {
+		gsl_vector_set(b, 2, user_b[2]);
+		fdf.f = ls3_func_f;
+		fdf.df = ls3_func_df;
+		fdf.fvv = ls3_func_fvv;
+	}
+
+	// printf("Method: %d\n",method);
+	switch(method){
+		case 0:
+			fdf_params.trs = gsl_multifit_nlinear_trs_lm;
+			break;
+		case 1:
+			fdf_params.trs = gsl_multifit_nlinear_trs_lmaccel;
+			break;
+		case 2:
+			fdf_params.trs = gsl_multifit_nlinear_trs_dogleg;
+			break;
+		case 3:
+			fdf_params.trs = gsl_multifit_nlinear_trs_ddogleg;
+			break;
+		case 4:
+			fdf_params.trs = gsl_multifit_nlinear_trs_subspace2D;
+			break;
+		default:
+			fdf_params.trs = gsl_multifit_nlinear_trs_lm;
+	}
+
+	solve_system(b, &fdf, &fdf_params);
+
+	user_b[0] = gsl_vector_get(b, 0);
+	user_b[1] = gsl_vector_get(b, 1);
+	user_b[2] = nparam >= 3 ? gsl_vector_get(b, 2): 1.0;
+
+	gsl_vector_free(f);
+	gsl_vector_free(b);
+
+}
+
+void ls_array_min(
+	const int nparam,
+	const int probs_size, 
+	const int n_iters,
+	double b[][3], //The vals to be minimized. Should be of size n_iters x 3
+	double *conc,
+	double probs[][probs_size], //Should be of size n_iters x probs_size
+	const int method)
+{
+	for (int i = 0; i<n_iters; i++){
+
+		ls_driver(nparam, probs_size, b[i], conc, probs[i], method);
+	}
+
+}
+

@@ -183,25 +183,27 @@ class CI_finder:
 		Curve-fitting driver. 
 		'''
 		
-		functionFitter = FunctionFit()
+		ff = FunctionFit()
 
 		b2 = self.estimate_initial_b(self.conc, probs, params = 2, rev = True)
 		b3 = self.estimate_initial_b(self.conc, probs, params = 3, rev = True)
 
-		if self.options["CURVE_TYPE"].lower() == 'auto':
-			if b3[2] > 0.10: self.options["CURVE_TYPE"] = "ll3"
-			else: self.options["CURVE_TYPE"] = "ll2"
+		switch = self.options["CURVE_TYPE"].lower()
 
-		if self.options["CURVE_TYPE"].lower() in ["2", "ll2", 2]:
-			return functionFitter.min_ll2(b2, probs, self.conc)
-		elif self.options["CURVE_TYPE"].lower() in ["3", "ll3", 3]:
-			return functionFitter.min_ll3(b3, probs, self.conc)
-		elif self.options["CURVE_TYPE"].lower() in ["ls3"]:
-			return functionFitter.min_ls(b3, probs, self.conc)
-		elif self.options["CURVE_TYPE"].lower() in ["ls2"]:
-			return functionFitter.min_ls(b2, probs, self.conc)
-		elif self.options["CURVE_TYPE"].lower() in ["best", "aic"]:
-			return functionFitter.min_llAIC(b3, probs, self.conc)
+		if switch == 'auto':
+			if b3[2] > 0.10: switch = "ll3"
+			else: switch = "ll2"
+
+		if switch in ["2", "ll2", 2]:
+			return ff.min_ll2(b2, probs, self.conc)
+		elif switch in ["3", "ll3", 3]:
+			return ff.min_ll3(b3, probs, self.conc)
+		elif switch in ["ls3"]:
+			return ff.min_ls(3, b3, 1.0-probs, self.conc)
+		elif switch in ["ls2"]:
+			return ff.min_ls(2, b2, 1.0-probs, self.conc)
+		elif switch in ["best", "aic"]:
+			return ff.min_llAIC(b3, probs, self.conc)
 
 
 	def array_curve(self, beta_probs, *args, **kwargs):
@@ -218,18 +220,24 @@ class CI_finder:
 		background_mort = b3[2]
 		b3 = np.repeat([b3], niters, axis=0)
 
-		functionFitter = FunctionFit()
+		ff = FunctionFit()
 
-		if self.options["CURVE_TYPE"].lower() == 'auto':
-			if background_mort > 0.10: self.options["CURVE_TYPE"] = "ll3"
-			else: self.options["CURVE_TYPE"] = "ll2"
+		switch = self.options["CURVE_TYPE"].lower()
 
-		if self.options["CURVE_TYPE"].lower() in ["2", "ll2", 2]:
-			return  functionFitter.array_ll2(b2, beta_probs, self.conc)
-		elif self.options["CURVE_TYPE"].lower() in ["3", "ll3", 3]:
-			return functionFitter.array_ll3(b3, beta_probs, self.conc)
-		elif self.options["CURVE_TYPE"].lower() in ["best", "aic"]:
-			return functionFitter.array_ll23AIC(b3, beta_probs, self.conc)
+		if switch == 'auto':
+			if background_mort > 0.10: switch = "ll3"
+			else: switch = "ll2"
+
+		if switch in ["2", "ll2", 2]:
+			return  ff.array_ll2(b2, beta_probs, self.conc)
+		elif switch in ["3", "ll3", 3]:
+			return ff.array_ll3(b3, beta_probs, self.conc)
+		elif switch in ["ls3"]:
+			return ff.array_ls(3, b3, 1.0-beta_probs, self.conc)
+		elif switch in ["ls2"]:
+			return ff.array_ls(2, b3, 1.0-beta_probs, self.conc)
+		elif switch in ["best", "aic"]:
+			return ff.array_ll23AIC(b3, beta_probs, self.conc)
 
 
 	def bootstrap_CIs(self):
@@ -258,11 +266,11 @@ class CI_finder:
 		if cu <=0: cu += cc + 1#in case cpus is set to a negative number 
 				
 
-		functionFitter = FunctionFit()
+		ff = FunctionFit()
 		use_array_method = True
-		if "ls" in self.options["CURVE_TYPE"].lower(): use_array_method = False
+		# if "ls" in self.options["CURVE_TYPE"].lower(): use_array_method = False
 
-		if (functionFitter.use_C_lib and use_array_method):
+		if (ff.use_C_lib and use_array_method):
 			#first make a list of arrays for parallel computing
 			# make divisions based on number of cpus to use
 			groups = cu*2
@@ -295,7 +303,11 @@ class CI_finder:
 				else:
 					self.params[iter_count,0:2] = res
 					self.params[iter_count,2] = 1.
-		print(self.params)
+		# print(self.params)
+
+
+
+
 	def get_point_error_bars(self, beta_probs):
 		'''
 		Calculates the error bars for each data point based on the beta
