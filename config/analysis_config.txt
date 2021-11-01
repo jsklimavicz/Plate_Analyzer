@@ -106,7 +106,7 @@ NCPU = -1
 #BOOTSTRAP_ITERS is the number of bootstraping iterations for data generation. 
 #Higher numbers provide better estimates of bootstrapped confidence intervals, 
 #but takes longer to run. Suggested values are 500 to 10 000.
-BOOTSTRAP_ITERS = 10000
+BOOTSTRAP_ITERS = 100
 
 #RHO is an approximate factor to provide correlation in bootstrapped random 
 #beta variables. RHO should be in the interval (-0.25, 0.5). Higher values are 
@@ -136,7 +136,28 @@ CI_METHOD = HPDI
 #concentrations is, 'best' to use the AIC of the ll3 and ll2 curves to pick
 #the better-fitting curve, "ls2" to use least-squares fitting of a two-
 #parameter curve, or "ls3" to fit a three-parameter least-squares curve.
-CURVE_TYPE = best
+CURVE_TYPE = ll3
+
+#Optimization method for least-squares fitting. 0: Levenberg-Marquardt;
+#1: Levenberg-Marquardt with geodesic acceleration; 2: Dogleg; 3: Double 
+#dogleg; 4: 2D subspace; default: 2D subspace
+LS_METHOD = 4
+
+#Optimization method for log-likelhood fitting. 0: Fletcher-Reeves CG; 
+#1: Polak-Ribiere CG; 2: Vector BFGS method; 3: Steepest descent; 4: Nelder-
+#Mead simplex; 5: Vector BFGS method ver. 2; 6: Nelder-Mead simplex ver. 2;
+#7: Nelder-Mead simplex with random initialization
+OPTIM_METHOD = 5
+
+#Log-likelihood prior parameters for the 2- and 3-parameter log-logistic 
+#curves y = b2 / (1 + exp(b0 + b1 * x)); b2 = 1.0 for 2-param. LL_SIGMA is for
+#the MVN prior for b0 and b1 (mean centered on 0.0, LL_SIGMA for diffuse prior)
+#LL_BETA1 and LL_BETA2 are for the Beta prior for b2 in the 3-param curve. 
+#These values do nothing if the CURVE_TYPE param does not require them.
+LL_SIGMA = 1000
+LL_BETA1 = 1.5
+LL_BETA2 = 1.001
+
 
 
 ###################################################

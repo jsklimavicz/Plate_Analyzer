@@ -70,17 +70,18 @@ def config_parse_helper(key, val):
     elif key in ['RHO', 'BETA_PRIOR', 'BETA_PRIOR_0', 
                 'JITTER_FACTOR', 'ALPHA', 'CURVE_CI', 
                 'LC_CI', 'ERROR_BAR_CI', 'REL_POT_CI', 
-                'EXTRAPOLATION_FACTOR']: 
+                'EXTRAPOLATION_FACTOR', 'LL_SIGMA',
+                'LL_BETA1', 'LL_BETA2']: 
         val = float(val)/100. if key in ['CURVE_CI', 'LC_CI', 'REL_POT_CI', 'ERROR_BAR_CI'] else float(val)
         if key == 'JITTER_FACTOR':
             if val < 0: val = 0
             elif val > 0.5: val = 0.4
-    elif key in ['BOOTSTRAP_ITERS', 'N_POINTS', 'NCPU', 'ERROR_BAR_CUTOFF']: 
+    elif key in ['BOOTSTRAP_ITERS', 'N_POINTS', 'NCPU', 'ERROR_BAR_CUTOFF', 'LS_METHOD', 'OPTIM_METHOD']: 
         val = int(val)
     elif key in ["CI_METHOD"]:
         val = val.lower()
     elif key in ["OUTPUT_PDF_NAME"]:
-        if val[-4:].lower() in ['.pdf', '.tex']: val = val[:-4] #strip pdf ending
+        if val[-4:].lower() in ['.pdf', '.tex']: val = val[:-4] #strip pdf ending'
 
     return key, val
 
@@ -123,7 +124,12 @@ def default_config():
                     'REFERENCE_COMPOUND': 'malathion',
                     'REL_POT_TO_REF': True, 
                     'ERROR_BAR_CUTOFF': 10,
-                    "EXTRAPOLATION_FACTOR": 2
+                    "EXTRAPOLATION_FACTOR": 2,
+                    'LS_METHOD': 4,
+                    'OPTIM_METHOD': 2,
+                    'LL_SIGMA': 1000,
+                    'LL_BETA1': 1.5,
+                    'LL_BETA2': 1.001
                     }
     return config_dict
 
