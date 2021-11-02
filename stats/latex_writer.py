@@ -240,7 +240,7 @@ class LatexWriter:
 			c_used = ff.use_C_lib
 			method = "ls" if "ls" in stat_lib["CURVE_TYPE"].lower() else "ll"
 			GSL = "using a C interface to the GNU Scientific Library. "
-			py = "using the scipy module. "
+			py = "using Python's \\texttt{scipy} module. "
 			if method == "ls": 
 				if c_used:
 					solve_id = stat_lib['LS_METHOD']
@@ -286,18 +286,18 @@ class LatexWriter:
 			if "ls" in switch:
 				if switch == "ls2":
 					func += "&\\argmin_{b_0, b_1} "
-					func += "\\sum^{n}_{i=1} \\left(p_i - \\frac{1}"+\
+					func += "\\sum^{n}_{i=1} \\left(\\theta_i - \\frac{1}"+\
 							"{\\left(1 + \\xi_i \\right)}\\right)^2\\\\"
 				elif switch == "ls3":
 					func += "&\\argmin_{b_0, b_1, b_2} "
-					func += "\\sum^{n}_{i=1} \\left(p_i - \\frac{b_2}"+\
+					func += "\\sum^{n}_{i=1} \\left(\\theta_i - \\frac{b_2}"+\
 							"{\\left(1 + \\xi_i \\right)}\\right)^2\\\\"
 			else:
 				if switch == "ll2":
 					func += "&\\argmax_{b_0, b_1} "
-					func += "\\frac{-\\left(b_0^2 + b_1^2\\right)}"+\
+					func += "\\left( -\\frac{b_0^2 + b_1^2}"+\
 							"{2\\sigma^2} + \\sum^{n}_{i=1} p_i \\xi_i"+\
-							" - \\sum^{n}_{i=1} \\ln(1 + \\xi_i)\\\\"
+							" - \\sum^{n}_{i=1} \\ln(1 + \\xi_i) \\right)\\\\"
 				elif switch == "ll3":
 					func += "&\\argmax_{\\bm b = (b_0, b_1, b_2)} "
 					func += "\\left( f(\\bm b) + \\sum^{n}_{i=1} (1-\\theta_i) \\ln(1 + \\xi_i - b_2)"+\
@@ -343,8 +343,8 @@ class LatexWriter:
 			curve_summ += f"the curve {func_str('b_2')}"+\
 			" by maximizing the log-likelihood function, where $b_2$ was fixed at 1.0 "+\
 			"when background mortailty is low. You may allow $b_2$ to vary freely by "+\
-			"setting \\texttt{CURVE_TYPE = ls3} in the \\texttt{analysis\\_config.txt} file, or "+\
-			"keep $b_2$ fixed at 1.0 by setting \\texttt{CURVE_TYPE = ls2}. "
+			"setting \\texttt{CURVE\\_TYPE = ls3} in the \\texttt{analysis\\_config.txt} file, or "+\
+			"keep $b_2$ fixed at 1.0 by setting \\texttt{CURVE\\_TYPE = ls2}. "
 			prior_summ += "Priors on parameters were $(b_0, b_1) \\sim \\mathcal{N}(\\bm 0,\\sigma \\mc I_2)$" +\
 			"and $b_2 \\sim \\text{Beta}(\\alpha, \\beta)$, where "+\
 			"$\\sigma = " + f"{stat_lib['LL_SIGMA']}$, " +\
@@ -358,11 +358,11 @@ class LatexWriter:
 			" by maximizing the log-likelihood function. This is "+\
 			"equivalent to solving the problem \n"+\
 			get_optim_func('ll2') +"A scale parameter may be" +\
-			" included by setting \\texttt{CURVE_TYPE = ls3} in the \\texttt{analysis\\_config.txt} file. "
+			" included by setting \\texttt{CURVE\\_TYPE = ls3} in the \\texttt{analysis\\_config.txt} file. "
 			prior_summ += "Priors on parameters were $(b_0, b_1) \\sim "+\
 			"\\mathcal{N}(\\bm 0,\\sigma \\mc I_2)$," +\
 			" where $\\sigma = " + f"{stat_lib['LL_SIGMA']}$, as defined "+\
-			"by \\texttt{LL_SIGMA} in the \\texttt{analysis\\_config.txt} file." 
+			"by \\texttt{LL\\_SIGMA} in the \\texttt{analysis\\_config.txt} file." 
 		elif switch in ["3", "ll3", 3]:
 			curve_summ += f"the curve {func_str('b_2')}"+\
 			" by maximizing the log-likelihood function, \\textit{i.e.}, solving "+\

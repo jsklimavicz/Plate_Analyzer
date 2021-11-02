@@ -274,9 +274,7 @@ class CI_finder:
 
 		use_array_method = True #mainly for debugging purposes
 		# if "ls" in self.options["CURVE_TYPE"].lower(): use_array_method = False
-
-		cu = 1
-
+		
 		if (ff.use_C_lib and use_array_method):
 			#first make a list of arrays for parallel computing
 			# make divisions based on number of cpus to use

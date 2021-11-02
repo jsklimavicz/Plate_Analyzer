@@ -189,16 +189,6 @@ class FunctionFit():
 		if not sigma_squared: sigma_squared = self.SS
 		if not optim_method: optim_method = self.OPTIM_METHOD
 
-		# print(b_input)
-		print(b_input.shape)
-		# print(prob_array)
-		print(prob_array.shape)
-		# print(conc_list)
-		print(conc_list.shape)
-		print(sigma_squared)
-		print(optim_method)
-		print(self.use_C_lib)
-
 		niters, prob_ct = prob_array.shape
 		if self.use_C_lib: 
 			funmin = np.zeros(niters)
@@ -211,11 +201,11 @@ class FunctionFit():
 						sigma_squared,
 						optim_method)
 		else:
-			b_out = np.zeros_like(b_input)
 			for i in range(niters):
 				b_input[i] = self.min_ll2(b_input[i], prob_array[i], 
 									conc_list, sigma_squared)
-		return b_input
+		#need to make an niters * 3 array
+		return np.c_[b_input,np.ones(niters)]
 
 	def array_ll23AIC(self, b_input, prob_array, conc_list, 
 							sigma_squared = None, beta_param=None,
