@@ -431,7 +431,7 @@ class MerlinAnalyzer:
 
 		self.progress = 99.5  #update progress for each compound
 		self.message = "Creating output pdf with dose-response curves."
-		LW.write_file(out_path = os.path.abspath(os.path.join(out_path, pdf_outfile +".tex")) )
+		LW.write_file(out_path = os.path.abspath(os.path.join(out_path, pdf_outfile +".tex")), stat_lib = self.options )
 		self.progress = 99.5
 		self.message = "Statistical analysis complete."
 
