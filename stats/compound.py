@@ -47,7 +47,6 @@ class Compound:
 		Sets the curve data for this compounds using class CI_finder in module curvell
 		'''
 		for k, v in options.items(): self.options[k] = v
-		# print(self.options)
 		if self.curve_data is None: self.curve_data = CI_finder(**self.data, options = self.options)
 
 	def get_LC_CIs(self):

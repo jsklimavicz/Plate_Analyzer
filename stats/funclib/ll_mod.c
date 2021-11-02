@@ -57,7 +57,7 @@ void ll3f(const size_t n,
 	b2 ~ Beta(beta_params).
 	*/
 
-	struct ll3_param *par = (struct ll3_param *) fparams;
+	struct ll_param *par = (struct ll_param *) fparams;
 
 	const double * probs = par->probs;
 	const double * conc = par->conc;
@@ -106,7 +106,7 @@ void ll_all_AIC(const double *b,
 	void *fparams, 
 	double *fval) 
 {
-	struct ll3_param *par = (struct ll3_param *) fparams;
+	struct ll_param *par = (struct ll_param *) fparams;
 
 	const double * probs = par->probs;
 	const double * conc = par->conc;
@@ -148,7 +148,7 @@ void ll3df(const size_t n,
 	wherein prior is b0, b1 ~ MVN(0, sigma*I2) and 
 	b2 ~ Beta(beta_params).
 	*/
-	struct ll3_param *par = (struct ll3_param *) fparams;
+	struct ll_param *par = (struct ll_param *) fparams;
 
 	const double * probs = par->probs;
 	const double * conc = par->conc;
@@ -183,7 +183,7 @@ void ll3fdf(const size_t n,
 	// ll3f(n, b, fparams, fval);
 	// ll3df(n, b, fparams, grad);
 
-	struct ll3_param *par = (struct ll3_param *) fparams;
+	struct ll_param *par = (struct ll_param *) fparams;
 
 	const double * probs = par->probs;
 	const double * conc = par->conc;
@@ -238,7 +238,7 @@ void ll2f(const size_t n,
 	wherein priors are b0, b1 ~ MVN(0, sigma*I2) 
 	*/
 
-	struct ll2_param *par = (struct ll2_param *) fparams;
+	struct ll_param *par = (struct ll_param *) fparams;
 
 	const double * probs = par->probs;
 	const double * conc = par->conc;
@@ -272,7 +272,7 @@ void ll2df(const size_t n,
 					1 + exp(b0 + b1*x)
 	wherein prior is b0, b1 ~ MVN(0, sigma*I2).
 	*/
-	struct ll2_param *par = (struct ll2_param *) fparams;
+	struct ll_param *par = (struct ll_param *) fparams;
 
 	const double * probs = par->probs;
 	const double * conc = par->conc;
@@ -302,7 +302,7 @@ void ll2fdf(const size_t n,
 	// ll3f(n, b, fparams, fval);
 	// ll3df(n, b, fparams, grad);
 
-	struct ll2_param *par = (struct ll2_param *) fparams;
+	struct ll_param *par = (struct ll_param *) fparams;
 
 	const double * probs = par->probs;
 	const double * conc = par->conc;

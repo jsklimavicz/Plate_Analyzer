@@ -24,8 +24,8 @@ import numpy as np
 import os
 import platform
 import stats.utils as utils
-from scipy.optimize import minimize, least_squares
 import math
+from scipy.optimize import minimize, least_squares
 
 class FunctionFit():
 	SS = 1.0e6
@@ -39,8 +39,10 @@ class FunctionFit():
 	LS_METHOD = 4: 2D subspace
 	'''
 	LS_METHOD = 4
+	OPTIM_METHOD = 5
 
-	def __init__(self):
+	def __init__(self, **kwargs):
+		self.set_default_params(**kwargs)
 		p = platform.platform()
 		if "linux" in p.lower():
 			lib_path = "./stats/funclib/cloglik.so"
@@ -53,12 +55,12 @@ class FunctionFit():
 			os.add_dll_directory("C:/msys64/mingw64/bin")
 		else:
 			lib_path = None
-		if os.path.exists(lib_path):
+		if os.path.exists(lib_path) and 'USE_CLIB' in kwargs and kwargs.get('USE_CLIB'):
+
 			#necessary for the case when the library loads but is not working,
 			#e.g. because gsl is on not the system. 
 			try:
 				self.cloglik = func(lib_path)
-
 				#Single shot optimizers
 				single_min_params = [np.ctypeslib.ndpointer(dtype=np.float64,
 												ndim=1, flags='C_CONTIGUOUS'),
@@ -70,7 +72,8 @@ class FunctionFit():
 						c_double, 
 						c_double, 
 						np.ctypeslib.ndpointer(dtype=np.float64, 
-												ndim=1, flags='C_CONTIGUOUS')]
+												ndim=1, flags='C_CONTIGUOUS'),
+						c_int] #OPTIM_METHOD
 				#LL3 minimzer
 				self.ll3c = self.cloglik.ll3_min
 				self.ll3c.argtypes = (single_min_params)
@@ -78,7 +81,7 @@ class FunctionFit():
 				#LL2 minimzer
 				self.ll2c = self.cloglik.ll2_min
 				#all but beta params
-				self.ll2c.argtypes = (single_min_params[:-1])
+				self.ll2c.argtypes = (*single_min_params[:-2],single_min_params[-1])
 
 				#AIC-based minimizer
 				self.ll23cAIC = self.cloglik.ll2_ll3_AIC
@@ -97,7 +100,8 @@ class FunctionFit():
 												ndim=1, flags='C_CONTIGUOUS'),
 						c_double, #sigma**2
 						np.ctypeslib.ndpointer(dtype=np.float64, #beta perams
-												ndim=1, flags='C_CONTIGUOUS')]
+												ndim=1, flags='C_CONTIGUOUS'),
+						c_int] #OPTIM_METHOD
 				#LL3 Array minimizer
 				self.ll3ca = self.cloglik.ll3_array_min
 				self.ll3ca.argtypes = (array_min_params)
@@ -105,12 +109,11 @@ class FunctionFit():
 				#LL2 Array minimizer
 				self.ll2ca = self.cloglik.ll2_array_min
 				#all but beta params
-				self.ll2ca.argtypes = (array_min_params[:-1]) 
+				self.ll2ca.argtypes = (*array_min_params[:-2],array_min_params[-1]) 
 
 				#AIC-based best LL picker Array minimizer
 				self.ll23aAIC = self.cloglik.array_ll2_ll3_AIC
 				self.ll23aAIC.argtypes = (array_min_params)
-
 
 				#Least-Squares fitters
 				#Single Curve
@@ -136,7 +139,6 @@ class FunctionFit():
 				np.ctypeslib.ndpointer(dtype=np.float64, #prob values
 											ndim=2, flags='C_CONTIGUOUS'))
 
-
 				self.use_C_lib = True
 			except:
 				self.use_C_lib =  False
@@ -144,11 +146,25 @@ class FunctionFit():
 		else:
 			self.cloglik = None
 			self.use_C_lib = False
-		if not self.use_C_lib:
-			from scipy.optimize import minimize
+
+
+
+	def set_default_params(self, **kwargs):
+		self.use_C_lib = kwargs.get('USE_CLIB') if 'USE_CLIB' in kwargs else False
+		self.LS_METHOD = kwargs.get('LS_METHOD') if 'LS_METHOD' in kwargs else 4
+		self.OPTIM_METHOD = kwargs.get('OPTIM_METHOD') if 'OPTIM_METHOD' in kwargs else 2
+		self.SS = kwargs.get('LL_SIGMA')**2 if 'LL_SIGMA' in kwargs else 1e6
+		self.BP=np.array([1.5,1.01])
+		self.BP[0] = kwargs.get('LL_BETA1') if 'LL_BETA1' in kwargs else 1.5
+		self.BP[1] = kwargs.get('LL_BETA2') if 'LL_BETA2' in kwargs else 1.01
 
 	def array_ll3(self, b_input, prob_array, conc_list, 
-							igma_squared = SS, beta_param=BP):
+							sigma_squared = None, beta_param=None,
+							optim_method = None):
+		if not sigma_squared: sigma_squared = self.SS
+		if not beta_param: beta_param = self.BP
+		if not optim_method: optim_method = self.OPTIM_METHOD
+
 		niters, prob_ct = prob_array.shape
 		if self.use_C_lib:
 			funmin = np.zeros(niters)
@@ -159,14 +175,30 @@ class FunctionFit():
 						conc_list, #must be length prob_ct
 						funmin,
 						sigma_squared,
-						beta_param)
+						beta_param,
+						optim_method)
 		else:
 			for i in range(niters):
 				b_input[i] = self.min_ll3(b_input[i], prob_array[i],
 									conc_list, sigma_squared, beta_param)
 		return b_input
 
-	def array_ll2(self, b_input, prob_array, conc_list, sigma_squared = SS):
+	def array_ll2(self, b_input, prob_array, conc_list, sigma_squared = None,
+							optim_method = None):
+
+		if not sigma_squared: sigma_squared = self.SS
+		if not optim_method: optim_method = self.OPTIM_METHOD
+
+		# print(b_input)
+		print(b_input.shape)
+		# print(prob_array)
+		print(prob_array.shape)
+		# print(conc_list)
+		print(conc_list.shape)
+		print(sigma_squared)
+		print(optim_method)
+		print(self.use_C_lib)
+
 		niters, prob_ct = prob_array.shape
 		if self.use_C_lib: 
 			funmin = np.zeros(niters)
@@ -176,7 +208,8 @@ class FunctionFit():
 						prob_array, #must be size niters * prob_ct
 						conc_list, #must be length prob_ct
 						funmin,
-						sigma_squared)
+						sigma_squared,
+						optim_method)
 		else:
 			b_out = np.zeros_like(b_input)
 			for i in range(niters):
@@ -185,7 +218,11 @@ class FunctionFit():
 		return b_input
 
 	def array_ll23AIC(self, b_input, prob_array, conc_list, 
-							sigma_squared = SS, beta_param=BP):
+							sigma_squared = None, beta_param=None,
+							optim_method = None):
+		if not sigma_squared: sigma_squared = self.SS
+		if not beta_param: beta_param = self.BP
+		if not optim_method: optim_method = self.OPTIM_METHOD
 		niters, prob_ct = prob_array.shape
 		if self.use_C_lib: 
 			funmin = np.zeros(niters)
@@ -196,14 +233,16 @@ class FunctionFit():
 						conc_list, #must be length prob_ct
 						funmin,
 						sigma_squared,
-						beta_param)
+						beta_param,
+						optim_method)
 		else:
 			for i in range(niters):
 				b_input[i] = self.min_llAIC(b_input[i], prob_array[i], 
 									conc_list, sigma_squared, beta_param)
 		return b_input
 
-	def array_ls(self, nparam, b_input, prob_array, conc_list, ls_method = LS_METHOD):
+	def array_ls(self, nparam, b_input, prob_array, conc_list, ls_method = None):
+		if not ls_method: ls_method = self.LS_METHOD
 		if self.use_C_lib:
 			niters, prob_ct = prob_array.shape
 			self.lsarray(nparam, 
@@ -215,11 +254,11 @@ class FunctionFit():
 					ls_method)
 		else:
 			for i in range(niters):
-				b_input[i] = self.ll_ls(b_input[i], prob_array[i], 
-									conc_list, sigma_squared, beta_param)
+				b_input[i] = FunctionFit.ll_ls(b_input[i], nparam, prob_array[i], conc_list)
 		return b_input
 
-	def min_ls(self, nparam, b, probs, conc, ls_method = LS_METHOD):
+	def min_ls(self, b, nparam, probs, conc, ls_method = None):
+		if not ls_method: ls_method = self.LS_METHOD
 		if self.use_C_lib:
 			nprob = len(probs)
 			self.lsfit(nparam, 
@@ -230,9 +269,13 @@ class FunctionFit():
 					ls_method)
 			return b
 		else:
-			return self.ll_ls(nparam, b, probs, conc)
+			return FunctionFit.ll_ls(b, nparam, probs, conc)
 
-	def min_ll3(self, b, probs, conc, sigma_squared = SS, beta_param=BP):
+	def min_ll3(self, b, probs, conc, sigma_squared = None, beta_param=None,
+					optim_method = None):
+		if not sigma_squared: sigma_squared = self.SS
+		if not beta_param: beta_param = self.BP
+		if not optim_method: optim_method = self.OPTIM_METHOD
 		if self.use_C_lib:
 			funmin = 0
 			self.ll3c(b, 
@@ -241,14 +284,20 @@ class FunctionFit():
 					len(probs), 
 					funmin,
 					sigma_squared,
-					beta_param)
+					beta_param,
+					optim_method)
 			return b
 		else:
-			res = minimize(FunctionFit.ll3p, b, args = (probs, conc), 
+			res = minimize(FunctionFit.ll3p, b, 
+					args = (probs, conc, sigma_squared, beta_param), 
 					method = 'BFGS', jac = FunctionFit.ll3p_jac)
 			return res.x
 
-	def min_llAIC(self, b, probs, conc, sigma_squared = SS, beta_param=BP):
+	def min_llAIC(self, b, probs, conc, sigma_squared = None, beta_param=None,
+					optim_method = None):
+		if not sigma_squared: sigma_squared = self.SS
+		if not beta_param: beta_param = self.BP
+		if not optim_method: optim_method = self.OPTIM_METHOD
 		if self.use_C_lib:
 			funmin = 0
 			self.ll23cAIC(b, 
@@ -257,12 +306,16 @@ class FunctionFit():
 					len(probs), 
 					funmin,
 					sigma_squared,
-					beta_param)
+					beta_param,
+					optim_method)
 			return b
 		else:
 			return self.ll23AIC_min(b, probs, conc, sigma_squared, beta_param)
 
-	def min_ll2(self, b, probs, conc, sigma_squared = SS):
+	def min_ll2(self, b, probs, conc, sigma_squared = None, optim_method = None):
+		if not sigma_squared: sigma_squared = self.SS
+		if not optim_method: optim_method = self.OPTIM_METHOD
+
 		if self.use_C_lib:
 			funmin = 0
 			self.ll2c(b, 
@@ -273,13 +326,14 @@ class FunctionFit():
 					sigma_squared)
 			return b
 		else:
-			res = minimize(FunctionFit.ll2p, b, args = (probs, conc), 
+			res = minimize(FunctionFit.ll2p, b, 
+					args = (probs, conc, sigma_squared), 
 					method = 'BFGS', jac = FunctionFit.ll2p_jac)
 			return res.x
 
 	@staticmethod
 	@utils.surpress_warnings
-	def ll_ls(self, nparam,b, probs, conc):
+	def ll_ls(b, nparam, probs, conc):
 		return least_squares(FunctionFit.least_squares_error,
 							b, args=(nparam, probs, conc)).x
 
@@ -336,13 +390,15 @@ class FunctionFit():
 	@utils.surpress_warnings
 	def ll23AIC_min(b, probs, conc, sigma_squared = SS, beta_param=BP):
 		#fit ll2
-		res2 = minimize(FunctionFit.ll2p, b[0:2], args = (probs, conc, sigma_squared), 
+		res2 = minimize(FunctionFit.ll2p, b[0:2], 
+					args = (probs, conc, sigma_squared), 
 					method = 'BFGS', jac = FunctionFit.ll2p_jac)
 		b2 = np.array([*res2.x, 1.0])
 		ll2 = FunctionFit.ll_for_AIC(b2, probs, conc, sigma_squared)
 		#fit ll3
-		res3 = minimize(FunctionFit.ll3p, b, args = (probs, conc, sigma_squared, 
-					beta_param), method = 'BFGS', jac = FunctionFit.ll3p_jac)
+		res3 = minimize(FunctionFit.ll3p, b, 
+					args = (probs, conc, sigma_squared, beta_param), 
+					method = 'BFGS', jac = FunctionFit.ll3p_jac)
 		ll3 = FunctionFit.ll_for_AIC(res3.x, probs, conc, sigma_squared, beta_param)
 		AIC2 = 4 - 2*ll2
 		AIC3 = 6 - 2*ll3
@@ -417,7 +473,7 @@ class FunctionFit():
 
 	@staticmethod
 	@utils.surpress_warnings
-	def least_squares_error(b, nparam,probs, conc):
+	def least_squares_error(b, nparam, probs, conc):
 		'''
 		Dose-response curve for least-squares fitting. If len(b)=2, then 
 		b2 = 1; else if len(b)=3, then b2 = b[2]

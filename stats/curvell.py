@@ -38,15 +38,15 @@ def default_params_dict():
 						"FIT_METHOD": 'BFGS', 
 						"BETA_PRIOR": 0.1, 
 						"RHO": 0.1,
-						"N_POINTS": 151
+						"N_POINTS": 151,
+						'LS_METHOD': 4,
+						'OPTIM_METHOD': 5,
+						'LL_SIGMA': 1000,
+						'LL_BETA1': 1.5,
+						'LL_BETA2': 1.001,
+						'USE_CLIB': True
 				 }
 	return param_dict
-
-def unwrap_array_fit(arg, **kwarg):
-	return CI_finder.array_curve(*arg, **kwarg)
-
-def unwrap_curve_fit(arg, **kwarg):
-	return CI_finder.fit_curve(*arg, **kwarg)
 
 class CI_finder:	
 	'''
@@ -83,8 +83,10 @@ class CI_finder:
 
 		self.n_trials = kwargs['n_trials']
 		self.options = self.default_options
-		if options:
-			for k, v in options.items(): self.options[k] = v
+		# print(options.items())
+		if options is not None:
+			for k, v in options.items(): 
+				self.options[k] = v
 		#values created by calculation
 		self.params = None
 		self.points = None
@@ -183,7 +185,7 @@ class CI_finder:
 		Curve-fitting driver. 
 		'''
 		
-		ff = FunctionFit()
+		ff = FunctionFit(**self.options)
 
 		b2 = self.estimate_initial_b(self.conc, probs, params = 2, rev = True)
 		b3 = self.estimate_initial_b(self.conc, probs, params = 3, rev = True)
@@ -199,9 +201,9 @@ class CI_finder:
 		elif switch in ["3", "ll3", 3]:
 			return ff.min_ll3(b3, probs, self.conc)
 		elif switch in ["ls3"]:
-			return ff.min_ls(3, b3, 1.0-probs, self.conc)
+			return ff.min_ls(b3, 3, probs, self.conc)
 		elif switch in ["ls2"]:
-			return ff.min_ls(2, b2, 1.0-probs, self.conc)
+			return ff.min_ls(b2, 2, probs, self.conc)
 		elif switch in ["best", "aic"]:
 			return ff.min_llAIC(b3, probs, self.conc)
 
@@ -220,7 +222,7 @@ class CI_finder:
 		background_mort = b3[2]
 		b3 = np.repeat([b3], niters, axis=0)
 
-		ff = FunctionFit()
+		ff = FunctionFit(**self.options)
 
 		switch = self.options["CURVE_TYPE"].lower()
 
@@ -263,12 +265,17 @@ class CI_finder:
 		cc = multiprocessing.cpu_count() 
 		#if user wants more cpus than exist, set to the number of actual cpus
 		cu = cc if self.options["NCPU"] > cc else self.options["NCPU"]
-		if cu <=0: cu += cc + 1#in case cpus is set to a negative number 
+		if cu <=0: cu += cc + 1 #in case cpus is set to a negative number 
 				
 
-		ff = FunctionFit()
-		use_array_method = True
+		ff = FunctionFit(**self.options)
+		ff.SS = self.options["LL_SIGMA"] * self.options["LL_SIGMA"]
+		ff.BP=np.array([self.options["LL_BETA1"],self.options["LL_BETA2"]])
+
+		use_array_method = True #mainly for debugging purposes
 		# if "ls" in self.options["CURVE_TYPE"].lower(): use_array_method = False
+
+		cu = 1
 
 		if (ff.use_C_lib and use_array_method):
 			#first make a list of arrays for parallel computing
@@ -283,7 +290,7 @@ class CI_finder:
 			beta_prob_list = []
 			for i in range(groups):
 				beta_prob_list.append(beta_probs[int(breaks[i]):int(breaks[i+1]),:])
-			dict_list = Parallel(n_jobs = 1)(delayed(self.array_curve)(beta_probs) \
+			dict_list = Parallel(n_jobs = cu)(delayed(self.array_curve)(beta_probs) \
 						for beta_probs in beta_prob_list)
 			#unpack the dictionary (list of list of answers to np.array of answers)
 			self.params =  np.array([item for answer in dict_list for item in answer])
@@ -292,7 +299,7 @@ class CI_finder:
 		else:
 			#possibility of having 2 or 3 parameters
 			self.params = np.zeros((self.options["BOOTSTRAP_ITERS"], 3))
-			dict_list = Parallel(n_jobs = 1)(delayed(
+			dict_list = Parallel(n_jobs = cu)(delayed(
 						self.fit_curve)(row) for row in beta_probs)
 			# dict_list = Parallel(n_jobs = 1)(delayed(
 			# 			self.fit_curve)(row) for row in beta_probs)

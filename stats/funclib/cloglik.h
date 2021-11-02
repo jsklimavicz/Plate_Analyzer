@@ -27,14 +27,16 @@ void ll3_min(double *b, //The val to be minimized.
 	int probs_size, 
 	double minimum, //The function value
 	double sigsquare, 
-	double *beta);
+	double *beta,
+	const int method);
 
 void ll2_min(double *b, //The val to be minimized.
 	double *probs, 
 	double *conc, 
 	int probs_size, 
 	double minimum, //The function value
-	double sigsquare);
+	double sigsquare,
+	const int method);
 
 void ll3_array_min(
 	int probs_size, 
@@ -44,7 +46,8 @@ void ll3_array_min(
 	double *conc, 
 	double *minimum, //The function values
 	double sigsquare, 
-	double *beta);
+	double *beta,
+	const int method);
 
 void ll2_array_min(
 	int probs_size, 
@@ -53,7 +56,8 @@ void ll2_array_min(
 	double probs[][probs_size], //Should be of size n_iters x probs_size
 	double *conc, 
 	double *minimum, //The function values
-	double sigsquare);
+	double sigsquare,
+	const int method);
 
 /*
 This function for for calculating both the ll2 curve and the ll3 curve, and
@@ -66,7 +70,8 @@ void ll2_ll3_AIC(double *b, // The vals to be minimized. Must have length 3.
 	int probs_size, 
 	double minimum, //The function value
 	double sigsquare,
-	double *beta);
+	double *beta,
+	const int method);
 
 void array_ll2_ll3_AIC(
 	int probs_size, 
@@ -76,7 +81,8 @@ void array_ll2_ll3_AIC(
 	double *conc, 
 	double *minimum, //The function value
 	double sigsquare, 
-	double *beta);
+	double *beta,
+	const int method);
 
 void ls_driver(
 	const int nparam, //number of parameters to use

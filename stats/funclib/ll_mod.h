@@ -25,16 +25,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * Also contains the error function for least squares fitting. 
  */
 
-
-
-struct ll2_param {
-  double *probs;
-  double *conc;
-  int probs_size;
-  double sigsquare;
-};
-
-struct ll3_param {
+struct ll_param {
   double *probs;
   double *conc;
   int probs_size;

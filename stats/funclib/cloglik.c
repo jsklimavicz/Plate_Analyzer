@@ -34,14 +34,15 @@ void ll3_min(double *b, //The minimal value that is found.
 	int probs_size, 
 	double minimum, //The function value
 	double sigsquare, 
-	double *beta)
+	double *beta, 
+	const int method)
 {
-	struct ll3_param fparam = { .probs = probs, 
+	struct ll_param fparam = { .probs = probs, 
 								.conc = conc, 
 								.sigsquare = sigsquare, 
 								.probs_size = probs_size, 
 								.beta = beta};
-  	struct multimin_params optim_par = {.1,1e-2,250,1e-3,1e-5,5,0};
+  	struct multimin_params optim_par = {.1,1e-2,250,1e-3,1e-5,method,0};
 
 	//                   b0	  b1  b2
 	double xmin[3]   =  {-10, -5,  0};
@@ -57,13 +58,14 @@ void ll2_min(double *b, //The minimal value that is found.
 	double *conc, 
 	int probs_size, 
 	double minimum, //The function value
-	double sigsquare)
+	double sigsquare,
+	const int method)
 {
-	struct ll2_param fparam = { .probs = probs, 
+	struct ll_param fparam = { .probs = probs, 
 								.conc = conc, 
 								.sigsquare = sigsquare, 
 								.probs_size = probs_size};
-  	struct multimin_params optim_par = {.1,1e-2,20,1e-3,1e-5,5,0};
+  	struct multimin_params optim_par = {.1,1e-2,20,1e-3,1e-5,method,0};
 	
 	//                   b0	  b1 
 	double xmin[2]   =  {-10, -5};
@@ -82,16 +84,17 @@ void ll3_array_min(
 	double *conc, 
 	double *minimum, //The function value
 	double sigsquare, 
-	double *beta)
+	double *beta,
+	const int method)
 {
 	// printf("%i\n", probs_size);
 	// printf("%i\n", n_iters);
-	struct ll3_param fparam = { .probs = probs[0], 
+	struct ll_param fparam = { .probs = probs[0], 
 								.conc = conc, 
 								.sigsquare = sigsquare, 
 								.probs_size = probs_size, 
 								.beta = beta};
-  	struct multimin_params optim_par = {.1,1e-2,250,1e-3,1e-5,5,0};
+  	struct multimin_params optim_par = {.1,1e-2,250,1e-3,1e-5,method,0};
 
 	//                   b0	  b1  b2
 	double xmin[3]   =  {-10, -5,  0};
@@ -117,13 +120,14 @@ void ll2_array_min(
 	double probs[][probs_size], //Should be of size n_iters x probs_size
 	double *conc, 
 	double *minimum, //The function value
-	double sigsquare)
+	double sigsquare,
+	const int method)
 {
-	struct ll2_param fparam = { .probs = probs[0], 
+	struct ll_param fparam = { .probs = probs[0], 
 								.conc = conc, 
 								.sigsquare = sigsquare, 
 								.probs_size = probs_size};
-  	struct multimin_params optim_par = {.1,1e-2,20,1e-3,1e-5,5,0};
+  	struct multimin_params optim_par = {.1,1e-2,20,1e-3,1e-5,method,0};
 
 	//                   b0	  b1 
 	double xmin[2]   =  {-10, -5};
@@ -144,14 +148,15 @@ void ll2_ll3_AIC(double *b, //The val to be minimized. Must have length 3.
 	int probs_size, 
 	double minimum, //The function value
 	double sigsquare,
-	double *beta)
+	double *beta,
+	const int method)
 {
-	struct ll3_param fparam3 = { .probs = probs, 
+	struct ll_param fparam = { .probs = probs, 
 								.conc = conc, 
 								.sigsquare = sigsquare, 
 								.probs_size = probs_size, 
 								.beta = beta};
-	struct multimin_params optim_par = {.1,1e-2,250,1e-3,1e-5,5,0};
+	struct multimin_params optim_par = {.1,1e-2,250,1e-3,1e-5,method,0};
 
 	//                   b0	  b1  b2
 	double xmin[3]   =  {-10, -5,  0};
@@ -159,19 +164,19 @@ void ll2_ll3_AIC(double *b, //The val to be minimized. Must have length 3.
 	unsigned type[3] =  {3,    3,  3};
 
 	multimin(2, b, &minimum, type, xmin, xmax, &ll2f, &ll2df, &ll2fdf, 
-			(void *) &fparam3, optim_par);
+			(void *) &fparam, optim_par);
 	
 	double min2;
 	double b2[3] = {b[0], b[1], 1.0};
 	//calculate a modified log-likelihood.
-	ll_all_AIC(b2, &fparam3, &min2);
+	ll_all_AIC(b2, &fparam, &min2);
 
 	multimin(3, b, &minimum, type, xmin, xmax, &ll3f, &ll3df, &ll3fdf, 
-			(void *) &fparam3, optim_par);
+			(void *) &fparam, optim_par);
 	//calculate a modified log-likelihood.
 	double min3; 
 	double b3[3] = {b[0], b[1], b[2]};
-	ll_all_AIC(b3, &fparam3, &min3);
+	ll_all_AIC(b3, &fparam, &min3);
 
 	double AIC2 = 4 - min2 * 2;
 	double AIC3 = 6 - min3 * 2;
@@ -197,14 +202,15 @@ void array_ll2_ll3_AIC(
 	double *conc, 
 	double *minimum, //The function value
 	double sigsquare, 
-	double *beta)
+	double *beta,
+	const int method)
 {
-	struct ll3_param fparam3 = { .probs = probs[0], 
+	struct ll_param fparam = { .probs = probs[0], 
 								.conc = conc, 
 								.sigsquare = sigsquare, 
 								.probs_size = probs_size, 
 								.beta = beta};
-	struct multimin_params optim_par = {.1,1e-2,250,1e-3,1e-5,5,0};
+	struct multimin_params optim_par = {.1,1e-2,250,1e-3,1e-5,method,0};
 
 	//                   b0	  b1  b2
 	double xmin[3]   =  {-10, -5,  0};
@@ -212,20 +218,20 @@ void array_ll2_ll3_AIC(
 	unsigned type[3] =  {3,    3,  3};
 
 	for (int i = 0; i<n_iters; i++){
-		fparam3.probs = probs[i];
+		fparam.probs = probs[i];
 		//ll2 curve fit
 		multimin(2, b[i], &minimum[i], type, xmin, xmax,&ll2f,&ll2df,&ll2fdf,
-					(void *) &fparam3, optim_par);
+					(void *) &fparam, optim_par);
 		double min2;
 		double b2[3] = {b[i][0], b[i][1], 1.0};
-		ll_all_AIC(b2, &fparam3, &min2);//calculate a modified log-likelihood.
+		ll_all_AIC(b2, &fparam, &min2);//calculate a modified log-likelihood.
 
 		//ll3 curve fit
 		multimin(3, b[i], &minimum[i], type, xmin, xmax, &ll3f,&ll3df,&ll3fdf,
-					(void *) &fparam3, optim_par);
+					(void *) &fparam, optim_par);
 		double min3; 
 		double b3[3] = {b[i][0], b[i][1], b[i][2]};
-		ll_all_AIC(b3, &fparam3, &min3);//calculate a modified log-likelihood.
+		ll_all_AIC(b3, &fparam, &min3);//calculate a modified log-likelihood.
 
 		//
 		double AIC2 = 4 - min2 * 2;
