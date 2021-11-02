@@ -70,6 +70,8 @@ class LatexWriter:
 		self.header.append("\\fancyfoot[C]{\\thepage}")
 		self.header.append("\\fancyhead[R]{Compiled on \\today\\ at \\currenttime}")
 		self.header.append("\\renewcommand{\\headrulewidth}{0pt}")
+		self.header.append("\\DeclareMathOperator*{\\argmin}{argmin}")
+		self.header.append("\\DeclareMathOperator*{\\argmax}{argmax}")
 		self.header.append("\n\n")
 		self.header.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 
@@ -267,7 +269,7 @@ class LatexWriter:
 			return meth_str
 
 		def func_str(b2_val):
-			return "$$\\frac{" + f"{b2_val}" + "}{\\left(1 + \\exp(b_0+b_1x) \\right)}$$"
+			return "$$\\theta_i = \\frac{" + f"{b2_val}" + "}{\\left(1 + \\exp(b_0+b_1x_i) \\right)}$$"
 
 		def beta_dist(beta_param):
 			if abs(beta_param)<1e-6:
@@ -278,6 +280,38 @@ class LatexWriter:
 				return "the Bayes-Laplace prior, the distribution $\\text{Beta}(1,1)$"
 			else: return "the distribution $\\text{Beta}"+f"({beta_param},{beta_param})$"
 
+		def get_optim_func(switch):
+			func = "\n\\begin{align*}\n"
+			supp = "\\intertext{where} \n "
+			if "ls" in switch:
+				if switch == "ls2":
+					func += "&\\argmin_{b_0, b_1} "
+					func += "\\sum^{n}_{i=1} \\left(p_i - \\frac{1}"+\
+							"{\\left(1 + \\xi_i \\right)}\\right)^2\\\\"
+				elif switch == "ls3":
+					func += "&\\argmin_{b_0, b_1, b_2} "
+					func += "\\sum^{n}_{i=1} \\left(p_i - \\frac{b_2}"+\
+							"{\\left(1 + \\xi_i \\right)}\\right)^2\\\\"
+			else:
+				if switch == "ll2":
+					func += "&\\argmax_{b_0, b_1} "
+					func += "\\frac{-\\left(b_0^2 + b_1^2\\right)}"+\
+							"{2\\sigma^2} + \\sum^{n}_{i=1} p_i \\xi_i"+\
+							" - \\sum^{n}_{i=1} \\ln(1 + \\xi_i)\\\\"
+				elif switch == "ll3":
+					func += "&\\argmax_{\\bm b = (b_0, b_1, b_2)} "
+					func += "\\left( f(\\bm b) + \\sum^{n}_{i=1} (1-\\theta_i) \\ln(1 + \\xi_i - b_2)"+\
+							" + \\sum^{n}_{i=1} \\theta_i\\ln b_2 - "+\
+							"\\sum^{n}_{i=1} \\ln (1 + \\xi_i)\\right)\\\\"
+					supp += "\\qquad \\qquad f(\\bm b) &= \\frac{-\\left(b_0^2 + b_1^2\\right)}"+\
+							"{2\\sigma^2} + (\\alpha - 1) \\ln b_2 + (\\beta"+\
+							" - 1)\\ln(1-b_2)\\\\" +\
+							"\\intertext{and} \n"
+			supp += "\\qquad \\qquad \\xi_i &= e^{b_0 + b_1 x_i}."
+			func += supp
+			func += "\\end{align*}\n"
+			return func
+
 
 		self.writeup = []
 		summ = "Data analysis was performed using the statistics module for" +\
@@ -286,14 +320,18 @@ class LatexWriter:
 
 		boot_summ = "Live/dead counts from the bioassay were used to generate"+\
 			" new survival probabilities using a Beta prior. The user-"+\
-			f"specified prior is {beta_dist(stat_lib['BETA_PRIOR']):s}, and " +\
-			f"{stat_lib['BOOTSTRAP_ITERS']} bootstrap iterations were used. "
-		boot_summ += "When either the live count or dead count was equal to 0,"+\
-			f"the prior {beta_dist(stat_lib['BETA_PRIOR_0']):s} was used to"+\
+			f"specified prior is {beta_dist(stat_lib['BETA_PRIOR']):s}," +\
+			" (set by \\texttt{BETA\\_PRIOR}) and " +\
+			f"{stat_lib['BOOTSTRAP_ITERS']} bootstrap iterations were used" +\
+			" (set by \\texttt{BOOTSTRAP\\_ITERS})."
+		boot_summ += "When either the live count or dead count was equal to 0, "+\
+			f"the prior {beta_dist(stat_lib['BETA_PRIOR_0']):s}" +\
+			" (set by \\texttt{BETA\\_PRIOR\\_0}) was used to"+\
 			" avoid the sunrise problem. "
 		boot_summ += "Correlation between wells in a replicate was modelled"+\
 			" by generating multivariate normal random variables with "+\
-			"correlation $\\rho = " + f"{stat_lib['RHO']}" + "$, which "+\
+			"correlation $\\rho = " + f"{stat_lib['RHO']}" +\
+			"$ (set by \\texttt{RHO}),  which "+\
 			"were then converted to quantiles, and then back-converted to "+\
 			"probabilities in the appropriate beta distribution. "
 		self.writeup.append(boot_summ)
@@ -317,7 +355,9 @@ class LatexWriter:
 			"in the \\texttt{analysis\\_config.txt}, respectively." 
 		if switch in ["2", "ll2", 2]:
 			curve_summ += f"the curve {func_str(1)}"+\
-			" by maximizing the log-likelihood function. A scale parameter may be" +\
+			" by maximizing the log-likelihood function. This is "+\
+			"equivalent to solving the problem \n"+\
+			get_optim_func('ll2') +"A scale parameter may be" +\
 			" included by setting \\texttt{CURVE_TYPE = ls3} in the \\texttt{analysis\\_config.txt} file. "
 			prior_summ += "Priors on parameters were $(b_0, b_1) \\sim "+\
 			"\\mathcal{N}(\\bm 0,\\sigma \\mc I_2)$," +\
@@ -325,7 +365,8 @@ class LatexWriter:
 			"by \\texttt{LL_SIGMA} in the \\texttt{analysis\\_config.txt} file." 
 		elif switch in ["3", "ll3", 3]:
 			curve_summ += f"the curve {func_str('b_2')}"+\
-			" by maximizing the log-likelihood function. "
+			" by maximizing the log-likelihood function, \\textit{i.e.}, solving "+\
+			get_optim_func('ll3')
 			prior_summ += "Priors on parameters were $(b_0, b_1) \\sim \\mathcal{N}(\\bm 0,\\sigma \\mc I_2)$" +\
 			"and $b_2 \\sim \\text{Beta}(\\alpha, \\beta)$, where "+\
 			"$\\sigma = " + f"{stat_lib['LL_SIGMA']}$, " +\
@@ -335,14 +376,18 @@ class LatexWriter:
 			"in the \\texttt{analysis\\_config.txt} file, respectively. " 
 		elif switch in ["ls3"]:
 			curve_summ += f"the curve {func_str('b_2')}"+\
-			" using the least squares approach. "
+			" using the least squares approach, \\textit{i.e.}, solving "+\
+			get_optim_func('ls3')
 		elif switch in ["ls2"]:
 			curve_summ += f"the curve {func_str(1)}"+\
-			" using the least squares approach. "
+			" using the least squares approach, \\textit{i.e.}, solving "+\
+			get_optim_func('ls2')
 		elif switch in ["best", "aic"]:
 			curve_summ += f"the curve {func_str('b_2')}"+\
 			" by maximizing the log-likelihood function, where $b_2$ was first fixed at 1.0 "+\
-			"(two free parameters) and then allowed to vary freely (three parameters)."+\
+			"(two free parameters) and then allowed to vary freely (three parameters);"+\
+			f"that is, first {get_optim_func('ll2')} was solved, and then "+\
+			get_optim_func('ll3') + "was solved. " +\
 			" The Akaike information criterion of the two fits were "+\
 			"compared, and the model with the lower AIC was chosen for the iteration. "
 
