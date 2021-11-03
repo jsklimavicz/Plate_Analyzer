@@ -32,6 +32,7 @@ import os
 
 from gui.tooltip import Tooltip #as Tooltip
 from stats.main import analyze_data
+from gui.statsframe.uidhandler import UIDHandler
 from gui.statsframe.datapreviewer import DataPreviewer
 
 class DataSelectionFrame(ttk.Frame):
@@ -48,7 +49,7 @@ class DataSelectionFrame(ttk.Frame):
 		self.font = ('Arial', 12*self.scale)
 		self.stats_obj = stats_obj
 
-		self.uid_list = self.stats_obj.get_uid_list()
+		self.uid_list = list(set(self.stats_obj.get_uid_list()))
 
 		self.make_var_lists()
 		# setup the grid layout manager
@@ -59,12 +60,19 @@ class DataSelectionFrame(ttk.Frame):
 		self.columnconfigure(4, weight=2)
 		self.columnconfigure(5, weight=2)
 
-		self.selection_options = ["Compound", 
-								"Reference ID", 
-								"Date", 
-								"Plate ID", 
-								"Row ID"]
-		self.forbidden_list = self.load_forbidden_list()
+		selection_dict = {	"Compound": self.by_name, 
+							"Reference ID":self.by_id,
+							"Date": self.by_date,
+							"Plate ID": self.by_plate,
+							"Row ID": self.by_row }
+
+		self.selection_options = list(selection_dict.keys())
+
+		self.UIDH = self.load_UIDH()
+		if self.UIDH is None: 
+			self.UIDH = UIDHandler(self.uid_list, selection_dict)
+		else:
+			self.UIDH = self.UIDH.update(self.uid_list, selection_dict)
 
 		self.__create_widgets()
 
@@ -94,6 +102,7 @@ class DataSelectionFrame(ttk.Frame):
 		|  |--self.cacheButton #to clear the cache
 
 		'''
+
 		s = ttk.Style()
 		s.configure("my.TButton", font = self.font)
 
@@ -217,29 +226,90 @@ class DataSelectionFrame(ttk.Frame):
 
 	def disallow(self): 
 		#Remove data from the allowed list.
+		remove_list = []
+		var = self.exclusiontype.get()
 		for i in self.allowed_list.curselection():
-			self.forbidden_list.append(self.allowed_ids[i])
+			remove_list.append(self.UIDH.allowed[var][i])
+		self.UIDH.disallow_if(var, remove_list)
 		self.__list_update()
 
 	def allow(self): 
 		#Move group from the disallowed list back to the allowed list.
+		add_list = []
+		var = self.exclusiontype.get()
 		for i in self.disallowed_list.curselection():
-			self.forbidden_list.remove(self.disallowed_ids[i])
+			add_list.append(self.UIDH.disallowed[var][i])
+		self.UIDH.allow_if(var, add_list)
 		self.__list_update()
+
+	def __list_update(self):
+		var = self.exclusiontype.get()
+
+		#remove all data
+		self.allowed_list.delete(0,END)
+		self.disallowed_list.delete(0,END)
+
+		#populate listBoxes
+		for ind, item in enumerate(self.UIDH.allowed[var]):
+			self.allowed_list.insert(ind, item)
+		for ind, item in enumerate(self.UIDH.disallowed[var]):
+			self.disallowed_list.insert(ind, item)
+
+	def make_var_lists(self):
+		UID_breakdown = [uid.split("_") for uid in self.uid_list]
+		self.by_name = sorted(list(set([a[0]for a in UID_breakdown])))
+		self.by_date = sorted(list(set([a[1]for a in UID_breakdown])))
+		self.by_id = sorted(list(set([a[4]for a in UID_breakdown])))
+		self.by_plate = sorted(list(set([f'{a[1]}_Plate_{a[2]}' for a in UID_breakdown])))
+		self.by_row = sorted(list(set([f'{a[1]}_Plate_{a[2]}_Row_{a[3]}' for a in UID_breakdown])))
+
+	def get_disallowed_uids(self):
+		disallowed = self.UIDH.get_disallowed_uids()
+		self.save_UIDH()
+		return [uid.uid for uid in disallowed]
+
+	def save_UIDH(self):
+		if not os.path.exists(self.cache_path): os.makedirs(self.cache_path)
+		pickle_data = pickle.dumps(self.UIDH)
+		digest =  hmac.new(self.sha_key, pickle_data, hashlib.sha1).hexdigest()
+		header = '%s' % (digest)
+		filepath = '.'
+		with open(os.path.join(self.cache_path, self.forb_hash), 'w') as file:
+			file.write(header)
+		with open(os.path.join(self.cache_path, self.forb_pick), 'wb') as file:
+			file.write(pickle_data)
+
+	def load_UIDH(self):
+		if os.path.exists(os.path.join(self.cache_path, self.forb_hash)):
+			with open(os.path.join(self.cache_path, self.forb_hash), 'r') as file:
+				pickle_hash = file.read().strip()
+			with open(os.path.join(self.cache_path, self.forb_pick), 'rb') as file:
+				pickled_data = file.read()
+			digest = hmac.new(self.sha_key, pickled_data, 
+						hashlib.sha1).hexdigest()
+			if pickle_hash == digest:
+				unpickled_UIDH = pickle.loads(pickled_data)
+				return unpickled_UIDH
+		else:
+			return None
 
 	def __clear_list(self): 
 		#Remove all groups from the forbidden list if confirmed.
 		msg = "Are you sure you want to clear all values from the excluded "+\
-				"list? Currently, this list contains " 
-		if len(self.forbidden_list) >= 2:
-			msg += ", ".join(self.forbidden_list[0:-1]) + \
-					f" and {self.forbidden_list[-1]}."
-		# elif len(self.forbidden_list) == 2:
-		# 	msg += f"{self.forbidden_list[0]} and {self.forbidden_list[1]}."
-		elif len(self.forbidden_list) == 1: 
-			msg += f"{self.forbidden_list[0]}."
-
+				"list? Currently, this list contains:\n"
+		for key, vals in self.UIDH.disallowed.items():
+			if len(vals) > 2:
+				msg+=f"{key}s {', '.join(vals[0:-1])}" + \
+					f", and {vals[-1]}"
+			if len(vals) == 2:
+				msg+=f" {key}s {vals[0]} and {vals[-1]} "
+			elif len(vals) == 1: 
+				msg += f" the {key} {vals[0]}"
+			if len(vals) >0:
+				msg += "\n"
+		
 		answer = askyesno(title = "Clear Excluded List?", message = msg)
+		
 		if answer: 
 			self.forbidden_list = []
 			self.__list_update()
@@ -295,78 +365,3 @@ class DataSelectionFrame(ttk.Frame):
 		for file in remove_files:
 			try: os.remove(file) 
 			except FileNotFoundError: pass
-
-	def __list_update(self):
-		var = self.exclusiontype.get()
-		if var == "Compound": self.var_list = self.by_name
-		elif var == "Reference ID": self.var_list = self.by_id
-		elif var == "Date": self.var_list = self.by_date
-		elif var == "Plate ID": self.var_list = self.by_plate
-		elif var == "Row ID": self.var_list = self.by_row
-
-		#remove all data
-		self.allowed_ids = []
-		self.allowed_list.delete(0,END)
-		self.disallowed_ids = [] 
-		self.disallowed_list.delete(0,END)
-
-		#make allowed/disallowed lists
-		for name in self.var_list:
-			if name in self.forbidden_list:
-				self.disallowed_ids.append(name)
-			else:
-				self.allowed_ids.append(name)
-		#populate listBoxes
-		for ind, item in enumerate(self.allowed_ids):
-			self.allowed_list.insert(ind, item)
-		for ind, item in enumerate(self.disallowed_ids):
-			self.disallowed_list.insert(ind, item)
-
-
-	def make_var_lists(self):
-		UID_breakdown = [uid.split("_") for uid in self.uid_list]
-		self.by_name = sorted(list(set([a[0]for a in UID_breakdown])))
-		self.by_date = sorted(list(set([a[1]for a in UID_breakdown])))
-		self.by_id = sorted(list(set([a[4]for a in UID_breakdown])))
-		self.by_plate = sorted(list(set([f'{a[1]}_Plate_{a[2]}' for a in UID_breakdown])))
-		self.by_row = sorted(list(set([f'{a[1]}_Plate_{a[2]}_Row_{a[3]}' for a in UID_breakdown])))
-
-	def get_disallowed_uids(self):
-		disallowed = []
-		for uid in self.uid_list:
-			for item in self.forbidden_list:
-				if "Row" in item:
-					item = item.split("_")
-					item = f"{item[0]}_{item[2]}_{item[4]}"
-				elif "Plate" in item:
-					item = item.split("_")
-					item = f"{item[0]}_{item[2]}"
-				if item in uid: disallowed.append(uid)
-		self.save_forbidden_list()
-		return disallowed
-
-	def save_forbidden_list(self):
-		if not os.path.exists(self.cache_path): os.makedirs(self.cache_path)
-		pickle_data = pickle.dumps(self.forbidden_list)
-		digest =  hmac.new(self.sha_key, pickle_data, hashlib.sha1).hexdigest()
-		header = '%s' % (digest)
-		filepath = '.'
-		with open(os.path.join(self.cache_path, self.forb_hash), 'w') as file:
-			file.write(header)
-		with open(os.path.join(self.cache_path, self.forb_pick), 'wb') as file:
-			file.write(pickle_data)
-
-	def load_forbidden_list(self):
-		if os.path.exists(os.path.join(self.cache_path, self.forb_hash)):
-			with open(os.path.join(self.cache_path, self.forb_hash), 'r') as file:
-				pickle_hash = file.read().strip()
-			with open(os.path.join(self.cache_path, self.forb_pick), 'rb') as file:
-				pickled_data = file.read()
-			digest =  hmac.new(self.sha_key, pickled_data, 
-						hashlib.sha1).hexdigest()
-
-			if pickle_hash == digest:
-				unpickled_data = pickle.loads(pickled_data)
-				return unpickled_data
-		else:
-			return []

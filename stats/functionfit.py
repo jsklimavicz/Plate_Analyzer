@@ -161,9 +161,9 @@ class FunctionFit():
 	def array_ll3(self, b_input, prob_array, conc_list, 
 							sigma_squared = None, beta_param=None,
 							optim_method = None):
-		if not sigma_squared: sigma_squared = self.SS
-		if not beta_param: beta_param = self.BP
-		if not optim_method: optim_method = self.OPTIM_METHOD
+		if sigma_squared is None: sigma_squared = self.SS
+		if beta_param is None: beta_param = self.BP
+		if optim_method is None: optim_method = self.OPTIM_METHOD
 
 		niters, prob_ct = prob_array.shape
 		if self.use_C_lib:
@@ -186,8 +186,8 @@ class FunctionFit():
 	def array_ll2(self, b_input, prob_array, conc_list, sigma_squared = None,
 							optim_method = None):
 
-		if not sigma_squared: sigma_squared = self.SS
-		if not optim_method: optim_method = self.OPTIM_METHOD
+		if sigma_squared is None: sigma_squared = self.SS
+		if optim_method is None: optim_method = self.OPTIM_METHOD
 
 		niters, prob_ct = prob_array.shape
 		if self.use_C_lib: 
@@ -210,9 +210,9 @@ class FunctionFit():
 	def array_ll23AIC(self, b_input, prob_array, conc_list, 
 							sigma_squared = None, beta_param=None,
 							optim_method = None):
-		if not sigma_squared: sigma_squared = self.SS
-		if not beta_param: beta_param = self.BP
-		if not optim_method: optim_method = self.OPTIM_METHOD
+		if sigma_squared is None: sigma_squared = self.SS
+		if beta_param is None: beta_param = self.BP
+		if optim_method is None: optim_method = self.OPTIM_METHOD
 		niters, prob_ct = prob_array.shape
 		if self.use_C_lib: 
 			funmin = np.zeros(niters)
@@ -232,7 +232,7 @@ class FunctionFit():
 		return b_input
 
 	def array_ls(self, nparam, b_input, prob_array, conc_list, ls_method = None):
-		if not ls_method: ls_method = self.LS_METHOD
+		if ls_method is None: ls_method = self.LS_METHOD
 		if self.use_C_lib:
 			niters, prob_ct = prob_array.shape
 			self.lsarray(nparam, 
@@ -248,7 +248,7 @@ class FunctionFit():
 		return b_input
 
 	def min_ls(self, b, nparam, probs, conc, ls_method = None):
-		if not ls_method: ls_method = self.LS_METHOD
+		if ls_method is None: ls_method = self.LS_METHOD
 		if self.use_C_lib:
 			nprob = len(probs)
 			self.lsfit(nparam, 
@@ -263,9 +263,9 @@ class FunctionFit():
 
 	def min_ll3(self, b, probs, conc, sigma_squared = None, beta_param=None,
 					optim_method = None):
-		if not sigma_squared: sigma_squared = self.SS
-		if not beta_param: beta_param = self.BP
-		if not optim_method: optim_method = self.OPTIM_METHOD
+		if sigma_squared is None: sigma_squared = self.SS
+		if beta_param is None: beta_param = self.BP
+		if optim_method is None: optim_method = self.OPTIM_METHOD
 		if self.use_C_lib:
 			funmin = 0
 			self.ll3c(b, 
@@ -285,9 +285,9 @@ class FunctionFit():
 
 	def min_llAIC(self, b, probs, conc, sigma_squared = None, beta_param=None,
 					optim_method = None):
-		if not sigma_squared: sigma_squared = self.SS
-		if not beta_param: beta_param = self.BP
-		if not optim_method: optim_method = self.OPTIM_METHOD
+		if sigma_squared is None: sigma_squared = self.SS
+		if beta_param is None: beta_param = self.BP
+		if optim_method is None: optim_method = self.OPTIM_METHOD
 		if self.use_C_lib:
 			funmin = 0
 			self.ll23cAIC(b, 
@@ -303,8 +303,8 @@ class FunctionFit():
 			return self.ll23AIC_min(b, probs, conc, sigma_squared, beta_param)
 
 	def min_ll2(self, b, probs, conc, sigma_squared = None, optim_method = None):
-		if not sigma_squared: sigma_squared = self.SS
-		if not optim_method: optim_method = self.OPTIM_METHOD
+		if sigma_squared is None: sigma_squared = self.SS
+		if optim_method is None: optim_method = self.OPTIM_METHOD
 
 		if self.use_C_lib:
 			funmin = 0
@@ -313,7 +313,8 @@ class FunctionFit():
 					conc, 
 					len(probs), 
 					funmin,
-					sigma_squared)
+					sigma_squared,
+					optim_method)
 			return b
 		else:
 			res = minimize(FunctionFit.ll2p, b, 
@@ -324,8 +325,12 @@ class FunctionFit():
 	@staticmethod
 	@utils.surpress_warnings
 	def ll_ls(b, nparam, probs, conc):
-		return least_squares(FunctionFit.least_squares_error,
-							b, args=(nparam, probs, conc)).x
+		if nparam == 2:
+			return least_squares(FunctionFit.least_squares_error,
+								b, args=(nparam, probs, conc)).x
+		else:
+			return least_squares(FunctionFit.least_squares_error,
+								b, args=(nparam, probs, conc)).x
 
 	@staticmethod
 	@utils.surpress_warnings
@@ -478,3 +483,165 @@ class FunctionFit():
 				return 1e10
 			else:
 				return np.array((1-b[2]/(1 + np.exp(b[0] + b[1]*conc)) - probs)**2)
+
+	@staticmethod
+	@utils.surpress_warnings
+	def loglogit2(b, conc): 
+		'''
+		Calculates the values of the two parameter dose-response curve 
+							    1
+					y = ------------------
+						1 + exp(b0 + b1*x)
+		given b = [b0, b1] and x.
+		'''
+		return 1./(1.+ np.exp(b[0] + conc * b[1]))
+
+	@staticmethod
+	@utils.surpress_warnings
+	def loglogit3(b, conc): 
+		'''
+		Calculates the values of the three parameter dose-response curve 
+							    b2
+					y = ------------------
+						1 + exp(b0 + b1*x)
+		given b = [b0, b1, b2] and x.
+		'''
+		return b[2]/(1.+ np.exp(b[0] + conc * b[1]))
+
+	@staticmethod
+	def estimate_initial_b(conc, probs, params = 3, rev = False):
+		'''
+		Produce an initial estimate of the starting vector for curve 
+		optimization. The slope defualts to 1, and the data is used to 
+		generate estimates of the baseline mortality and the LC50. 
+		'''
+		#no good way to estimate slope yet without a curve fit.
+		default_slope= -1
+		#estimate background mortality:
+		n_vals = round(0.2 * len(conc))
+		#sort the lists
+		zipped =  sorted(zip(conc, probs))
+		tuples = zip(*zipped)
+		conc, probs = [list(val) for val in  tuples]
+		conc = np.array(conc)
+		probs = np.array(probs)
+
+		#set the lc50 y-value with(out) background mortality in consideration.
+		med = 0.5
+		if params == 3:
+			background_mort = sum( probs[:n_vals])/n_vals #ave
+			if rev: background_mort = 1-background_mort
+			med = background_mort/2.
+
+		#estimate the b0 parameter
+		high_idx = np.where(probs > med)[0]
+
+		if len(high_idx) == 0: 
+			est_intercept = max(conc)
+		else:
+			est_pt = round(len(high_idx)*3/4)-1
+			est_intercept= - conc[high_idx[est_pt]]/default_slope
+
+		if params == 3:
+			return np.array([est_intercept, default_slope, background_mort])
+		else:
+			return np.array([est_intercept, default_slope])
+
+
+	def switch_fitter(self, switch, conc, probs, 
+				sigma_squared = None, beta_param = None,
+				rev = True):
+		'''
+		Drives the selection of the apprpriate function to fit based on the 
+		value specified in the switch. 
+		switch: selected from "auto", "ls2", "ls3", "ll2", "ll3", "AIC" in 
+			anlysis_config.txt
+		conc: The np.array of concentrations; shape = (nconc,)
+		props: The np.array of survival propbabilities. shape = (nconc,)
+		Returns: np.array of fitted parameters. shape = (3,)
+		'''
+		if sigma_squared is None: sigma_squared = self.SS
+		if beta_param is None: beta_param = self.BP
+		b2 = self.estimate_initial_b(conc, probs, params = 2, rev = rev)
+		b3 = self.estimate_initial_b(conc, probs, params = 3, rev = rev)
+
+		switch = switch.lower()
+
+		if switch == 'auto':
+			if b3[2] > 0.10: switch = "ll3"
+			else: switch = "ll2"
+
+		if switch in ["2", "ll2", 2]:
+			b = self.min_ll2(b2, probs, conc, 
+				sigma_squared = sigma_squared)
+		elif switch in ["3", "ll3", 3]:
+			b = self.min_ll3(b3, probs, conc,
+				sigma_squared = sigma_squared, beta_param = beta_param)
+		elif switch in ["ls3"]:
+			b = self.min_ls(b3, 3, 1.0-probs, conc)
+		elif switch in ["ls2"]:
+			b = self.min_ls(b2, 2, 1.0-probs, conc)
+		elif switch in ["best", "aic"]:
+			b = self.min_llAIC(b3, probs, conc,
+				sigma_squared = sigma_squared, beta_param = beta_param)
+		else: #set default behavior to LL3
+			b = self.min_ll3(b3, probs, conc,
+				sigma_squared = sigma_squared, beta_param = beta_param)
+
+		if len(b) == 2:
+			return np.array([b[0], b[1], 1.0])
+		else:
+			return b
+
+	def switch_array_fitter(self, switch, conc, prob_array, init_prob,
+				sigma_squared = None, beta_param = None):
+		'''
+		Drives the selection of the apprpriate function to fit based on the 
+		value specified in the switch. 
+		switch: selected from "auto", "ls2", "ls3", "ll2", "ll3", "AIC" in 
+			anlysis_config.txt
+		conc: The np.array of concentrations; shape=(nconc, )
+		prob_array: The np.array of survival propbabilities; shape=(n_iter,nconc)
+		init_prob: The np.array of true probs for estimating the initial value 
+			of b to start optimization; shape=(nconc,)
+		Returns: (n_iter,3) np.array of fitted parameters. 
+		'''
+		if sigma_squared is None: sigma_squared = self.SS
+		if beta_param is None: beta_param = self.BP
+
+		niters, nprobs = prob_array.shape
+		b2 = self.estimate_initial_b(conc, init_prob, params = 2, rev = True)
+		b2_array = np.repeat([b2], niters, axis=0)
+		b3 = self.estimate_initial_b(conc, init_prob, params = 3, rev = True)
+		background_mort = b3[2]
+		b3_array = np.repeat([b3], niters, axis=0)
+
+		switch = switch.lower()
+
+		if switch == 'auto':
+			if background_mort > 0.10: switch = "ll3"
+			else: switch = "ll2"
+
+		if switch in ["2", "ll2", 2]:
+			b_out = self.array_ll2(b2_array, prob_array, conc, 
+				sigma_squared = sigma_squared)
+		elif switch in ["3", "ll3", 3]:
+			b_out = self.array_ll3(b3_array, prob_array, conc,
+				sigma_squared = sigma_squared, beta_param = beta_param)
+		elif switch in ["ls3"]:
+			b_out = self.array_ls(3, b3_array, 1.0-prob_array, conc)
+		elif switch in ["ls2"]:
+			b_out = self.array_ls(2, b3_array, 1.0-prob_array, conc)
+		elif switch in ["best", "aic"]:
+			b_out = self.array_ll23AIC(b3_array, prob_array, conc,
+				sigma_squared = sigma_squared, beta_param = beta_param)
+		else:
+			b_out = self.array_ll3(b3_array, prob_array, conc,
+				sigma_squared = sigma_squared, beta_param = beta_param)
+
+		biter, blen = b_out.shape
+		#need to make an niters * 3 array
+		if blen == 2:
+			return np.c_[b_out,np.ones(biter)]
+		else:
+			return b_out

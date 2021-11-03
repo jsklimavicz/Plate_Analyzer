@@ -229,7 +229,6 @@ class MerlinAnalyzer:
 			for ind, uid in enumerate(key.data['unique_plate_ids']):
 				key.data['include_now'][ind] = False if uid in disallowed_uids else True
 
-
 	def get_uid_list(self):
 		uid_list = []
 		for k, v in self.cmpd_data.items(): 

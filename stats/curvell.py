@@ -104,30 +104,6 @@ class CI_finder:
 			func(*args, **kwargs)
 		return inner
 
-	@staticmethod
-	@utils.surpress_warnings
-	def loglogit2(b, conc): 
-		'''
-		Calculates the values of the two parameter dose-response curve 
-							    1
-					y = ------------------
-						1 + exp(b0 + b1*x)
-		given b = [b0, b1] and x.
-		'''
-		return 1./(1.+ np.exp(b[0] + conc * b[1]))
-
-	@staticmethod
-	@utils.surpress_warnings
-	def loglogit3(b, conc): 
-		'''
-		Calculates the values of the three parameter dose-response curve 
-							    b2
-					y = ------------------
-						1 + exp(b0 + b1*x)
-		given b = [b0, b1, b2] and x.
-		'''
-		return b[2]/(1.+ np.exp(b[0] + conc * b[1]))
-
 	def ll3_find_LC(self, quantiles):
 		'''
 		Given the list self.params of parameters from bootstrapping and the 
@@ -142,105 +118,26 @@ class CI_finder:
 							len(quantiles)))
 		return (np.log(1./quant2 - 1.)-params[:,0])/params[:,1]
 
-	@staticmethod
-	def estimate_initial_b(conc, probs, params = 3, rev = False):
-		'''
-		Produce an initial estimate of the starting vector for curve 
-		optimization. The slope defualts to 1, and the data is used to 
-		generate estimates of the baseline mortality and the LC50. 
-		'''
-		#no good way to estimate slope yet without a curve fit.
-		default_slope= 1
-		#estimate background mortality:
-		n_vals = round(0.2 * len(conc))
-		#sort the lists
-		zipped =  sorted(zip(conc, probs))
-		tuples = zip(*zipped)
-		conc, probs = [list(val) for val in  tuples]
-		conc = np.array(conc)
-		probs = np.array(probs)
-
-		#set the lc50 y-value with(out) background mortality in consideration.
-		med = 0.5
-		if params == 3:
-			background_mort = sum( probs[:n_vals])/n_vals #ave
-			if rev: background_mort = 1-background_mort
-			med = background_mort/2.
-
-		#estimate the b0 parameter
-		high_idx = np.where(probs > med)[0]
-
-		if len(high_idx) == 0: 
-			est_intercept = max(conc)
-		else:
-			est_intercept= -conc[high_idx[-1]]/default_slope
-
-		if params == 3:
-			return np.array([est_intercept, default_slope, background_mort])
-		else:
-			return np.array([est_intercept, default_slope])
-
 	def fit_curve(self, probs):
 		'''
 		Curve-fitting driver. 
 		'''
-		
 		ff = FunctionFit(**self.options)
-
-		b2 = self.estimate_initial_b(self.conc, probs, params = 2, rev = True)
-		b3 = self.estimate_initial_b(self.conc, probs, params = 3, rev = True)
-
 		switch = self.options["CURVE_TYPE"].lower()
+		return ff.switch_fitter(switch, self.conc, probs)
 
-		if switch == 'auto':
-			if b3[2] > 0.10: switch = "ll3"
-			else: switch = "ll2"
-
-		if switch in ["2", "ll2", 2]:
-			return ff.min_ll2(b2, probs, self.conc)
-		elif switch in ["3", "ll3", 3]:
-			return ff.min_ll3(b3, probs, self.conc)
-		elif switch in ["ls3"]:
-			return ff.min_ls(b3, 3, probs, self.conc)
-		elif switch in ["ls2"]:
-			return ff.min_ls(b2, 2, probs, self.conc)
-		elif switch in ["best", "aic"]:
-			return ff.min_llAIC(b3, probs, self.conc)
-
-
-	def array_curve(self, beta_probs, *args, **kwargs):
+	def array_curve(self, beta_probs):
 		'''
 		Curve-fitting by passing a full array of probs to a C library for speed and
 		to prevent using too many function references in Windows.
 		'''
-		niters, nprobs = beta_probs.shape
-		
-		probs = self.dead_count / (self.dead_count+self.live_count)
-		b2 = self.estimate_initial_b(self.conc, probs, params = 2, rev = True)
-		b2 = np.repeat([b2], niters, axis=0)
-		b3 = self.estimate_initial_b(self.conc, probs, params = 3, rev = True)
-		background_mort = b3[2]
-		b3 = np.repeat([b3], niters, axis=0)
+		# niters, nprobs = beta_probs.shape
 
 		ff = FunctionFit(**self.options)
+		init_prob = self.dead_count / (self.dead_count+self.live_count)
 
 		switch = self.options["CURVE_TYPE"].lower()
-
-		if switch == 'auto':
-			if background_mort > 0.10: switch = "ll3"
-			else: switch = "ll2"
-
-		if switch in ["2", "ll2", 2]:
-			return  ff.array_ll2(b2, beta_probs, self.conc)
-		elif switch in ["3", "ll3", 3]:
-			return ff.array_ll3(b3, beta_probs, self.conc)
-		elif switch in ["ls3"]:
-			return ff.array_ls(3, b3, 1.0-beta_probs, self.conc)
-		elif switch in ["ls2"]:
-			return ff.array_ls(2, b3, 1.0-beta_probs, self.conc)
-		elif switch in ["best", "aic"]:
-			return ff.array_ll23AIC(b3, beta_probs, self.conc)
-
+		return ff.switch_array_fitter(switch, self.conc, beta_probs, init_prob)
 
 	def bootstrap_CIs(self):
 		'''
@@ -274,8 +171,8 @@ class CI_finder:
 
 		use_array_method = True #mainly for debugging purposes
 		# if "ls" in self.options["CURVE_TYPE"].lower(): use_array_method = False
-		
-		if (ff.use_C_lib and use_array_method):
+
+		if use_array_method:
 			#first make a list of arrays for parallel computing
 			# make divisions based on number of cpus to use
 			groups = cu*2
@@ -288,7 +185,7 @@ class CI_finder:
 			beta_prob_list = []
 			for i in range(groups):
 				beta_prob_list.append(beta_probs[int(breaks[i]):int(breaks[i+1]),:])
-			dict_list = Parallel(n_jobs = cu)(delayed(self.array_curve)(beta_probs) \
+			dict_list = Parallel(n_jobs = 1)(delayed(self.array_curve)(beta_probs) \
 						for beta_probs in beta_prob_list)
 			#unpack the dictionary (list of list of answers to np.array of answers)
 			self.params =  np.array([item for answer in dict_list for item in answer])
@@ -338,7 +235,7 @@ class CI_finder:
 		self.x = np.linspace(lb-1, ub+1, self.options["N_POINTS"])
 		self.points = np.zeros((len(self.params), self.options["N_POINTS"]))
 		for iter_count, row in enumerate(self.params): 
-			self.points[iter_count] = self.loglogit3(row, self.x)
+			self.points[iter_count] = FunctionFit.loglogit3(row, self.x)
 		self.r2 = self.find_r2(fit_x = self.x, 
 			fit_y = np.median(self.points, axis = 0), 
 			conc = self.conc, 

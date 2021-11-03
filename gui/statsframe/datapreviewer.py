@@ -32,6 +32,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, 
 NavigationToolbar2Tk)
 
+from stats.functionfit import FunctionFit
 from stats.curvell import CI_finder
 from gui.tooltip import Tooltip
 from gui.utils import win_center
@@ -199,6 +200,7 @@ class DataPreviewer(tk.Frame):
 		#Get the allowed data list
 		self.include_now = self.stats_obj.cmpd_data[
 							self.current_cmpd].data['include_now']
+		print(self.include_now)
 		#Get list of permitted IDs 
 		self.uid_list = list(self.stats_obj.cmpd_data[
 							self.current_cmpd].data['unique_plate_ids']) 
@@ -293,7 +295,7 @@ class DataPreviewer(tk.Frame):
 	def make_curve(self):
 		'''
 		Generates the x and y values to produce a best-fit ll3 curve. The
-		curve is fit using the maximum likelihood function in CI_Finder.ll3.
+		curve is fit using the maximum likelihood function in FunctionFit.ll3.
 		The curve is then used to generate an approximate LC50 and an R2. 
 		'''
 		lb, ub = round(min(self.conc_orig)), round(max(self.conc_orig))
@@ -302,23 +304,19 @@ class DataPreviewer(tk.Frame):
 		
 		#Find the best fit based on the number of parameters and curve-fitting
 		#method specified in the options. 
-		curve_type = self.stats_obj.options["CURVE_TYPE"].lower()
-		params = 2 if "2" in curve_type else 3
-		if "ls" in curve_type:
-			meth = least_squares 
-			func = CI_finder.least_squares_fit
-		else:
-			meth = minimize
-			func = CI_finder.ll2 if params == 2 else CI_finder.ll3
+		ff = FunctionFit(**self.stats_obj.options)
+		switch = self.stats_obj.options["CURVE_TYPE"].lower()
+		b = ff.switch_fitter(switch, self.conc_orig, self.probs, rev = False)
+		self.y = 1 - ff.loglogit3(b = b, conc = self.x)
 
-		b = CI_finder.estimate_initial_b(self.conc_orig, self.probs, params=params)
-		res = meth(func, b, args=(1-self.probs, self.conc_orig))
-
-		fit = CI_finder.loglogit3 if len(res.x) == 3 else CI_finder.loglogit2
-		self.y = fit(b = res.x, conc = self.x)
 		self.plot_curve()
 		r2 = CI_finder.find_r2(self.x, self.y, self.conc_orig, self.probs)
-		lc50 = 2**(-res.x[0]/res.x[1])
+
+		if b[2] <= 1.0:
+			lc50 = 2**(-b[0]/b[1])
+		else:
+			lc50 = 2**((math.log(2*b[2] - 1) - b[0])/b[1])
+
 		max_allowed = 2**(ub+2)
 		min_allowed = 2**(lb-1)
 		

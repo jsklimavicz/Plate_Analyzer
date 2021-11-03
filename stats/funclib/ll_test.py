@@ -102,7 +102,7 @@ if __name__ == "__main__":
 	so_file = "./cloglik.so"
 	cloglik = CDLL(so_file)
 
-	conc = np.array([8, 4, 2, 1, 0.5, 0.25, 0.125, 0.0625, 0.03125, 0.015625, 16, 8, 4, 2, 1, 0.5, 0.25, 0.125, 0.0625, 0.03125]*4)
+	conc = np.log(np.array([8, 4, 2, 1, 0.5, 0.25, 0.125, 0.0625, 0.03125, 0.015625, 16, 8, 4, 2, 1, 0.5, 0.25, 0.125, 0.0625, 0.03125]*4))/math.log(2)
 	probs = np.array([0, 0, 0, .33, 0.6875, 0.846153846153846, 1, 0.857142857142857, 0.923076923076923, 0.914545454545455, 0, 0, 0, 0, 0, .2, .43, 0.583333333333333, 0.85, 0.916666666666667]*4)
 	probs2 = np.sqrt(probs)
 	probs3 = probs *0.8 + 0.01
@@ -165,101 +165,125 @@ if __name__ == "__main__":
 	# print(b)
 
 
-	ll2ca = cloglik.ll2_array_min
-	ll2ca.argtypes = (c_int, #number of probs/trial
-						c_int, #number of iters
-						np.ctypeslib.ndpointer(dtype=np.float64, #minima
-												ndim=2, flags='C_CONTIGUOUS'),
-						np.ctypeslib.ndpointer(dtype=np.float64, #prob array
-												ndim=2, flags='C_CONTIGUOUS'),
-						np.ctypeslib.ndpointer(dtype=np.float64, #conc
-												ndim=1, flags='C_CONTIGUOUS'),
-						np.ctypeslib.ndpointer(dtype=np.float64, #func vals
-												ndim=1, flags='C_CONTIGUOUS'),
-						c_double)
+	# ll2ca = cloglik.ll2_array_min
+	# ll2ca.argtypes = (c_int, #number of probs/trial
+	# 					c_int, #number of iters
+	# 					np.ctypeslib.ndpointer(dtype=np.float64, #minima
+	# 											ndim=2, flags='C_CONTIGUOUS'),
+	# 					np.ctypeslib.ndpointer(dtype=np.float64, #prob array
+	# 											ndim=2, flags='C_CONTIGUOUS'),
+	# 					np.ctypeslib.ndpointer(dtype=np.float64, #conc
+	# 											ndim=1, flags='C_CONTIGUOUS'),
+	# 					np.ctypeslib.ndpointer(dtype=np.float64, #func vals
+	# 											ndim=1, flags='C_CONTIGUOUS'),
+	# 					c_double)
 
 
-	niters, prob_ct = probs_full.shape
-	funmin = np.zeros(niters)
-	ll2ca(prob_ct,
-					niters,
-					b2_full, #must be size niters * 2
-					probs_full, #must be size niters * prob_ct
-					conc, #must be length prob_ct
-					funmin,
-					1e62)
-	print(funmin)
-	print(b2_full)
+	# niters, prob_ct = probs_full.shape
+	# funmin = np.zeros(niters)
+	# ll2ca(prob_ct,
+	# 				niters,
+	# 				b2_full, #must be size niters * 2
+	# 				probs_full, #must be size niters * prob_ct
+	# 				conc, #must be length prob_ct
+	# 				funmin,
+	# 				1e62)
+	# print(funmin)
+	# print(b2_full)
 
-	ll3ca = cloglik.ll3_array_min
-	ll3ca.argtypes = (c_int, #number of probs/trial
-						c_int, #number of iters
-						np.ctypeslib.ndpointer(dtype=np.float64, #minima
-												ndim=2, flags='C_CONTIGUOUS'),
-						np.ctypeslib.ndpointer(dtype=np.float64, #prob array
-												ndim=2, flags='C_CONTIGUOUS'),
-						np.ctypeslib.ndpointer(dtype=np.float64, #conc
+	# ll3ca = cloglik.ll3_array_min
+	# ll3ca.argtypes = (c_int, #number of probs/trial
+	# 					c_int, #number of iters
+	# 					np.ctypeslib.ndpointer(dtype=np.float64, #minima
+	# 											ndim=2, flags='C_CONTIGUOUS'),
+	# 					np.ctypeslib.ndpointer(dtype=np.float64, #prob array
+	# 											ndim=2, flags='C_CONTIGUOUS'),
+	# 					np.ctypeslib.ndpointer(dtype=np.float64, #conc
+	# 											ndim=1, flags='C_CONTIGUOUS'),
+	# 					np.ctypeslib.ndpointer(dtype=np.float64, #func vals
+	# 											ndim=1, flags='C_CONTIGUOUS'),
+	# 					c_double, #sigma**2
+	# 					np.ctypeslib.ndpointer(dtype=np.float64, #beta perams
+	# 											ndim=1, flags='C_CONTIGUOUS'))
+
+
+	# niters, prob_ct = probs_full.shape
+	# funmin = np.zeros(niters)
+	# ll3ca(prob_ct,
+	# 				niters,
+	# 				b3_full, #must be size niters * 3
+	# 				probs_full, #must be size niters * prob_ct
+	# 				conc, #must be length prob_ct
+	# 				funmin,
+	# 				1e6,
+	# 				np.array([1.5,1.01]))
+	# print(funmin)
+	# print(b3_full)
+
+	# # print(f"LL3 C: {(t1-t0)/n*1e6:.3f} us; Min: {[b_full[i] for i in range(len(b_full))]}; Val: {funmin}")
+
+
+
+	# ll23aAIC = cloglik.array_ll2_ll3_AIC
+	# ll23aAIC.argtypes = (c_int, #number of probs/trial
+	# 					c_int, #number of iters
+	# 					np.ctypeslib.ndpointer(dtype=np.float64, #minima
+	# 											ndim=2, flags='C_CONTIGUOUS'),
+	# 					np.ctypeslib.ndpointer(dtype=np.float64, #prob array
+	# 											ndim=2, flags='C_CONTIGUOUS'),
+	# 					np.ctypeslib.ndpointer(dtype=np.float64, #conc
+	# 											ndim=1, flags='C_CONTIGUOUS'),
+	# 					np.ctypeslib.ndpointer(dtype=np.float64, #func vals
+	# 											ndim=1, flags='C_CONTIGUOUS'),
+	# 					c_double, #sigma**2
+	# 					np.ctypeslib.ndpointer(dtype=np.float64, #beta perams
+	# 											ndim=1, flags='C_CONTIGUOUS'))
+
+
+	# niters, prob_ct = probs_full.shape
+	# funmin = np.zeros(niters)
+	# ll23aAIC(prob_ct,
+	# 				niters,
+	# 				b3_full, #must be size niters * 3
+	# 				probs_full, #must be size niters * prob_ct
+	# 				conc, #must be length prob_ct
+	# 				funmin,
+	# 				1e6,
+	# 				np.array([1.5,1.01]))
+
+	# print(funmin)
+	# print(b3_full)
+
+
+	lsfit = cloglik.ls_driver_timer
+	lsfit.argtypes = (c_int, #number of parameters (2 or 3)
+					c_int, # number of data points
+					np.ctypeslib.ndpointer(dtype=np.float64, #input b
 												ndim=1, flags='C_CONTIGUOUS'),
-						np.ctypeslib.ndpointer(dtype=np.float64, #func vals
+					np.ctypeslib.ndpointer(dtype=np.float64, #conc values
 												ndim=1, flags='C_CONTIGUOUS'),
-						c_double, #sigma**2
-						np.ctypeslib.ndpointer(dtype=np.float64, #beta perams
+					np.ctypeslib.ndpointer(dtype=np.float64, #prob values
 												ndim=1, flags='C_CONTIGUOUS'))
 
-
 	niters, prob_ct = probs_full.shape
-	funmin = np.zeros(niters)
-	ll3ca(prob_ct,
-					niters,
-					b3_full, #must be size niters * 3
-					probs_full, #must be size niters * prob_ct
-					conc, #must be length prob_ct
-					funmin,
-					1e6,
-					np.array([1.5,1.01]))
-	print(funmin)
-	print(b3_full)
+	
+	b = np.array(b3)+1
+	lsfit(3, 
+			prob_ct, 
+			b, #must be size niters * 3
+			conc,
+			1-probs_full[0])
 
-	# print(f"LL3 C: {(t1-t0)/n*1e6:.3f} us; Min: {[b_full[i] for i in range(len(b_full))]}; Val: {funmin}")
-
-
-
-	ll23aAIC = cloglik.array_ll2_ll3_AIC
-	ll23aAIC.argtypes = (c_int, #number of probs/trial
-						c_int, #number of iters
-						np.ctypeslib.ndpointer(dtype=np.float64, #minima
-												ndim=2, flags='C_CONTIGUOUS'),
-						np.ctypeslib.ndpointer(dtype=np.float64, #prob array
-												ndim=2, flags='C_CONTIGUOUS'),
-						np.ctypeslib.ndpointer(dtype=np.float64, #conc
-												ndim=1, flags='C_CONTIGUOUS'),
-						np.ctypeslib.ndpointer(dtype=np.float64, #func vals
-												ndim=1, flags='C_CONTIGUOUS'),
-						c_double, #sigma**2
-						np.ctypeslib.ndpointer(dtype=np.float64, #beta perams
-												ndim=1, flags='C_CONTIGUOUS'))
-
-
-	niters, prob_ct = probs_full.shape
-	funmin = np.zeros(niters)
-	ll23aAIC(prob_ct,
-					niters,
-					b3_full, #must be size niters * 3
-					probs_full, #must be size niters * prob_ct
-					conc, #must be length prob_ct
-					funmin,
-					1e6,
-					np.array([1.5,1.01]))
-
-	print(funmin)
-	print(b3_full)
-
-
-
-
-
-
-
+	# lsarray = cloglik.ls_array_min
+	# lsarray.argtypes = (c_int, #number of parameters (2 or 3)
+	# 				c_int, # number of data points
+	# 				c_int, # n_iters
+	# 				np.ctypeslib.ndpointer(dtype=np.float64, #input b
+	# 											ndim=2, flags='C_CONTIGUOUS'),
+	# 				np.ctypeslib.ndpointer(dtype=np.float64, #conc values
+	# 											ndim=1, flags='C_CONTIGUOUS'),
+	# 				np.ctypeslib.ndpointer(dtype=np.float64, #prob values
+	# 											ndim=2, flags='C_CONTIGUOUS'))
 
 
 
