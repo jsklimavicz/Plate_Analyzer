@@ -66,6 +66,11 @@ class UIDHandler:
 				uid.allow_if(var, val)
 		self.update_lists()
 
+	def allow_all(self):
+		for uid in self.UIDs: uid.allow()
+		self.reset_DA_lists()
+		self.allowed = self.all_groups.copy()
+
 	def update_lists(self):
 		self.reset_DA_lists()
 		for group, name_list in self.all_groups.items():

@@ -45,7 +45,7 @@ class DataPreviewer(tk.Frame):
 	def __init__(self, parent, merlin_stats_obj, uid_handler, scale = 1):
 		super(DataPreviewer, self).__init__() #initialize root
 		self.scale = scale
-		w = 1000
+		w = 1200
 		h = 1000
 		self.top = Toplevel(parent)
 		self.top.wm_title("Data Previewer")
@@ -59,6 +59,16 @@ class DataPreviewer(tk.Frame):
 		self.columnconfigure(1, weight=2)
 		self.columnconfigure(2, weight=2)
 		self.__create_widgets()
+
+	def wait(self, parent):
+		'''
+		Necessary function to ensure that the data selection window that 
+		spawned this previewer waits until this window is closed, and then
+		updates allowed/disallowed lists based on any changes to the UID
+		handler. 
+		'''
+		parent.wait_window(self.top)
+		return
 
 	def __create_widgets(self, scale = 1):
 		'''
@@ -235,27 +245,56 @@ class DataPreviewer(tk.Frame):
 		#initialize a plot with the first compound. 
 		self.plotselect()
 
+	def select_first(self, list_type = "allowed"):
+		'''
+		Resets the selection to the first apprpriate ID after moving allowed
+		or disallowed UIDs between the lists. 
+		'''
+		self.plotselect()
 
+		if list_type == "allowed":
+			curr_list = self.allowed_listbox
+			uid_list = self.included_uid
+		else:
+			curr_list = self.disallowed_listbox
+			uid_list = self.excluded_uid
+
+		curr_list.selection_clear(0, "end")
+		current_uid = uid_list[0]
+		self.update_plot(current_uid)
+		curr_list.selection_set(0)
 
 	def allow(self):
 		'''
 		Moves the UID from the disallowed list to the allowed list, and updates the 
 		UID handler and the actual data. 
 		'''
-		uid = self.excluded_uid[int(self.disallowed_listbox.curselection()[0])].uid
-		self.UIDH.allow_if('uid', [uid])
-		self.update_disallowed()
-		self.plotselect()
+		try:
+			uid = self.excluded_uid[int(self.disallowed_listbox.curselection()[0])].uid
+			self.UIDH.allow_if('uid', [uid])
+			self.update_disallowed()
+			try:
+				self.select_first(list_type = "disallowed")
+			except IndexError:
+				self.select_first(list_type = "allowed")
+		except IndexError:
+			pass
 
 	def disallow(self):
 		'''
 		Moves the UID from the allowed list to the disallowed list, and updates the 
 		UID handler and the actual data. 
 		'''
-		uid = self.included_uid[int(self.allowed_listbox.curselection()[0])].uid
-		self.UIDH.disallow_if('uid', [uid])
-		self.update_disallowed()
-		self.plotselect()
+		try:
+			uid = self.included_uid[int(self.allowed_listbox.curselection()[0])].uid
+			self.UIDH.disallow_if('uid', [uid])
+			self.update_disallowed()
+			try:
+				self.select_first(list_type = "allowed")
+			except IndexError:
+				self.select_first(list_type = "disallowed")
+		except IndexError:
+			pass
 
 	def box_scroll(self, event, func):
 		'''
@@ -276,21 +315,23 @@ class DataPreviewer(tk.Frame):
 		Adapted from https://stackoverflow.com/a/12936031/8075803
 		'''
 		if event is not None:
-			w = event.widget
-			self.current_cmpd = self.cmpd_list[int(w.curselection()[0])]
+			ind = int(event.widget.curselection()[0])
 		else:
 			try:
-				self.current_cmpd = self.cmpd_list[int(self.cmpd_listbox.curselection()[0])]
+				ind = int(self.cmpd_listbox.curselection()[0])
 			except IndexError:
-				self.current_cmpd = self.cmpd_list[0]
+				ind = 0
+		self.current_cmpd = self.cmpd_list[ind]
 		#Get the allowed data list
 
 		self.included_uid = self.UIDH.get_allowed_uids()
 		self.included_uid = [uid for uid in self.included_uid if \
 							uid.dict["Compound"]==self.current_cmpd]
+		self.included_uid.sort(key=lambda x: str(x))
 		self.excluded_uid = self.UIDH.get_disallowed_uids()
 		self.excluded_uid = [uid for uid in self.excluded_uid if \
 							uid.dict["Compound"]==self.current_cmpd]
+		self.excluded_uid.sort(key=lambda x: str(x))
 		#clear previous list
 		self.allowed_listbox.delete(0,END)
 		for ind, uid in enumerate(self.included_uid):
@@ -311,23 +352,35 @@ class DataPreviewer(tk.Frame):
 		disallowed = [uid.uid for uid in self.UIDH.get_disallowed_uids()]
 		self.stats_obj.set_diallowed(disallowed)
 
+	def change_select(self, event, listbox, uid_list):
+		'''
+		Highlights a UID in the desired listbox and removes any selection
+		from the other listbox.
+		'''
+		listbox.selection_clear(0, 'end')
+		try:
+			if event is not None:
+				w = event.widget
+				current_uid = uid_list[int(w.curselection()[0])]
+			else:
+				current_uid = uid_list[0]
+			self.update_plot(current_uid)
+		except IndexError:
+			pass
+
 	def allow_select(self, event = None):
 		'''
-		Highlights the data in the from the currently-selected data in the 
-		allow list in the plot, and removes any highlight from the disallow box
+		Highlights the data from the currently-selected data in the allow list
+		in the plot, and removes any highlight from the disallow box
 		'''
-		self.disallowed_listbox.selection_clear(0, 'end')
-		current_uid = self.included_uid[int(event.widget.curselection()[0])]
-		self.update_plot(current_uid)
+		self.change_select(event, self.disallowed_listbox, self.included_uid)
 
 	def disallow_select(self, event = None):
 		'''
-		Highlights the data in the from the currently-selected data in the 
-		disallow list in the plot, and removes any highlight from the allow box
+		Highlights the data from the currently-selected data in the disallow
+		list in the plot, and removes any highlight from the allow box
 		'''
-		self.allowed_listbox.selection_clear(0, 'end')
-		current_uid = self.excluded_uid[int(event.widget.curselection()[0])]
-		self.update_plot(current_uid)
+		self.change_select(event, self.allowed_listbox, self.excluded_uid)
 
 	def update_plot(self, current_uid = None):
 		'''
@@ -340,7 +393,8 @@ class DataPreviewer(tk.Frame):
 
 		#plot active and inactive
 		self.plot_data(self.conc_active, self.probs_active, style = "active")
-		self.plot_data(self.conc_inactive, self.probs_inactive, style = "inactive")
+		self.plot_data(self.conc_inactive, self.probs_inactive, 
+														style = "inactive")
 
 		if current_uid is not None:
 			uid_conc = []
@@ -355,7 +409,10 @@ class DataPreviewer(tk.Frame):
 
 
 		self.set_labels() #update axes, etc.
-		self.plot_curve()
+		if len(self.conc_active) > 2: 
+			self.plot_curve()
+		else:
+			self.null_curve()
 		self.canvas.draw() #draw the plot
 
 	def plot(self):
@@ -382,21 +439,36 @@ class DataPreviewer(tk.Frame):
 		self.calc_conc = np.array(list(compress(self.conc_orig, include_now)))
 		self.conc_active = list(compress(self.conc, include_now))
 		self.probs_active = np.array(list(compress(self.probs, include_now)))
-		self.conc_inactive = list(compress(self.conc, [not elem for elem in include_now]))
-		self.probs_inactive = list(compress(self.probs, [not elem for elem in include_now]))
+		self.conc_inactive = list(compress(self.conc, 
+								[not elem for elem in include_now]))
+		self.probs_inactive = list(compress(self.probs, 
+								[not elem for elem in include_now]))
 		
 		self.plot_data(self.conc_active, self.probs_active, style = "active")
-		self.plot_data(self.conc_inactive, self.probs_inactive, style = "inactive")
+		self.plot_data(self.conc_inactive, self.probs_inactive, 
+														style = "inactive")
 
 		self.set_labels()
-		self.make_curve()
+		if len(self.conc_active) > 2:
+			self.make_curve()
+		else:
+			self.null_curve()
+		# else:
+
 		self.canvas.draw()
 		
+	def null_curve(self):
+		'''
+		Provide a suitable comment for when no data is selected for plotting.
+		'''
+		self.curve_data_label.config(
+					text="Insufficent data selected to fit a curve.\n"+\
+					"Compound will not show up in data analysis.")
 
 	def make_curve(self):
 		'''
-		Generates the x and y values to produce a best fit curve. The fit curve
-		is equivalent to the kind specified in the analysis_config.txt
+		Generates the x and y values to produce a best fit curve. The fit 
+		curve is equivalent to the kind specified in the analysis_config.txt
 		The curve is then used to generate an approximate LC50 and an R2. 
 		'''
 		lb, ub = round(min(self.conc_orig)), round(max(self.conc_orig))
@@ -407,11 +479,13 @@ class DataPreviewer(tk.Frame):
 		#method specified in the options. 
 		ff = FunctionFit(**self.stats_obj.options)
 		switch = self.stats_obj.options["CURVE_TYPE"].lower()
-		b = ff.switch_fitter(switch, self.calc_conc, self.probs_active, rev = False)
+		b = ff.switch_fitter(switch, self.calc_conc, 
+							self.probs_active, rev = False)
 		self.y = 1 - ff.loglogit3(b = b, conc = self.x)
 
 		self.plot_curve()
-		r2 = CI_finder.find_r2(self.x, self.y, self.calc_conc, self.probs_active)
+		r2 = CI_finder.find_r2(self.x, self.y, 
+							self.calc_conc, self.probs_active)
 
 		if b[2] <= 1.0:
 			lc50 = 2**(-b[0]/b[1])

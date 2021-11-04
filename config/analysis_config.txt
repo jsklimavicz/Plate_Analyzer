@@ -34,156 +34,173 @@ SAVE_PATH = ./examples/stats/output
 ###################################################
 
 ################### CENTER LINE ###################
-#Plot the center line?
+# Plot the center line?
 PLOT_LINE = True
 
-#Select from matmolplot's named colors:
-#https://matplotlib.org/stable/gallery/color/named_colors.html
+# Select from matmolplot's named colors:
+# https://matplotlib.org/stable/gallery/color/named_colors.html
 LINE_COLOR = black
 
-#Select from matmolplot's linestyles:
-#https://matplotlib.org/stable/gallery/lines_bars_and_markers/linestyles.html
+# Select from matmolplot's linestyles:
+# https://matplotlib.org/stable/gallery/lines_bars_and_markers/linestyles.html
 LINE_STYLE = solid
 
-#number of x points for the plots. Higher numbers will give smoother curves, 
-#but makes the data larger to store. 
+# number of x points for the plots. Higher numbers will give smoother curves, 
+# but makes the data larger to store. 
 N_POINTS=151
 
 ################### DATA POINTS ###################
-#Plot individual data points?
+# Plot individual data points?
 PLOT_DATA_POINTS = True
 
-#Select from matmolplot's named colors. 
-#https://matplotlib.org/stable/gallery/color/named_colors.html
+# Select from matmolplot's named colors. 
+# https://matplotlib.org/stable/gallery/color/named_colors.html
 POINT_COLOR = black
 
-#Select from 
-#https://matplotlib.org/stable/api/markers_api.html#module-matplotlib.markers
+# Select from 
+# https://matplotlib.org/stable/api/markers_api.html#module-matplotlib.markers
 MARKER_STYLE = .
 
-#Should error bars be plotted for each point?
+# Should error bars be plotted for each point?
 PLOT_ERROR_BARS=True
 
-#Credible interval size represented by each point's CI. ERROR_BAR_CI = 80 means
-#that the error bars represents the 80% credible interval. 
+# Credible interval size represented by each point's CI. ERROR_BAR_CI = 80 
+# means that the error bars represents the 80% credible interval. 
 ERROR_BAR_CI = 80
 
-#Number of trials for a compound after which error bars are not included in the
-#graph even if ERROR_BARS=True. Intended to prevent graphs from getting too 
-#crowded with lots of data. 
+# Number of trials for a compound after which error bars are not included in 
+# the graph even if ERROR_BARS=True. Intended to prevent graphs from getting 
+# too crowded with lots of data. 
 ERROR_BAR_CUTOFF = 10
 
-#If jitter is true, then data points are randomly shifted by up to jitter 
-#factor to prvent data overlap.
+# If jitter is true, then data points are randomly shifted by up to jitter 
+# factor to prvent data overlap.
 JITTER=True
 
-#JITTER_FACTOR should be a float in the range [0, 0.5].
+# JITTER_FACTOR should be a float in the range [0, 0.5].
 JITTER_FACTOR=0.225
 
 ################### CURVE ERROR ###################
-#Plot the error region?
+# Plot the error region?
 PLOT_CURVE_ERROR = True
 
-#Alpha-value of the curve error region (1=fully opaque; 0=fully transparent)
+# Alpha-value of the curve error region (1=fully opaque; 0=fully transparent)
 ALPHA = 0.5
 
-#Select from matmolplot's named colors:
-#https://matplotlib.org/stable/gallery/color/named_colors.html
+# Select from matmolplot's named colors:
+# https://matplotlib.org/stable/gallery/color/named_colors.html
 CURVE_CI_COLOR = lightgrey
 
-#Width of bootstrapped confidence interval for the curve. 
+# Width of bootstrapped confidence interval for the curve. 
 CURVE_CI = 95
 
 ###################################################
 #              Data-Fitting Options               #
 ###################################################
-#Number of cpu processes to use. Default is -1, which uses all available CPUs 
-#for computation (most parallel). Setting this valueto one makes the 
-#computation single-threaded. Internal check is performed to make sure this 
-#number is not set higher than the number of CPUs available. 
+# Number of cpu processes to use. Default is -1, which uses all available CPUs 
+# for computation (most parallel). Setting this valueto one makes the 
+# computation single-threaded. Internal check is performed to make sure this 
+# number is not set higher than the number of CPUs available. 
 NCPU = -1
 
-#BOOTSTRAP_ITERS is the number of bootstraping iterations for data generation. 
-#Higher numbers provide better estimates of bootstrapped confidence intervals, 
-#but takes longer to run. Suggested values are 500 to 10 000.
+# BOOTSTRAP_ITERS is the number of bootstraping iterations for data generation. 
+# Higher numbers provide better estimates of bootstrapped confidence intervals, 
+# but takes longer to run. Suggested values are 500 to 10 000.
 BOOTSTRAP_ITERS = 1000
 
-#RHO is an approximate factor to provide correlation in bootstrapped random 
-#beta variables. RHO should be in the interval (-0.25, 0.5). Higher values are 
-#associated with greater positive correlation between wells, while negative 
-#values give negative correlation between wells. Note that correlation falls 
-#off with distance between wells. See documentation f0r details. 
+# RHO is an approximate factor to provide correlation in bootstrapped random 
+# beta variables. RHO should be in the interval (-0.25, 0.5). Higher values are 
+# associated with greater positive correlation between wells, while negative 
+# values give negative correlation between wells. Note that correlation falls 
+# off with distance between wells. See documentation f0r details. 
 RHO = 0.10
 
-#BETA_PRIOR is a factor that allows for control of the beta distribution for 
-#generation of random variables from the prior for bayesian curve fitting. Note
-#that when BETA_PRIOR = 0.5, this is equivalent to using Jeffreys' prior. When 
-#BETA_PRIOR = 0, this is using and approximation of Heldane's prior (scale is 
-#set to sqrt(machine epsilon) to prevent division by 0). BETA_PRIOR_0 allows
-#for differential behavior when the live count or the dead count is equal to 0.
+# BETA_PRIOR is a factor that allows for control of the beta distribution for 
+# generation of random variables from the prior for bayesian curve fitting. Note
+# that when BETA_PRIOR = 0.5, this is equivalent to using Jeffreys' prior. When 
+# BETA_PRIOR = 0, this is using and approximation of Heldane's prior (scale is 
+# set to sqrt(machine epsilon) to prevent division by 0). BETA_PRIOR_0 allows
+# for differential behavior when the live count or the dead count is equal to 0.
 BETA_PRIOR = 0.0
 BETA_PRIOR_0 = 0.25
 
-#Method for calculating credible intervals. Implemented methods are 
-#"even-tailed" or "HPDI" (default) (highest density probability region). For
-#symmetrical, unimodal distributions, these credible intervals are 
-#equivalent. For asymmetrical distribution, HDPI will give narrower intervals.
+# Method for calculating credible intervals. Implemented methods are
+# "even-tailed" or "HPDI" (default) (highest density probability region). For
+# symmetrical, unimodal distributions, these credible intervals are 
+# equivalent. For asymmetrical distribution, HDPI will give narrower intervals.
 CI_METHOD = HPDI
 
-#Specifies the type of curve to fit. Options are 'll2' for a two-parameter log-
-#logistic curve; 'll3' for a three-parameter log-logisitic curve, 'auto' for 
-#producing ll3 or ll2 depending on what the limiting behavior at low 
-#concentrations is, 'best' to use the AIC of the ll3 and ll2 curves to pick
-#the better-fitting curve, "ls2" to use least-squares fitting of a two-
-#parameter curve, or "ls3" to fit a three-parameter least-squares curve.
+# Specifies the type and method of curve-fitting. Options are: 
+#    'll2': log-likelihood fitting of two-parameter log-logistic curve
+#    'll3': log-likelihood fitting of three-parameter log-logistic curve 
+#    'auto': for producing ll3 or ll2 depending on what the limiting behavior
+#        at low concentrations is, 
+#    'best': to use the AIC of the ll3 and ll2 curves to pick the 
+#        better-fitting curve, 
+#    'aic': identical to 'best'
+#    'ls2': use least-squares fitting of a two-parameter curve
+#    'ls3': use least-squares fitting of a three-parameter curve
 CURVE_TYPE = ll3
 
-#Optimization method for least-squares fitting. 0: Levenberg-Marquardt;
-#1: Levenberg-Marquardt with geodesic acceleration; 2: Dogleg; 3: Double 
-#dogleg; 4: 2D subspace; default: 2D subspace
-LS_METHOD = 4
+# Optimization method for least-squares fitting. 
+#    0: Levenberg-Marquardt
+#    1: Levenberg-Marquardt with geodesic acceleration
+#    2: Dogleg
+#    3: Double dogleg
+#    4: 2D subspace
+#    default: 2D subspace (this should be changed when using ls3 as the
+#        curve type for numerical stability; recommended #1)
+LS_METHOD = 1
 
-#Optimization method for log-likelhood fitting. 0: Fletcher-Reeves CG; 
-#1: Polak-Ribiere CG; 2: Vector BFGS method; 3: Steepest descent; 4: Nelder-
-#Mead simplex; 5: Vector BFGS method ver. 2; 6: Nelder-Mead simplex ver. 2;
-#7: Nelder-Mead simplex with random initialization
+# Optimization method for log-likelhood fitting. 
+#    0: Fletcher-Reeves CG
+#    1: Polak-Ribiere CG
+#    2: Vector BFGS method
+#    3: Steepest descent
+#    4: Nelder-Mead simplex
+#    5: Vector BFGS method ver. 2
+#    6: Nelder-Mead simplex ver. 2
+#    7: Nelder-Mead simplex with random initialization
 OPTIM_METHOD = 5
 
-#Log-likelihood prior parameters for the 2- and 3-parameter log-logistic 
-#curves y = b2 / (1 + exp(b0 + b1 * x)); b2 = 1.0 for 2-param. LL_SIGMA is for
-#the MVN prior for b0 and b1 (mean centered on 0.0, LL_SIGMA for diffuse prior)
-#LL_BETA1 and LL_BETA2 are for the Beta prior for b2 in the 3-param curve. 
-#These values do nothing if the CURVE_TYPE param does not require them.
+# Log-likelihood prior parameters for the 2- and 3-parameter log-logistic 
+# curves y = b2 / (1 + exp(b0 + b1 * x)); b2 = 1.0 for 2-param. LL_SIGMA is for
+# the MVN prior for b0 and b1 (mean centered on 0.0, LL_SIGMA for diffuse prior)
+# LL_BETA1 and LL_BETA2 are for the Beta prior for b2 in the 3-param curve. 
+# These values do nothing if the CURVE_TYPE param does not require them.
 LL_SIGMA = 1000
 LL_BETA1 = 1.5
 LL_BETA2 = 1.001
 
-#Set USE_CLIB to False if C library for function fitting should not be used.
+# Set USE_CLIB to False if C library for function fitting should not be used.
+# The C library requires a compiled shared libray object (.so, Unix systems)
+# or a dynamic linked library (.dll, Windows) of the appropriate C files found
+# n ./stat/funclib. See README for details. 
 USE_CLIB = True
 
 ###################################################
 #                 Analysis Options                #
 ###################################################
-#LC_VALUES should be a comma-separated list of the LC values desired. For 
-#example, "50, 90" would provide LC50 and LC90 values in the output. 
+# LC_VALUES should be a comma-separated list of the LC values desired. For 
+# example, "50, 90" would provide LC50 and LC90 values in the output. 
 LC_VALUES = 50, 90
 
-#Credible interval percent for LC values(e.g. 95 would provide a 95% credible
-#interval.)
+# Credible interval percent for LC values(e.g. 95 would provide a 95% credible
+# interval.)
 LC_CI = 95
 
-#Credible interval percent LC relative potency values (e.g. 95 would provide 
-#a 95% credible interval.)
+# Credible interval percent LC relative potency values (e.g. 95 would provide 
+# a 95% credible interval.)
 REL_POT_CI = 95
 
-#Compound for which relative potencies are given. 
+# Compound for which relative potencies are given. 
 REFERENCE_COMPOUND=malathion
 
-#Sets which direction relative potencies are calculated. If REL_POT_TO_REF is 
-#True, then values of relative potency greater than 1 are **less** potent than
-#the REFERENCE_COMPOUND. If False, then relative potencies greater than 1 are
-#**more** potent than REFERENCE_COMPOUND.
+# Sets which direction relative potencies are calculated. If REL_POT_TO_REF is 
+# True, then values of relative potency greater than 1 are **less** potent than
+# the REFERENCE_COMPOUND. If False, then relative potencies greater than 1 are
+# **more** potent than REFERENCE_COMPOUND.
 REL_POT_TO_REF = True
 
-#Controls how far outside the data range that LC values can be extrapolated. 
+# Controls how far outside the data range that LC values can be extrapolated. 
 EXTRAPOLATION_FACTOR = 4

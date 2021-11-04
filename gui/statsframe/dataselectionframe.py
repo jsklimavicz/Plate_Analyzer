@@ -244,7 +244,6 @@ class DataSelectionFrame(ttk.Frame):
 
 	def __list_update(self):
 		var = self.exclusiontype.get()
-
 		#remove all data
 		self.allowed_list.delete(0,END)
 		self.disallowed_list.delete(0,END)
@@ -294,25 +293,28 @@ class DataSelectionFrame(ttk.Frame):
 			return None
 
 	def __clear_list(self): 
-		#Remove all groups from the forbidden list if confirmed.
-		msg = "Are you sure you want to clear all values from the excluded "+\
-				"list? Currently, this list contains:\n"
-		for key, vals in self.UIDH.disallowed.items():
-			if len(vals) > 2:
-				msg+=f"{key}s {', '.join(vals[0:-1])}" + \
-					f", and {vals[-1]}"
-			if len(vals) == 2:
-				msg+=f" {key}s {vals[0]} and {vals[-1]} "
-			elif len(vals) == 1: 
-				msg += f" the {key} {vals[0]}"
-			if len(vals) >0:
-				msg += "\n"
-		
-		answer = askyesno(title = "Clear Excluded List?", message = msg)
-		
-		if answer: 
-			self.forbidden_list = []
-			self.__list_update()
+		'''
+		Ask to remove all groups from the forbidden list if confirmed.
+		'''
+		if len(self.UIDH.get_disallowed_uids()) > 0:
+			msg = "Are you sure you want to clear all values from the "+\
+				"excluded list? Currently, this list contains replicates from "
+			cmpd_list = self.UIDH.disallowed["Compound"]
+			if len(cmpd_list) > 2:
+				msg+=f"{', '.join(cmpd_list[0:-1])}" + \
+					f", and {cmpd_list[-1]}"
+			if len(cmpd_list) == 2:
+				msg+=f"{cmpd_list[0]} and {cmpd_list[-1]} "
+			elif len(cmpd_list) == 1: 
+				msg += f"{cmpd_list[0]}"
+			
+			answer = askyesno(title = "Clear Excluded List?", message = msg)
+			if answer: 
+				self.UIDH.allow_all()
+				self.__list_update()
+		else: 
+			showinfo(title = "Excluded list is empty", 
+				message = "There are currently no replicates being excluded.")
 
 	def __clear_stats(self): 
 		'''
@@ -349,8 +351,10 @@ class DataSelectionFrame(ttk.Frame):
 		#update forbidden list
 		disallowed_uids = self.get_disallowed_uids()
 		self.stats_obj.set_diallowed(disallowed_uids)
+		DP = DataPreviewer(self, self.stats_obj, uid_handler = self.UIDH, scale = self.scale)
+		DP.wait(self)
+		self.__list_update()
 
-		DataPreviewer(self, self.stats_obj, uid_handler = self.UIDH, scale = self.scale)
 
 	def __delete_cache(self): 
 		cache_path = self.stats_obj.cache_path
