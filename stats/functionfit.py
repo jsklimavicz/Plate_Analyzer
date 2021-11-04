@@ -516,7 +516,7 @@ class FunctionFit():
 		generate estimates of the baseline mortality and the LC50. 
 		'''
 		#no good way to estimate slope yet without a curve fit.
-		default_slope= -1
+		default_slope= 1
 		#estimate background mortality:
 		n_vals = round(0.2 * len(conc))
 		#sort the lists
@@ -565,9 +565,9 @@ class FunctionFit():
 		if sigma_squared is None: sigma_squared = self.SS
 		if beta_param is None: beta_param = self.BP
 		b2 = self.estimate_initial_b(conc, probs, params = 2, rev = rev)
-		b2 += np.random.normal(0, 0.5, 2)
+		# b2 += np.random.normal(0, 0.5, 2)
 		b3 = self.estimate_initial_b(conc, probs, params = 3, rev = rev)
-		b3 += np.array([*np.random.normal(0, 0.5, 2) , 0.0])
+		# b3 += np.array([*np.random.normal(0, 0.5, 2) , 0.0])
 
 		switch = switch.lower()
 
@@ -616,11 +616,11 @@ class FunctionFit():
 		niters, nprobs = prob_array.shape
 		b2 = self.estimate_initial_b(conc, init_prob, params = 2, rev = True)
 		b2_array = np.repeat([b2], niters, axis=0)
-		b2_array += np.random.normal(0, 0.5, b2_array.shape)
+		# b2_array += np.random.normal(0, 0.5, b2_array.shape)
 		b3 = self.estimate_initial_b(conc, init_prob, params = 3, rev = True)
 		background_mort = b3[2]
 		b3_array = np.repeat([b3], niters, axis=0)
-		b3_array += np.c_[np.random.normal(0, 0.5, b2_array.shape), np.zeros(niters)]
+		# b3_array += np.c_[np.random.normal(0, 0.5, b2_array.shape), np.zeros(niters)]
 		switch = switch.lower()
 
 		if switch == 'auto':

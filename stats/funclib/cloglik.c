@@ -45,7 +45,7 @@ void ll3_min(double *b, //The minimal value that is found.
   	struct multimin_params optim_par = {.1,1e-2,500,1e-3,1e-5,method,0};
 
 	//                   b0	  b1  b2
-	double xmin[3]   =  {-10, -5,  0};
+	double xmin[3]   =  {-10, 0.05,  0};
 	double xmax[3]   =  {10,   5,  1};
 	unsigned type[3] =  {3,    3,  3};
 
@@ -68,7 +68,7 @@ void ll2_min(double *b, //The minimal value that is found.
   	struct multimin_params optim_par = {.1,1e-2,500,1e-3,1e-5,method,0};
 	
 	//                   b0	  b1 
-	double xmin[2]   =  {-10, -5};
+	double xmin[2]   =  {-10, 0.05};
 	double xmax[2]   =  {10,   5};
 	unsigned type[2] =  {3,    3};
 
@@ -97,7 +97,7 @@ void ll3_array_min(
   	struct multimin_params optim_par = {.1,1e-2,500,1e-3,1e-5,method,0};
 
 	//                   b0	  b1  b2
-	double xmin[3]   =  {-10, -5,  0};
+	double xmin[3]   =  {-10, 0.05,  0};
 	double xmax[3]   =  {10,   5,  1};
 	unsigned type[3] =  {3,    3,  3};
 
@@ -130,7 +130,7 @@ void ll2_array_min(
   	struct multimin_params optim_par = {.1,1e-2,500,1e-3,1e-5,method,0};
 
 	//                   b0	  b1 
-	double xmin[2]   =  {-10, -5};
+	double xmin[2]   =  {-10, 0.05};
 	double xmax[2]   =  {10,   5};
 	unsigned type[2] =  {3,    3};
 
@@ -159,7 +159,7 @@ void ll2_ll3_AIC(double *b, //The val to be minimized. Must have length 3.
 	struct multimin_params optim_par = {.1,1e-2,500,1e-3,1e-5,method,0};
 
 	//                   b0	  b1  b2
-	double xmin[3]   =  {-10, -5,  0};
+	double xmin[3]   =  {-10, 0.05,  0};
 	double xmax[3]   =  {10,   5,  1};
 	unsigned type[3] =  {3,    3,  3};
 
@@ -213,7 +213,7 @@ void array_ll2_ll3_AIC(
 	struct multimin_params optim_par = {.1,1e-2,500,1e-3,1e-5,method,0};
 
 	//                   b0	  b1  b2
-	double xmin[3]   =  {-10, -5,  0};
+	double xmin[3]   =  {-10, 0.05,  0};
 	double xmax[3]   =  {10,   5,  1};
 	unsigned type[3] =  {3,    3,  3};
 
