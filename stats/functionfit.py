@@ -164,7 +164,6 @@ class FunctionFit():
 		if sigma_squared is None: sigma_squared = self.SS
 		if beta_param is None: beta_param = self.BP
 		if optim_method is None: optim_method = self.OPTIM_METHOD
-
 		niters, prob_ct = prob_array.shape
 		if self.use_C_lib:
 			funmin = np.zeros(niters)
@@ -266,6 +265,7 @@ class FunctionFit():
 		if sigma_squared is None: sigma_squared = self.SS
 		if beta_param is None: beta_param = self.BP
 		if optim_method is None: optim_method = self.OPTIM_METHOD
+
 		if self.use_C_lib:
 			funmin = 0
 			self.ll3c(b, 
@@ -532,6 +532,8 @@ class FunctionFit():
 			background_mort = sum( probs[:n_vals])/n_vals #ave
 			if rev: background_mort = 1-background_mort
 			med = background_mort/2.
+			#prevent nasty number errors
+			if abs(background_mort - 1.0)<1e-6: background_mort = 0.99
 
 		#estimate the b0 parameter
 		high_idx = np.where(probs > med)[0]
@@ -539,7 +541,7 @@ class FunctionFit():
 		if len(high_idx) == 0: 
 			est_intercept = max(conc)
 		else:
-			est_pt = round(len(high_idx)*3/4)-1
+			est_pt = round(len(high_idx)*.6)-1
 			est_intercept= - conc[high_idx[est_pt]]/default_slope
 
 		if params == 3:
@@ -563,7 +565,9 @@ class FunctionFit():
 		if sigma_squared is None: sigma_squared = self.SS
 		if beta_param is None: beta_param = self.BP
 		b2 = self.estimate_initial_b(conc, probs, params = 2, rev = rev)
+		b2 += np.random.normal(0, 0.5, 2)
 		b3 = self.estimate_initial_b(conc, probs, params = 3, rev = rev)
+		b3 += np.array([*np.random.normal(0, 0.5, 2) , 0.0])
 
 		switch = switch.lower()
 
@@ -612,10 +616,11 @@ class FunctionFit():
 		niters, nprobs = prob_array.shape
 		b2 = self.estimate_initial_b(conc, init_prob, params = 2, rev = True)
 		b2_array = np.repeat([b2], niters, axis=0)
+		b2_array += np.random.normal(0, 0.5, b2_array.shape)
 		b3 = self.estimate_initial_b(conc, init_prob, params = 3, rev = True)
 		background_mort = b3[2]
 		b3_array = np.repeat([b3], niters, axis=0)
-
+		b3_array += np.c_[np.random.normal(0, 0.5, b2_array.shape), np.zeros(niters)]
 		switch = switch.lower()
 
 		if switch == 'auto':

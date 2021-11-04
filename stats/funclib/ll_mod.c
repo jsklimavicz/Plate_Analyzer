@@ -65,7 +65,7 @@ void ll3f(const size_t n,
 	const int probs_size = par->probs_size;
 	const double * beta = par->beta;
 
-
+	// printf("b: (%f, %f, %f)\n",b[0], b[1],b[2] );
 	if (b[2] < LB) { 
 		*fval = DEF_RETURN;
 		return; 

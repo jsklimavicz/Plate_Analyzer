@@ -42,7 +42,7 @@ void ll3_min(double *b, //The minimal value that is found.
 								.sigsquare = sigsquare, 
 								.probs_size = probs_size, 
 								.beta = beta};
-  	struct multimin_params optim_par = {.1,1e-2,250,1e-3,1e-5,method,0};
+  	struct multimin_params optim_par = {.1,1e-2,500,1e-3,1e-5,method,0};
 
 	//                   b0	  b1  b2
 	double xmin[3]   =  {-10, -5,  0};
@@ -65,7 +65,7 @@ void ll2_min(double *b, //The minimal value that is found.
 								.conc = conc, 
 								.sigsquare = sigsquare, 
 								.probs_size = probs_size};
-  	struct multimin_params optim_par = {.1,1e-2,20,1e-3,1e-5,method,0};
+  	struct multimin_params optim_par = {.1,1e-2,500,1e-3,1e-5,method,0};
 	
 	//                   b0	  b1 
 	double xmin[2]   =  {-10, -5};
@@ -94,7 +94,7 @@ void ll3_array_min(
 								.sigsquare = sigsquare, 
 								.probs_size = probs_size, 
 								.beta = beta};
-  	struct multimin_params optim_par = {.1,1e-2,250,1e-3,1e-5,method,0};
+  	struct multimin_params optim_par = {.1,1e-2,500,1e-3,1e-5,method,0};
 
 	//                   b0	  b1  b2
 	double xmin[3]   =  {-10, -5,  0};
@@ -127,7 +127,7 @@ void ll2_array_min(
 								.conc = conc, 
 								.sigsquare = sigsquare, 
 								.probs_size = probs_size};
-  	struct multimin_params optim_par = {.1,1e-2,20,1e-3,1e-5,method,0};
+  	struct multimin_params optim_par = {.1,1e-2,500,1e-3,1e-5,method,0};
 
 	//                   b0	  b1 
 	double xmin[2]   =  {-10, -5};
@@ -156,7 +156,7 @@ void ll2_ll3_AIC(double *b, //The val to be minimized. Must have length 3.
 								.sigsquare = sigsquare, 
 								.probs_size = probs_size, 
 								.beta = beta};
-	struct multimin_params optim_par = {.1,1e-2,250,1e-3,1e-5,method,0};
+	struct multimin_params optim_par = {.1,1e-2,500,1e-3,1e-5,method,0};
 
 	//                   b0	  b1  b2
 	double xmin[3]   =  {-10, -5,  0};
@@ -210,7 +210,7 @@ void array_ll2_ll3_AIC(
 								.sigsquare = sigsquare, 
 								.probs_size = probs_size, 
 								.beta = beta};
-	struct multimin_params optim_par = {.1,1e-2,250,1e-3,1e-5,method,0};
+	struct multimin_params optim_par = {.1,1e-2,500,1e-3,1e-5,method,0};
 
 	//                   b0	  b1  b2
 	double xmin[3]   =  {-10, -5,  0};

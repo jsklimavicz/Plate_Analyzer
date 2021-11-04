@@ -185,7 +185,7 @@ class CI_finder:
 			beta_prob_list = []
 			for i in range(groups):
 				beta_prob_list.append(beta_probs[int(breaks[i]):int(breaks[i+1]),:])
-			dict_list = Parallel(n_jobs = 1)(delayed(self.array_curve)(beta_probs) \
+			dict_list = Parallel(n_jobs = cu)(delayed(self.array_curve)(beta_probs) \
 						for beta_probs in beta_prob_list)
 			#unpack the dictionary (list of list of answers to np.array of answers)
 			self.params =  np.array([item for answer in dict_list for item in answer])
