@@ -44,7 +44,7 @@ class FunctionFit():
 	def __init__(self, **kwargs):
 		self.set_default_params(**kwargs)
 		p = platform.platform()
-		if "linux" in p.lower():
+		if ("linux" in p.lower()) or ("macos" in p.lower()):
 			lib_path = "./stats/funclib/cloglik.so"
 			func = CDLL
 		elif "windows" in p.lower():
@@ -54,7 +54,7 @@ class FunctionFit():
 			#CONTAINING THE libgsl.dll FILE AND OTHER APPROPRIATE .dll FILES.
 			os.add_dll_directory("C:/msys64/mingw64/bin")
 		else:
-			lib_path = None
+			lib_path = ""
 		if os.path.exists(lib_path) and 'USE_CLIB' in kwargs and kwargs.get('USE_CLIB'):
 
 			#necessary for the case when the library loads but is not working,

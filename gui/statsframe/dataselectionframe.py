@@ -350,7 +350,7 @@ class DataSelectionFrame(ttk.Frame):
 		disallowed_uids = self.get_disallowed_uids()
 		self.stats_obj.set_diallowed(disallowed_uids)
 
-		DataPreviewer(self, self.stats_obj, scale = self.scale)
+		DataPreviewer(self, self.stats_obj, uid_handler = self.UIDH, scale = self.scale)
 
 	def __delete_cache(self): 
 		cache_path = self.stats_obj.cache_path

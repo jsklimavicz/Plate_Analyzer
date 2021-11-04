@@ -116,19 +116,19 @@ class UID:
 	def change_allowed(self, var, val, action = None):
 		if var.lower() == 'uid':
 			if val == self.uid: action()
-		if var.lower() in ['cmpd', 'compound']:
+		elif var.lower() in ['cmpd', 'compound']:
 			if val == self.dict['Compound']: action()
-		if var.lower() in ['refid', 'ref', 'id', 'reference id', 'ref id']:
+		elif var.lower() in ['refid', 'ref', 'id', 'reference id', 'ref id']:
 			if val == self.dict['Reference ID']: action()
-		if var.lower() in ['date', 'day']:
+		elif var.lower() in ['date', 'day']:
 			if val == self.dict['Date']: action()
-		if var.lower() in ['plate', 'plate id']:
+		elif var.lower() in ['plate', 'plate id']:
 			if val == self.dict['Plate ID']: action()
 			else:
 				val_split = val.split("_")
 				if (val_split[0] == self.dict['Date']) and \
 						(val_split[1] == self.dict['plate']): action()
-		if var.lower() in ['row', 'row id']:
+		elif var.lower() in ['row', 'row id']:
 			if val == self.dict['Row ID']: action()
 			else:
 				val_split = val.split("_")
@@ -136,6 +136,6 @@ class UID:
 						(val_split[1] == self.dict['plate']) and\
 						(val_split[2] == self.dict['row']): action()
 
-
 	def __str__(self):
-		return f"{str(self.dict)}, Allowed = {self.allowed}"
+		return f"{self.dict['Reference ID']}_{self.dict['Date']}_Plate{self.dict['plate']}_Row{self.dict['row']}"
+

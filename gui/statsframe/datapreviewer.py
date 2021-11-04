@@ -42,7 +42,7 @@ class DataPreviewer(tk.Frame):
 	Provides an interactive interface to preview the data that will be 
 	included in the statistical anlysis.
 	'''
-	def __init__(self, parent, merlin_stats_obj, scale = 1):
+	def __init__(self, parent, merlin_stats_obj, uid_handler, scale = 1):
 		super(DataPreviewer, self).__init__() #initialize root
 		self.scale = scale
 		w = 1000
@@ -53,6 +53,7 @@ class DataPreviewer(tk.Frame):
 
 		#pass on statistics object
 		self.stats_obj = merlin_stats_obj
+		self.UIDH = uid_handler
 
 		self.columnconfigure(0, weight=2)
 		self.columnconfigure(1, weight=2)
@@ -64,31 +65,40 @@ class DataPreviewer(tk.Frame):
 		Makes the widget layout for the data previewer: 
 
 		self.top 
-		|--cmpd_frm #Compound selection for plotting
-		|  |--cmpdlabel
-		|  |--cmpd_list_frm w/ scrollbar #Inner frame 
-		|  |  |--self.cmpd_listbox
-		|--uid_frm #UID selection for highlighting in plot
-		|  |--uidlabel
-		|  |--uid_list_frm w/ scrollbar #Inner frame 
-		|  |  |--self.uid_listbox
+		|--data_frm
+		|  |--cmpd_frm #Compound selection for plotting
+		|  |  |--cmpdlabel
+		|  |  |--cmpd_list_frm w/ scrollbar #Inner frame 
+		|  |  |  |--self.cmpd_listbox
+		|  |--allowed_frm #allowed uid selection for highlighting in plot
+		|  |  |--allowed_label
+		|  |  |--allowed_list_frm w/ scrollbar #Inner frame 
+		|  |  |  |--self.allowed_listbox
+		|  |--excludeButton
+		|  |--includeButton
+		|  |--disallowed_frm #disallowed uid selection for highlighting in plot
+		|  |  |--disallowed_label
+		|  |  |--disallowed_list_frm w/ scrollbar #Inner frame 
+		|  |  |  |--self.disallowed_listbox
 		|--self.fig_frame #The plot
 		|  |--self.canvas
 		|  |  |--self.fig
 		|  |  |--self.curve_data_label
 
 		'''
-
+		data_frm = Frame(self.top)
+		data_frm.grid(row=0, column=0, rowspan = 9, columnspan = 2, 
+						sticky=N+S, padx=10, pady=10)
 		#Compound Selection
-		cmpd_frm = Frame(self.top)
-		cmpd_frm.grid(row=0, column=0, rowspan = 5, columnspan = 2, 
+		cmpd_frm = Frame(data_frm)
+		cmpd_frm.grid(row=0, column=0, rowspan = 2, columnspan = 2, 
 						sticky=N+S, padx=10, pady=10)
 		
 		cmpdlabel = Label(cmpd_frm, text="Select Compound.") #Label
 		cmpdlabel.grid(row=0, column=0, sticky=E)
 		
 		cmpd_list_frm = Frame(cmpd_frm) #inner frame
-		cmpd_list_frm.grid(row= 1, column=0, rowspan = 5, columnspan = 2, 
+		cmpd_list_frm.grid(row= 1, column=0, rowspan = 2, columnspan = 2, 
 						sticky=N+S, padx=10, pady=10)
 		#Scrollbar for inner frame (will be bound to the listbox)
 		scrollbar = Scrollbar(cmpd_list_frm, orient="vertical")
@@ -104,11 +114,12 @@ class DataPreviewer(tk.Frame):
 		
 		#bindings
 		self.cmpd_listbox.bind('<<ListboxSelect>>', self.plotselect)
-		self.cmpd_listbox.bind("<Down>", self.plotselect_scroll)
-		self.cmpd_listbox.bind("<Up>", self.plotselect_scroll)
+		self.cmpd_listbox.bind("<Down>", 
+			lambda event, func = self.plotselect: self.box_scroll(event, func))
+		self.cmpd_listbox.bind("<Up>", 
+			lambda event, func = self.plotselect: self.box_scroll(event, func))
 		#configure scrollbar to listbox
 		scrollbar.config(command=self.cmpd_listbox.yview) 
-		
 		#Populate the listbox with compound names.
 		self.cmpd_list = sorted(list(self.stats_obj.cmpd_data.keys()))
 		for ind, item in enumerate(self.cmpd_list):
@@ -116,37 +127,95 @@ class DataPreviewer(tk.Frame):
 		msg = "Select a compound to preview data selected for analysis."
 		Tooltip(self.cmpd_listbox, text=msg)
 		
-		#UID Selection
-		uid_frm = Frame(self.top)
-		uid_frm.grid(row=5, column=0, rowspan = 5, columnspan = 2, 
+
+		#Allowed Selection
+		allowed_frm = Frame(data_frm)
+		allowed_frm.grid(row=2, column=0, rowspan = 2, columnspan = 2, 
 						sticky=N+S, padx=10, pady=10)
 		
-		uidlabel = Label(uid_frm, text="Identifiers") #Label
-		uidlabel.grid(row=0, column=0, sticky=E)
+		allowed_label = Label(allowed_frm, text="Currently Included") #Label
+		allowed_label.grid(row=0, column=0, sticky=E)
 
-		uid_list_frm = Frame(uid_frm) #Inner frame
-		uid_list_frm.grid(row=1, column=0, rowspan = 5, columnspan = 2, 
+		allowed_list_frm = Frame(allowed_frm) #Inner frame
+		allowed_list_frm.grid(row=1, column=0, rowspan = 2, columnspan = 2, 
 						sticky=N+S, padx=10, pady=10)
 		#Scrollbar for inner frame (will be bound to the listbox)
-		scrollbar = Scrollbar(uid_list_frm, orient="vertical")
+		scrollbar = Scrollbar(allowed_list_frm, orient="vertical")
 		scrollbar.pack(side=RIGHT, fill=Y)
 		
 		#UID listbox
-		self.uid_listbox = Listbox(uid_list_frm, 
+		self.allowed_listbox = Listbox(allowed_list_frm, 
 						selectmode='single',
 						exportselection=0,
 						yscrollcommand=scrollbar.set, 
 						width = 30)
-		self.uid_listbox.pack(expand = True, fill = Y)
+		self.allowed_listbox.pack(expand = True, fill = Y)
 		
 		#bindings
-		self.uid_listbox.bind('<<ListboxSelect>>', self.uidselect)
-		self.uid_listbox.bind("<Down>", self.uidselect_scroll)
-		self.uid_listbox.bind("<Up>", self.uidselect_scroll)
-		scrollbar.config(command=self.uid_listbox.yview) #bind scrollbar
+		self.allowed_listbox.bind('<<ListboxSelect>>', self.allow_select)
+		self.allowed_listbox.bind("<Down>", 
+			lambda event, func = self.allow_select: self.box_scroll(event, func))
+		self.allowed_listbox.bind("<Up>", 
+			lambda event, func = self.allow_select: self.box_scroll(event, func))
+		scrollbar.config(command=self.allowed_listbox.yview) #bind scrollbar
 		msg = "Identifier is of the format <date>_P<plate>_R<row>_ID. " + \
 				"Select an identifier to highlight its data in the plot."
-		Tooltip(self.uid_listbox, text= msg)
+		Tooltip(self.allowed_listbox, text= msg)
+
+
+		#Include button
+		self.includeButton = Button(data_frm, 
+					text="Include selection^",
+					command = lambda: self.allow())
+		self.includeButton.grid(row=4, column=0, 
+					sticky=S, padx=10, pady=20)
+		self.includeButton.config(height = 2)
+		msg = "Move the UID from the disallowed list up to the allowed list."
+		Tooltip(self.includeButton, text=msg)	
+
+		#Exclude button
+		self.excludeButton = Button(data_frm, 
+					text="vExclude selection", 
+					command = lambda: self.disallow())
+		self.excludeButton.grid(row=4, column=1, 
+					sticky=S, padx=10, pady=20)
+		self.excludeButton.config(height = 2)
+		msg = "Move the UID from the allowed list down to the disallowed list."
+		Tooltip(self.excludeButton, text=msg)
+
+		#Disallowed Selection
+		disallowed_frm = Frame(data_frm)
+		disallowed_frm.grid(row=5, column=0, rowspan = 2, columnspan = 2, 
+						sticky=N+S, padx=10, pady=10)
+		
+		disallowed_label = Label(disallowed_frm, text="Not Currently Included") #Label
+		disallowed_label.grid(row=0, column=0, sticky=E)
+
+		disallowed_list_frm = Frame(disallowed_frm) #Inner frame
+		disallowed_list_frm.grid(row=1, column=0, rowspan = 2, columnspan = 2, 
+						sticky=N+S, padx=10, pady=10)
+		#Scrollbar for inner frame (will be bound to the listbox)
+		scrollbar = Scrollbar(disallowed_list_frm, orient="vertical")
+		scrollbar.pack(side=RIGHT, fill=Y)
+		
+		#UID listbox
+		self.disallowed_listbox = Listbox(disallowed_list_frm, 
+						selectmode='single',
+						exportselection=0,
+						yscrollcommand=scrollbar.set, 
+						width = 30)
+		self.disallowed_listbox.pack(expand = True, fill = Y)
+		
+		#bindings
+		self.disallowed_listbox.bind('<<ListboxSelect>>', self.disallow_select)
+		self.disallowed_listbox.bind("<Down>", 
+			lambda event, func = self.disallow_select: self.box_scroll(event, func))
+		self.disallowed_listbox.bind("<Up>", 
+			lambda event, func = self.disallow_select: self.box_scroll(event, func))
+		scrollbar.config(command=self.disallowed_listbox.yview) #bind scrollbar
+		msg = "Identifier is of the format <date>_P<plate>_R<row>_ID. " + \
+				"Select an identifier to highlight its data in the plot."
+		Tooltip(self.disallowed_listbox, text= msg)
 
 		'''
 		Figure frame
@@ -166,9 +235,31 @@ class DataPreviewer(tk.Frame):
 		#initialize a plot with the first compound. 
 		self.plotselect()
 
-	def scroll(self, event):
+
+
+	def allow(self):
 		'''
-		Based on https://stackoverflow.com/a/62711725/8075803
+		Moves the UID from the disallowed list to the allowed list, and updates the 
+		UID handler and the actual data. 
+		'''
+		uid = self.excluded_uid[int(self.disallowed_listbox.curselection()[0])].uid
+		self.UIDH.allow_if('uid', [uid])
+		self.update_disallowed()
+		self.plotselect()
+
+	def disallow(self):
+		'''
+		Moves the UID from the allowed list to the disallowed list, and updates the 
+		UID handler and the actual data. 
+		'''
+		uid = self.included_uid[int(self.allowed_listbox.curselection()[0])].uid
+		self.UIDH.disallow_if('uid', [uid])
+		self.update_disallowed()
+		self.plotselect()
+
+	def box_scroll(self, event, func):
+		'''
+		Adapted from https://stackoverflow.com/a/62711725/8075803
 		Controls actions on up/down scrolling. 
 		'''
 		selection = event.widget.curselection()[0]
@@ -177,52 +268,68 @@ class DataPreviewer(tk.Frame):
 		if 0 <= selection < event.widget.size():
 			event.widget.selection_clear(0, tk.END)
 			event.widget.select_set(selection)
-			return True
-		return False
-
-	def uidselect_scroll(self, event):
-		#For arrow-based scrolling in the UID list.
-		reselect = self.scroll(event)
-		if reselect: self.uidselect(event)
-
-	def plotselect_scroll(self, event):
-		#For arrow-based scrolling in the Compound list.
-		reselect = self.scroll(event)
-		if reselect: self.plotselect(event)
+			func(event)
 
 	def plotselect(self, event = None):
-		# Based on https://stackoverflow.com/a/12936031/8075803
+		'''
+		Generates plots of data based on the data of the compound selected. 
+		Adapted from https://stackoverflow.com/a/12936031/8075803
+		'''
 		if event is not None:
 			w = event.widget
 			self.current_cmpd = self.cmpd_list[int(w.curselection()[0])]
 		else:
-			self.current_cmpd = self.cmpd_list[0]
+			try:
+				self.current_cmpd = self.cmpd_list[int(self.cmpd_listbox.curselection()[0])]
+			except IndexError:
+				self.current_cmpd = self.cmpd_list[0]
 		#Get the allowed data list
-		self.include_now = self.stats_obj.cmpd_data[
-							self.current_cmpd].data['include_now']
-		print(self.include_now)
-		#Get list of permitted IDs 
-		self.uid_list = list(self.stats_obj.cmpd_data[
-							self.current_cmpd].data['unique_plate_ids']) 
-		self.uid_list = sorted(list(set(compress(
-							self.uid_list, self.include_now))))
-		
+
+		self.included_uid = self.UIDH.get_allowed_uids()
+		self.included_uid = [uid for uid in self.included_uid if \
+							uid.dict["Compound"]==self.current_cmpd]
+		self.excluded_uid = self.UIDH.get_disallowed_uids()
+		self.excluded_uid = [uid for uid in self.excluded_uid if \
+							uid.dict["Compound"]==self.current_cmpd]
 		#clear previous list
-		self.uid_listbox.delete(0,END)
-		for ind, item in enumerate(self.uid_list):
-			#Rescructure the UID to be moreuser-friendly
-			s = item.split("_")
-			item = f"{s[4]}_{s[1]}_Plate{s[2]}_Row{s[3]}"
-			self.uid_listbox.insert(ind, item)
+		self.allowed_listbox.delete(0,END)
+		for ind, uid in enumerate(self.included_uid):
+			self.allowed_listbox.insert(ind, str(uid))
+
+		self.disallowed_listbox.delete(0,END)
+		for ind, uid in enumerate(self.excluded_uid):
+			self.disallowed_listbox.insert(ind, str(uid))
 		#update the plot
 		self.plot()
-
-	def uidselect(self, event = None):
-		#Highlights the data from the currently-selected data. 
-		self.current_uid = self.uid_list[int(event.widget.curselection()[0])]
 		self.update_plot()
 
-	def update_plot(self):
+	def update_disallowed(self):
+		'''
+		gets the list of all the uids from the diallowed list, and then sets the 
+		include bool in the actual stats object for stats.
+		'''
+		disallowed = [uid.uid for uid in self.UIDH.get_disallowed_uids()]
+		self.stats_obj.set_diallowed(disallowed)
+
+	def allow_select(self, event = None):
+		'''
+		Highlights the data in the from the currently-selected data in the 
+		allow list in the plot, and removes any highlight from the disallow box
+		'''
+		self.disallowed_listbox.selection_clear(0, 'end')
+		current_uid = self.included_uid[int(event.widget.curselection()[0])]
+		self.update_plot(current_uid)
+
+	def disallow_select(self, event = None):
+		'''
+		Highlights the data in the from the currently-selected data in the 
+		disallow list in the plot, and removes any highlight from the allow box
+		'''
+		self.allowed_listbox.selection_clear(0, 'end')
+		current_uid = self.excluded_uid[int(event.widget.curselection()[0])]
+		self.update_plot(current_uid)
+
+	def update_plot(self, current_uid = None):
 		'''
 		Uses the current conc/probs from the selected compound to highlight 
 		the data from the currently-selected UID. Note that this method 
@@ -231,33 +338,22 @@ class DataPreviewer(tk.Frame):
 		'''
 		self.plot1.clear()
 
-		#Split the concentrations and probabilities into two lists. 
-		background_conc = []
-		background_probs = []
-		uid_conc = []
-		uid_probs = []
-		for ind, uid in enumerate(self.stats_obj.cmpd_data[
-						self.current_cmpd].data['unique_plate_ids']):
-			if uid == self.current_uid:
-				uid_conc.append(self.conc[ind])
-				uid_probs.append(self.probs[ind])
-			else:
-				background_conc.append(self.conc[ind])
-				background_probs.append(self.probs[ind])
-		#Plot non-highlighted data
-		self.plot1.plot(background_conc, 
-				background_probs, 
-				marker = '.', 
-				mew = 0.0, 
-				mfc = 'black', 
-				ls = 'None')
-		#plot highlighted data
-		self.plot1.plot(uid_conc, 
-				uid_probs, 
-				marker = 'o', 
-				mew = 0.0, 
-				mfc = 'red', 
-				ls = 'None')
+		#plot active and inactive
+		self.plot_data(self.conc_active, self.probs_active, style = "active")
+		self.plot_data(self.conc_inactive, self.probs_inactive, style = "inactive")
+
+		if current_uid is not None:
+			uid_conc = []
+			uid_probs = []
+			for ind, uid in enumerate(self.stats_obj.cmpd_data[
+							self.current_cmpd].data['unique_plate_ids']):
+				if uid == current_uid.uid:
+					uid_conc.append(self.conc[ind])
+					uid_probs.append(self.probs[ind])
+			#plot highlighted data
+			self.plot_data(uid_conc, uid_probs, style = "highlight")
+
+
 		self.set_labels() #update axes, etc.
 		self.plot_curve()
 		self.canvas.draw() #draw the plot
@@ -276,17 +372,22 @@ class DataPreviewer(tk.Frame):
 		self.probs = np.array(self.curr_data.data["live_count"]/ \
 					(self.curr_data.data["live_count"] + \
 					self.curr_data.data["dead_count"]))
+
 		if self.stats_obj.options["JITTER"]: 
 			self.conc += np.random.uniform(
 					-self.stats_obj.options["JITTER_FACTOR"],
 					self.stats_obj.options["JITTER_FACTOR"], 
 					len(self.conc))
-		self.plot1.plot(self.conc, 
-				self.probs, 
-				marker = '.', 
-				mew = 0.0, 
-				mfc = 'black', 
-				ls = 'None')
+		include_now = self.curr_data.data['include_now']
+		self.calc_conc = np.array(list(compress(self.conc_orig, include_now)))
+		self.conc_active = list(compress(self.conc, include_now))
+		self.probs_active = np.array(list(compress(self.probs, include_now)))
+		self.conc_inactive = list(compress(self.conc, [not elem for elem in include_now]))
+		self.probs_inactive = list(compress(self.probs, [not elem for elem in include_now]))
+		
+		self.plot_data(self.conc_active, self.probs_active, style = "active")
+		self.plot_data(self.conc_inactive, self.probs_inactive, style = "inactive")
+
 		self.set_labels()
 		self.make_curve()
 		self.canvas.draw()
@@ -294,8 +395,8 @@ class DataPreviewer(tk.Frame):
 
 	def make_curve(self):
 		'''
-		Generates the x and y values to produce a best-fit ll3 curve. The
-		curve is fit using the maximum likelihood function in FunctionFit.ll3.
+		Generates the x and y values to produce a best fit curve. The fit curve
+		is equivalent to the kind specified in the analysis_config.txt
 		The curve is then used to generate an approximate LC50 and an R2. 
 		'''
 		lb, ub = round(min(self.conc_orig)), round(max(self.conc_orig))
@@ -306,11 +407,11 @@ class DataPreviewer(tk.Frame):
 		#method specified in the options. 
 		ff = FunctionFit(**self.stats_obj.options)
 		switch = self.stats_obj.options["CURVE_TYPE"].lower()
-		b = ff.switch_fitter(switch, self.conc_orig, self.probs, rev = False)
+		b = ff.switch_fitter(switch, self.calc_conc, self.probs_active, rev = False)
 		self.y = 1 - ff.loglogit3(b = b, conc = self.x)
 
 		self.plot_curve()
-		r2 = CI_finder.find_r2(self.x, self.y, self.conc_orig, self.probs)
+		r2 = CI_finder.find_r2(self.x, self.y, self.calc_conc, self.probs_active)
 
 		if b[2] <= 1.0:
 			lc50 = 2**(-b[0]/b[1])
@@ -330,6 +431,7 @@ class DataPreviewer(tk.Frame):
 					text=f"Approximate LC50: {lc50}  R2: {r2.round(3)}")
 
 	def plot_curve(self):
+		#Does the actual curve plotting
 		self.plot1.plot(self.x, self.y, ls = '-', c = 'blue')
 
 	def set_labels(self):
@@ -367,3 +469,35 @@ class DataPreviewer(tk.Frame):
 
 		self.plot1.set_position([.125, .16, .8,.73])
 		plt.subplots_adjust(bottom=0.75)
+
+	def plot_data(self, conc, probs, style = "background"):
+		'''
+		Plots the data points of a graph. This is included for consistency of 
+		plots between plotting and replotting with highlighted data. 
+		'''
+		if style == "active":
+			self.plot1.plot(conc, 
+					probs, 
+					marker = '.', 
+					mew = 0.0, 
+					mfc = 'black', 
+					ls = 'None')
+
+		if style in ['background', 'inactive']:
+			self.plot1.plot(conc, 
+					probs,  
+					marker = '.', 
+					mew = 0.0, 
+					ms = 4,
+					mfc = 'gray', 
+					ls = 'None')
+
+		if style in ['highlight']:
+			self.plot1.plot(conc, 
+					probs, 
+					marker = 'o', 
+					mew = 1.0, 
+					mec = 'red', 
+					mfc = 'none',
+					ms = 5.0,
+					ls = 'None')
