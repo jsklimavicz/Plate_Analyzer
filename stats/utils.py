@@ -189,22 +189,23 @@ def check_library_change(cmpd_options, dict_options):
 #     maxval = root(root_finders, x0=ub, args=(spline, p)).x
 #     return np.array([minval, med, maxval]) 
 
+def est_gaussian_kernel_bandwidth(data):
+	''' 
+	Uses Scott’s rule of thumb with IQR adjustment
+	According to the wikipedia page https://en.wikipedia.org/wiki/Kernel_density_estimation,
+	which cites
+	Silverman, B.W. (1986). Density Estimation for Statistics and Data Analysis. 
+		London: Chapman & Hall/CRC. p. 45. ISBN 978-0-412-24620-3.
+	'''
+	IQR = np.quantile(data, [0.25, 0.75], interpolation='linear', axis = 0)
+	mid = (IQR[1] - IQR[0])/1.34
+	std = np.std(data, axis = 0)
+	mult = np.minimum(mid, std)
+	bw = 0.9*mult*(len(data)**-0.2)
+	return bw
+
+
 def CI_helper(kernel_sample, CI_level = 0.95, min_sample_size = 100000, resample = True):
-	
-	def est_gaussian_kernel_bandwidth(data):
-		''' 
-		Uses Scott’s rule of thumb with IQR adjustment
-		According to the wikipedia page https://en.wikipedia.org/wiki/Kernel_density_estimation,
-		which cites
-		Silverman, B.W. (1986). Density Estimation for Statistics and Data Analysis. 
-			London: Chapman & Hall/CRC. p. 45. ISBN 978-0-412-24620-3.
-		'''
-		IQR = np.quantile(kernel_sample, [0.25, 0.75], interpolation='linear', axis = 0)
-		mid = (IQR[1] - IQR[0])/1.34
-		std = np.std(data, axis = 0)
-		mult = np.minimum(mid, std)
-		bw = 0.9*mult*(len(data)**-0.2)
-		return bw
 
 	n = len(kernel_sample)
 	if n < min_sample_size and resample:

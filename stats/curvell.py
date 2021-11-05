@@ -107,8 +107,11 @@ class CI_finder:
 	def ll3_find_LC(self, quantiles):
 		'''
 		Given the list self.params of parameters from bootstrapping and the 
-		list of quantiles, this method returns the concentrations at which each
-		of the quantiles is met. 
+			list of quantiles, this method returns the concentrations at which 
+			each of the quantiles is met. 
+		quantiles: A list-like of quanties for calculating concentrations.
+		returns: 1D np.array of concentrations at which each concentraion is
+			met.
 		'''
 		quant2 = np.tile(np.array(quantiles), (len(self.params),1))
 		params = np.reshape(np.repeat(np.array(self.params[:,0:2]), 
@@ -120,7 +123,16 @@ class CI_finder:
 
 	def fit_curve(self, probs):
 		'''
-		Curve-fitting driver. 
+		Wrapper for fitting a single curve to a single set of concentrations/
+			probabilities. Curve type is specified via analysis_config.txt. 
+			Fitting may occur in either a C library or in Python. 
+			!!WARNING!!: in Windows OS, there is the potential to have serious
+			function referencing issues, as function references may be capped
+			at 1024 or 2048, preventing the number of bootstraps from being 
+			higher than this!!
+		probs: 1D np.array of probabilities to fit. 
+		returns: np.array of length 3 containing the paramters of the fitted
+			dose response curve.
 		'''
 		ff = FunctionFit(**self.options)
 		switch = self.options["CURVE_TYPE"].lower()
@@ -128,32 +140,48 @@ class CI_finder:
 
 	def array_curve(self, beta_probs):
 		'''
-		Curve-fitting by passing a full array of probs to a C library for speed and
-		to prevent using too many function references in Windows.
+		Wrapper for fitting multiple curves to a multiple sets of 
+			concentration/probability pairs. Curve type is specified via 
+			analysis_config.txt. Fitting may occur in either a C library or in
+			Python. Performing this fitting in arrays is crucial to avoid 
+			referencing issues on Windows systems where the number of 
+			references to C functions is limited to 1024 or 2048, which may be
+			well below the number of bootstraps requested. 
+		beta_probs: 2D np.array of shape niters*nprobs of probabilities to 
+			fit, with niters being the number of different sets of 
+			probabilities, and nprobs being the number of conc/prob pairs.
+		returns: 2D np.array of shape (niters,3) containing the paramters of  
+			the fitted dose response curves.
 		'''
-		# niters, nprobs = beta_probs.shape
 
 		ff = FunctionFit(**self.options)
+		#init_prob is included for calculating the initial vector of parameters
+		#for curve fitting.
 		init_prob = self.dead_count / (self.dead_count+self.live_count)
-
 		switch = self.options["CURVE_TYPE"].lower()
 		return ff.switch_array_fitter(switch, self.conc, beta_probs, init_prob)
 
 	def bootstrap_CIs(self):
 		'''
 		Driver for the bootstrapping process. Because the curvefitting is 
-		computationally costly but is embrassingly parallel, this is best 
-		done in parallel. 
+			computationally costly but is embrassingly parallel, this is best 
+			done in parallel. 
+		The np.array of parameters for the fitted curve is of shape 
+			 (n_bootstraps, 3), and is saved in attribute self.params
 		'''
 		import multiprocessing
 		from joblib import Parallel, delayed
 
-		if self.params is not None: return
-		#get correlated beta variables
+		niters = self.options["BOOTSTRAP_ITERS"]
+
+		if self.params is not None: return #already calcuated. 
+
+		#First create an array of partially-correlated beta variables, as 
+		#defined in the statistics summary .pdf document. 
 		beta_probs = corr_beta_vars(self.unique_plate_ids, 
 									self.live_count, 
 									self.dead_count, 
-									size = self.options["BOOTSTRAP_ITERS"], 
+									size = niters, 
 									scale = self.options["BETA_PRIOR"], 
 									null_scale = self.options["BETA_PRIOR_0"],
 									rho = self.options["RHO"])
@@ -164,56 +192,61 @@ class CI_finder:
 		cu = cc if self.options["NCPU"] > cc else self.options["NCPU"]
 		if cu <=0: cu += cc + 1 #in case cpus is set to a negative number 
 				
-
+		#create a FunctionFit object, and then set the default paramters for
+		#bayesian curve fitting for use as needed. 
 		ff = FunctionFit(**self.options)
 		ff.SS = self.options["LL_SIGMA"] * self.options["LL_SIGMA"]
 		ff.BP=np.array([self.options["LL_BETA1"],self.options["LL_BETA2"]])
 
-		use_array_method = True #mainly for debugging purposes
-		# if "ls" in self.options["CURVE_TYPE"].lower(): use_array_method = False
+		#mainly for debugging purposes; setting this
+		use_array_method = True  
 
 		if use_array_method:
 			#first make a list of arrays for parallel computing
 			# make divisions based on number of cpus to use
 			groups = cu*2
-			if groups > self.options["BOOTSTRAP_ITERS"]: #there are more iters
+			if groups > niters: #there are more iters
 				#than there are bootstrap iters... 
 				groups = 0;
+				#so set the number of cpus to 1. 
 				cu = 1
-
-			breaks = np.round(np.linspace(0,self.options["BOOTSTRAP_ITERS"],groups+1))
+			'''
+			To distribute all bootstrapped sets of probabilities to the 
+			different processors, we make a list of different 2D np.arrays of
+			the probabilities, and use this in Parallel. 
+			'''
+			breaks = np.round(np.linspace(0,niters,groups+1))
 			beta_prob_list = []
 			for i in range(groups):
-				beta_prob_list.append(beta_probs[int(breaks[i]):int(breaks[i+1]),:])
-			dict_list = Parallel(n_jobs = cu)(delayed(self.array_curve)(beta_probs) \
-						for beta_probs in beta_prob_list)
-			#unpack the dictionary (list of list of answers to np.array of answers)
-			self.params =  np.array([item for answer in dict_list for item in answer])
-			# print(self.params)
+				beta_prob_list.append(beta_probs[int(breaks[i]):\
+														int(breaks[i+1]),:])
+			dict_list = Parallel(n_jobs = cu)(delayed(self.array_curve)\
+								(beta_probs) for beta_probs in beta_prob_list)
+			#unpack the dictionary, which involves converting a 
+			#list of list of answers to np.array of answers
+			self.params =  np.array([item for answer in dict_list for \
+															item in answer])
 
 		else:
 			#possibility of having 2 or 3 parameters
-			self.params = np.zeros((self.options["BOOTSTRAP_ITERS"], 3))
+			self.params = np.zeros((niters, 3))
 			dict_list = Parallel(n_jobs = cu)(delayed(
 						self.fit_curve)(row) for row in beta_probs)
-			# dict_list = Parallel(n_jobs = 1)(delayed(
-			# 			self.fit_curve)(row) for row in beta_probs)
-			
+			#unpack the dictionary
 			for iter_count, res in enumerate(dict_list):
 				if len(res) == 3:
 					self.params[iter_count] = res
 				else:
 					self.params[iter_count,0:2] = res
 					self.params[iter_count,2] = 1.
-		# print(self.params)
-
-
-
 
 	def get_point_error_bars(self, beta_probs):
 		'''
 		Calculates the error bars for each data point based on the beta
-		variables from the bootstrap samples. 
+		variables from the bootstrap samples. The width of the error bars is
+		set by ERROR_BAR_CI in analysis_config.txt, and the error bars are
+		saved in the attribute self.error_bars.
+		beta_probs: a 2D array of shape (bootstrap_iters, n_probs)
 		'''
 		lb = (1 - self.options["ERROR_BAR_CI"])/2.
 		ub = 1-lb
@@ -240,7 +273,6 @@ class CI_finder:
 			fit_y = np.median(self.points, axis = 0), 
 			conc = self.conc, 
 			probs = self.live_count / (self.dead_count+self.live_count))
-		# print(self.r2)
 
 	@staticmethod
 	def find_r2(fit_x, fit_y, conc, probs):
@@ -323,15 +355,22 @@ class CI_finder:
 
 	def LC_kernel(self, LC_val = 0.5):
 		'''
-		Generates a KernelDensity object from an LC value.
+		Generates a KernelDensity object from an LC value. Estimates the
+			bandwidth for the gaussian kernel density using 
+			utils.est_gaussian_kernel_bandwidth
+		LC_val: The LC value for which the kernel should be created. 
+		returns: a KernelDensity object  
 		'''
-		vals = self.ll3_find_LC(quantiles = LC_val)
-		return KernelDensity(kernel ='gaussian', bandwidth = 0.5).fit(vals)
+		vals = self.ll3_find_LC(quantiles = [LC_val])
+		bw = utils.est_gaussian_kernel_bandwidth(vals)
+		return KernelDensity(kernel ='gaussian', bandwidth = bw).fit(vals)
 
 	def plot_CIs(self):
 		'''
 		Produces a MerlinGrapher object set up with options and data for 
 		plotted points, error bars, best fit line, and line CI. 
+		Returns a MerlinGrapher object intialized with all the data needed
+		for generating the graphs that are used in the LaTeX output. 
 		'''
 		lb = (1 - self.options["CURVE_CI"])/2
 		ub = 1 - lb
@@ -341,7 +380,7 @@ class CI_finder:
 									ub = self.plot_quant[2],
 									line = self.plot_quant[1],
 									conc = self.conc,
-									probs = self.live_count/(self.dead_count +\
+									probs = self.live_count/(self.dead_count+\
 											self.live_count), 
 									error_bars = self.error_bars,
 									n_trials = self.n_trials,
@@ -351,7 +390,8 @@ class CI_finder:
 	def reset_curves(self):
 		'''
 		This function clears out the params, points, and CI lines to allow one
-		do new bootstrapping.
+		do new bootstrapping. This is usefule when data is added or removed 
+		and curves need to be recalculated. 
 		'''
 		self.params = None
 		self.points = None

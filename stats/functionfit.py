@@ -43,6 +43,8 @@ class FunctionFit():
 
 	def __init__(self, **kwargs):
 		self.set_default_params(**kwargs)
+		#First check to see if a C shared-object or dynamic linked library
+		#exists, and if it does, try using the C library. 
 		p = platform.platform()
 		if ("linux" in p.lower()) or ("macos" in p.lower()):
 			lib_path = "./stats/funclib/cloglik.so"
@@ -56,9 +58,11 @@ class FunctionFit():
 		else:
 			lib_path = ""
 		if os.path.exists(lib_path) and 'USE_CLIB' in kwargs and kwargs.get('USE_CLIB'):
-
-			#necessary for the case when the library loads but is not working,
-			#e.g. because gsl is on not the system. 
+			'''	
+			try is necessary for the case when the library loads but is not working,
+			e.g. because gsl is on not the system, or it can;t be found, or because 
+			the libray was not properly compiled. 
+			'''
 			try:
 				self.cloglik = func(lib_path)
 				#Single shot optimizers
@@ -158,47 +162,35 @@ class FunctionFit():
 		self.BP[0] = kwargs.get('LL_BETA1') if 'LL_BETA1' in kwargs else 1.5
 		self.BP[1] = kwargs.get('LL_BETA2') if 'LL_BETA2' in kwargs else 1.01
 
-	def array_ll3(self, b_input, prob_array, conc_list, 
-							sigma_squared = None, beta_param=None,
-							optim_method = None):
-		if sigma_squared is None: sigma_squared = self.SS
-		if beta_param is None: beta_param = self.BP
-		if optim_method is None: optim_method = self.OPTIM_METHOD
-		niters, prob_ct = prob_array.shape
-		if self.use_C_lib:
-			funmin = np.zeros(niters)
-			self.ll3ca(prob_ct,
-						niters,
-						b_input, #must be size niters * 3
-						prob_array, #must be size niters * prob_ct
-						conc_list, #must be length prob_ct
-						funmin,
-						sigma_squared,
-						beta_param,
-						optim_method)
-		else:
-			for i in range(niters):
-				b_input[i] = self.min_ll3(b_input[i], prob_array[i],
-									conc_list, sigma_squared, beta_param)
-		return b_input
-
 	def array_ll2(self, b_input, prob_array, conc_list, sigma_squared = None,
 							optim_method = None):
+		'''
+		Used to pass an array of probabilities to the C-based or python-based 
+			ll2 solver. For data that has prob_ct different concentration/
+			probability pairs and niter different iterations of bootstrapped 
+			probabilities:
+		b_input: 2D np.array of size niters * 2. Should initially contain the
+			guesses for b, and will ultimately contain the optimized values.
+		prob_array: 2D np.array of size niters * prob_ct containing the 
+			bootstrapped probability values.
+		conc_list: 1D np.array of length prob_ct. Contains the concentrations
+			that are matched to the probabilities. 
+		sigma_squared: float value for sigma**2 for the MVN prior for the
+			values of b[0] and b[1]. 
+		optim_method: An int from {0,1,2,3,4,5,6,7} to choose the solver. See
+			the README for more details. 
 
+		returns: 2D np.array of size niters * 2 containing the optimized 
+			values for each bootstrap. 
+		'''
 		if sigma_squared is None: sigma_squared = self.SS
 		if optim_method is None: optim_method = self.OPTIM_METHOD
 
 		niters, prob_ct = prob_array.shape
-		if self.use_C_lib: 
+		if self.use_C_lib: # pass off to the C function if it exists.
 			funmin = np.zeros(niters)
-			self.ll2ca(prob_ct,
-						niters,
-						b_input, #must be size niters * 2
-						prob_array, #must be size niters * prob_ct
-						conc_list, #must be length prob_ct
-						funmin,
-						sigma_squared,
-						optim_method)
+			self.ll2ca(prob_ct, niters, b_input, prob_array, conc_list, 
+						funmin, sigma_squared, optim_method)
 		else:
 			for i in range(niters):
 				b_input[i] = self.min_ll2(b_input[i], prob_array[i], 
@@ -206,24 +198,80 @@ class FunctionFit():
 		#need to make an niters * 3 array
 		return np.c_[b_input,np.ones(niters)]
 
-	def array_ll23AIC(self, b_input, prob_array, conc_list, 
+	def array_ll3(self, b_input, prob_array, conc_list, 
 							sigma_squared = None, beta_param=None,
 							optim_method = None):
+		'''
+		Used to pass an array of probabilities to the C-based or python-based
+			ll3 solver. For data that has prob_ct different concentration/
+			probability pairs and niter different iterations of bootstrapped 
+			probabilities:
+		b_input: 2D np.array of size niters * 3. Should initially contain the
+			guesses for b, and will ultimately contain the optimized values.
+		prob_array: 2D np.array of size niters * prob_ct containing the 
+			bootstrapped probability values.
+		conc_list: 1D np.array of length prob_ct. Contains the concentrations
+			that are matched to the probabilities. 
+		sigma_squared: float value for sigma**2 for the MVN prior for the
+			values of b[0] and b[1]. 
+		beta_param: 1D np.array of length 2 contain the two beta parameters
+			for the prior on b[2].
+		optim_method: An int from {0,1,2,3,4,5,6,7} to choose the solver. See
+			the README for more details. 
+
+		returns: 2D np.array of size niters * 3 containing the optimized 
+			values for each bootstrap. 
+		'''
 		if sigma_squared is None: sigma_squared = self.SS
 		if beta_param is None: beta_param = self.BP
 		if optim_method is None: optim_method = self.OPTIM_METHOD
 		niters, prob_ct = prob_array.shape
-		if self.use_C_lib: 
+		if self.use_C_lib: # pass off to the C function if it exists.
+			#funmin is for storing the function minimum, and can be returned
+			#to provide the minimum value if needed. 
 			funmin = np.zeros(niters)
-			self.ll23aAIC(prob_ct,
-						niters,
-						b_input, #must be size niters * 3
-						prob_array, #must be size niters * prob_ct
-						conc_list, #must be length prob_ct
-						funmin,
-						sigma_squared,
-						beta_param,
-						optim_method)
+			self.ll3ca(prob_ct, niters, b_input, prob_array, conc_list, 
+						funmin, sigma_squared, beta_param, optim_method)
+		else:
+			for i in range(niters):
+				b_input[i] = self.min_ll3(b_input[i], prob_array[i],
+									conc_list, sigma_squared, beta_param)
+		return b_input
+
+	def array_ll23AIC(self, b_input, prob_array, conc_list, 
+							sigma_squared = None, beta_param=None,
+							optim_method = None):
+		'''
+		Used to pass an array of probabilities to the C-based or python-based 
+			ll2/ll3 solver that then uses the AIC to determine which fit is 
+			better. For data that has prob_ct different concentration/
+			probability pairs and niter different iterations of bootstrapped 
+			probabilities:
+		b_input: 2D np.array of size niters * 3. Should initially contain the
+			guesses for b, and will ultimately contain the optimized values.
+		prob_array: 2D np.array of size niters * prob_ct containing the 
+			bootstrapped probability values.
+		conc_list: 1D np.array of length prob_ct. Contains the concentrations
+			that are matched to the probabilities. 
+		sigma_squared: float value for sigma**2 for the MVN prior for the
+			values of b[0] and b[1]. 
+		beta_param: 1D np.array of length 2 contain the two beta parameters
+			for the prior on b[2].
+		optim_method: An int from {0,1,2,3,4,5,6,7} to choose the solver. See
+			the README for more details. 
+
+		returns: 2D np.array of size niters * 3 containing the optimized 
+			values for each bootstrap. When the ll2 curve is better, b[2] is 
+			set to 1.
+		'''
+		if sigma_squared is None: sigma_squared = self.SS
+		if beta_param is None: beta_param = self.BP
+		if optim_method is None: optim_method = self.OPTIM_METHOD
+		niters, prob_ct = prob_array.shape
+		if self.use_C_lib: # pass off to the C function if it exists.
+			funmin = np.zeros(niters)
+			self.ll23aAIC(prob_ct, niters, b_input, prob_array, conc_list,
+						funmin, sigma_squared, beta_param, optim_method)
 		else:
 			for i in range(niters):
 				b_input[i] = self.min_llAIC(b_input[i], prob_array[i], 
@@ -231,51 +279,96 @@ class FunctionFit():
 		return b_input
 
 	def array_ls(self, nparam, b_input, prob_array, conc_list, ls_method = None):
+		'''
+		Used to pass an array of probabilities to the C-based or python-based 
+			least-squares solver. For data that has prob_ct different 
+			concentration/probability pairs and niter different iterations of
+			bootstrapped probabilities:
+		nparam: Either 2 or 3, for whether the 2-paramter or 3-parameter dose-
+			response curve should be used. 
+		b_input: 2D np.array of size niters * 3 (yes, this must be this size
+			even when using two parameters). Should initially contain the
+			guesses for b, and will ultimately contain the optimized values.
+		prob_array: 2D np.array of size niters * prob_ct containing the 
+			bootstrapped probability values.
+		conc_list: 1D np.array of length prob_ct. Contains the concentrations
+			that are matched to the probabilities. 
+		ls_method: An int from {0,1,2,3,4} to choose the solver. See the 
+			README for more details. 
+
+		returns: 2D np.array of size niters * 3 containing the optimized 
+			values for each bootstrap.
+		'''
 		if ls_method is None: ls_method = self.LS_METHOD
-		if self.use_C_lib:
+		if self.use_C_lib: # pass off to the C function if it exists.
 			niters, prob_ct = prob_array.shape
-			self.lsarray(nparam, 
-					prob_ct, 
-					niters,
-					b_input, 
-					conc_list, 
-					prob_array, 
-					ls_method)
+			self.lsarray(nparam, prob_ct, niters, b_input, 
+					conc_list, prob_array, ls_method)
 		else:
 			for i in range(niters):
-				b_input[i] = FunctionFit.ll_ls(b_input[i], nparam, prob_array[i], conc_list)
+				b_input[i] = FunctionFit.ll_ls(b_input[i], nparam, 
+											prob_array[i], conc_list)
 		return b_input
 
-	def min_ls(self, b, nparam, probs, conc, ls_method = None):
-		if ls_method is None: ls_method = self.LS_METHOD
+	def min_ll2(self, b, probs, conc, 
+					sigma_squared = None, optim_method = None):
+		'''
+		Used to pass nprob pairs of concentrations/probabilities to the 
+			C-based or python-based ll2 optimizer.
+		b: np.array of length 2. Should contain intial guess for
+			optimal value.
+		probs: np.array of length nprob containing the probability values.
+		conc: np.array of length nprob containing the concentration values.
+		sigma_squared: float value for sigma**2 for the MVN prior for the
+			values of b[0] and b[1]. 
+		beta_param: 1D np.array of length 2 contain the two beta parameters
+			for the prior on b[2].
+		optim_method: An int from {0,1,2,3,4} to choose the solver. See the 
+			README for more details. 
+
+		returns: np.array of length 2 containing the optimized parameters.
+		'''
+		if sigma_squared is None: sigma_squared = self.SS
+		if optim_method is None: optim_method = self.OPTIM_METHOD
+
 		if self.use_C_lib:
-			nprob = len(probs)
-			self.lsfit(nparam, 
-					nprob, 
-					b, 
-					conc, 
-					probs, 
-					ls_method)
+			funmin = 0
+			self.ll2c(b, probs, conc, len(probs), funmin,
+					sigma_squared, optim_method)
 			return b
 		else:
-			return FunctionFit.ll_ls(b, nparam, probs, conc)
+			res = minimize(FunctionFit.ll2p, b, 
+					args = (probs, conc, sigma_squared), 
+					method = 'BFGS', jac = FunctionFit.ll2p_jac)
+			return res.x
 
-	def min_ll3(self, b, probs, conc, sigma_squared = None, beta_param=None,
-					optim_method = None):
+	def min_ll3(self, b, probs, conc, sigma_squared = None, 
+					beta_param=None, optim_method = None):
+		'''
+		Used to pass nprob pairs of concentrations/probabilities to the 
+			C-based or python-based ll3 optimizer.
+		b: np.array of length 3. Should contain intial guess for
+			optimal value.
+		probs: np.array of length nprob containing the probability values.
+		conc: np.array of length nprob containing the concentration values.
+		sigma_squared: float value for sigma**2 for the MVN prior for the
+			values of b[0] and b[1]. 
+		beta_param: 1D np.array of length 2 contain the two beta parameters
+			for the prior on b[2].
+		optim_method: An int from {0,1,2,3,4} to choose the solver. See the 
+			README for more details. 
+
+		returns: np.array of length 3 containing the optimized parameters.
+		'''
+
 		if sigma_squared is None: sigma_squared = self.SS
 		if beta_param is None: beta_param = self.BP
 		if optim_method is None: optim_method = self.OPTIM_METHOD
 
 		if self.use_C_lib:
 			funmin = 0
-			self.ll3c(b, 
-					probs, 
-					conc, 
-					len(probs), 
-					funmin,
-					sigma_squared,
-					beta_param,
-					optim_method)
+			self.ll3c(b, probs, conc, len(probs), funmin, sigma_squared,
+					beta_param, optim_method)
 			return b
 		else:
 			res = minimize(FunctionFit.ll3p, b, 
@@ -285,52 +378,117 @@ class FunctionFit():
 
 	def min_llAIC(self, b, probs, conc, sigma_squared = None, beta_param=None,
 					optim_method = None):
+		'''
+		Used to pass nprob pairs of concentrations/probabilities to the 
+			C-based or python-based ll2/ll3 optimizers and use the AIC to
+			determine the optimal fit.
+		b: np.array of length 3. Should contain intial guess for
+			optimal value.
+		probs: np.array of length nprob containing the probability values.
+		conc: np.array of length nprob containing the concentration values.
+		sigma_squared: float value for sigma**2 for the MVN prior for the
+			values of b[0] and b[1]. 
+		beta_param: 1D np.array of length 2 contain the two beta parameters
+			for the prior on b[2].
+		optim_method: An int from {0,1,2,3,4} to choose the solver. See the 
+			README for more details. 
+
+		returns: np.array of length 3 containing the optimized parameters.
+		'''
 		if sigma_squared is None: sigma_squared = self.SS
 		if beta_param is None: beta_param = self.BP
 		if optim_method is None: optim_method = self.OPTIM_METHOD
 		if self.use_C_lib:
 			funmin = 0
-			self.ll23cAIC(b, 
-					probs, 
-					conc, 
-					len(probs), 
-					funmin,
-					sigma_squared,
-					beta_param,
-					optim_method)
+			self.ll23cAIC(b, probs, conc, len(probs), funmin,
+					sigma_squared, beta_param, optim_method)
 			return b
 		else:
 			return self.ll23AIC_min(b, probs, conc, sigma_squared, beta_param)
 
-	def min_ll2(self, b, probs, conc, sigma_squared = None, optim_method = None):
-		if sigma_squared is None: sigma_squared = self.SS
-		if optim_method is None: optim_method = self.OPTIM_METHOD
+	def min_ls(self, b, nparam, probs, conc, ls_method = None):
+		'''
+		Used to pass nprob pairs of concentrations/probabilities to the 
+			C-based or python-based least-squares solver.
+		b: np.array of length nparam. Should contain intial guess for
+			optimal value.
+		nparam: Either 2 or 3, for whether the 2-paramter or 3-parameter dose-
+			response curve should be used. 
+		probs: np.array of length nprob containing the probability values.
+		conc: np.array of length nprob containing the concentration values.
+		ls_method: An int from {0,1,2,3,4} to choose the solver. See the 
+			README for more details. 
 
-		if self.use_C_lib:
-			funmin = 0
-			self.ll2c(b, 
-					probs, 
-					conc, 
-					len(probs), 
-					funmin,
-					sigma_squared,
-					optim_method)
+		returns:np.array of length nparam containing the optimized parameters.
+		'''
+		if ls_method is None: ls_method = self.LS_METHOD
+		if self.use_C_lib: # pass off to the C function if it exists.
+			nprob = len(probs)
+			self.lsfit(nparam, nprob, b, conc, probs, ls_method)
 			return b
 		else:
-			res = minimize(FunctionFit.ll2p, b, 
-					args = (probs, conc, sigma_squared), 
-					method = 'BFGS', jac = FunctionFit.ll2p_jac)
-			return res.x
+			return FunctionFit.ll_ls(b, nparam, probs, conc)
 
 	@staticmethod
 	@utils.surpress_warnings
 	def ll_ls(b, nparam, probs, conc):
+		'''
+		Fits the nparam-parameter dose-response curve (nparam = 2 or 3) using
+			the method of least squares for the function
+							       b2
+						y = ------------------,
+							1 + exp(b0 + b1*x)
+			where b2=1.0 is fixed in the two-parameter, and free in the 3-
+			parameter curves. 
+			WARNING: For three parameters, b2 is not confined to the interval
+			[0,1], and may therefore provide curves that are not statistically
+			relevant. Use at your own risk. 
+		b: np.array of length nparam. Should contain intial guess for
+			optimal value.
+		nparam: Either 2 or 3, for whether the 2-paramter or 3-parameter dose-
+			response curve should be used. 
+		probs: np.array of length nprob containing the probability values.
+		conc: np.array of length nprob containing the concentration values.
+
+		returns:np.array of length nparam containing the optimized parameters.
+		'''
 		if nparam == 2:
 			return least_squares(FunctionFit.least_squares_error,
 								b, args=(nparam, probs, conc)).x
 		else:
 			return least_squares(FunctionFit.least_squares_error,
 								b, args=(nparam, probs, conc)).x
+
+	@staticmethod
+	@utils.surpress_warnings
+	def ll2p(b, probs, conc, sigma_squared = SS):
+		'''
+		Log-likelihood function of the two parameter dose-response curve 
+							    1
+					y = ------------------
+						1 + exp(b0 + b1*x)
+		wherein prior is b0, b1 ~ MVN(0, sigma*I2).
+		
+		b: np.array of length nparam. Should contain intial guess for
+			optimal value.
+		probs: np.array of length nprob containing the probability values.
+		conc: np.array of length nprob containing the concentration values.
+		sigma_squared: float value for sigma**2 for the MVN prior for the
+			values of b0 and b1. 
+		beta_param: 1D np.array of length 2 contain the two beta parameters
+			for the prior on b2.
+
+		returns: the negative of the log-likelihood function (for optimization
+		based on minimiation).
+		'''
+		b0 = b[0]
+		b1 = b[1]
+		p_sum = sum(probs)
+		p_conc_sum = sum(probs*conc)
+		ll = -(b0*b0 + b1*b1)/(2*sigma_squared) + b0*p_sum + b1*p_conc_sum - \
+				sum(np.log(1 + np.exp(b0+b1*conc)))
+		return(-ll)
+
 
 	@staticmethod
 	@utils.surpress_warnings
@@ -342,6 +500,18 @@ class FunctionFit():
 						1 + exp(b0 + b1*x)
 		wherein priors are b0, b1 ~ MVN(0, sigma*I2) and 
 		b2 ~ Beta(beta_param).
+
+		b: np.array of length nparam. Should contain intial guess for
+			optimal value.
+		probs: np.array of length nprob containing the probability values.
+		conc: np.array of length nprob containing the concentration values.
+		sigma_squared: float value for sigma**2 for the MVN prior for the
+			values of b0 and b1. 
+		beta_param: 1D np.array of length 2 contain the two beta parameters
+			for the prior on b2.
+
+		returns: the negative of the log-likelihood function (for optimization
+		based on minimiation).
 		'''
 		b0, b1, b2 = b
 		if ((b2 <= 1e-10) or (b2 >=1) ): return(1e10)
@@ -363,6 +533,23 @@ class FunctionFit():
 	@staticmethod
 	@utils.surpress_warnings
 	def ll_for_AIC(b, probs, conc, sigma_squared = SS, beta_param=BP):
+		'''
+		Returns the AIC value of the log-likelihood function of both the 
+		two- and three- parameter dose-response curves
+								    b2
+						y = ------------------
+							1 + exp(b0 + b1*x)
+		b: np.array of length nparam. Should contain optimized parameters for
+			the dose-response curve.
+		probs: np.array of length nprob containing the probability values.
+		conc: np.array of length nprob containing the concentration values.
+		sigma_squared: float value for sigma**2 for the MVN prior for the
+			values of b0 and b1. 
+		beta_param: 1D np.array of length 2 contain the two beta parameters
+			for the prior on b2.
+
+		returns: float value of the AIC for the curve. 
+		'''
 		b0, b1, b2 = b
 
 		#MVN Prior
@@ -373,30 +560,53 @@ class FunctionFit():
 			p_conc_sum = sum(probs*conc)
 			ll = -(b0*b0 + b1*b1)/(2*sigma_squared) + b0*p_sum + b1*p_conc_sum - \
 					sum(np.log(1 + np.exp(b0+b1*conc)))
+			return 4 - 2*ll #AIC for two paramters
 		else: #ll3
 			xi = np.exp(b0+b1*conc)
 			alpha = 1+xi
-			ll += (beta_param[0]-1)*math.log(b2) + (beta_param[1]-1)*math.log(1-b2) #Beta Prior
+			ll += (beta_param[0]-1)*math.log(b2) + \
+						(beta_param[1]-1)*math.log(1-b2) #Beta Prior
 			ll += sum(probs*np.log(alpha-b2) - np.log(alpha) + \
-					(1-probs)*math.log(b2))
-		return ll
+						(1-probs)*math.log(b2))
+			return 6 - 2*ll #AIC for three paramters
 
 	@staticmethod
 	@utils.surpress_warnings
 	def ll23AIC_min(b, probs, conc, sigma_squared = SS, beta_param=BP):
+		'''
+		Cacluates the maximum of the log-likelihood function of both the 
+		two- and three- parameter dose-response curves
+							    b2
+					y = ------------------
+						1 + exp(b0 + b1*x)
+		wherein priors are b0, b1 ~ MVN(0, sigma*I2) and b2 ~ Beta(beta_param)
+		(three parameters) or when b2=1.0 (two parameters). The AIC is used
+		to determine the optimal curve, the parameters of which are then 
+		returned. 
+
+		b: np.array of length nparam. Should contain intial guess for
+			optimal value.
+		probs: np.array of length nprob containing the probability values.
+		conc: np.array of length nprob containing the concentration values.
+		sigma_squared: float value for sigma**2 for the MVN prior for the
+			values of b0 and b1. 
+		beta_param: 1D np.array of length 2 contain the two beta parameters
+			for the prior on b2.
+
+		returns:np.array of length nparam containing the optimized parameters.
+		'''
 		#fit ll2
 		res2 = minimize(FunctionFit.ll2p, b[0:2], 
 					args = (probs, conc, sigma_squared), 
 					method = 'BFGS', jac = FunctionFit.ll2p_jac)
 		b2 = np.array([*res2.x, 1.0])
-		ll2 = FunctionFit.ll_for_AIC(b2, probs, conc, sigma_squared)
+		AIC2 = FunctionFit.ll_for_AIC(b2, probs, conc, sigma_squared)
 		#fit ll3
 		res3 = minimize(FunctionFit.ll3p, b, 
 					args = (probs, conc, sigma_squared, beta_param), 
 					method = 'BFGS', jac = FunctionFit.ll3p_jac)
-		ll3 = FunctionFit.ll_for_AIC(res3.x, probs, conc, sigma_squared, beta_param)
-		AIC2 = 4 - 2*ll2
-		AIC3 = 6 - 2*ll3
+		AIC3 = FunctionFit.ll_for_AIC(res3.x, probs, conc, 
+									sigma_squared, beta_param)
 
 		if (AIC2 < AIC3):
 			return b2
@@ -405,7 +615,35 @@ class FunctionFit():
 
 	@staticmethod
 	@utils.surpress_warnings
-	def ll3p_jac(b, probs, conc,sigma_squared = SS, beta_param=BP):
+	def ll2p_jac(b, probs, conc, sigma_squared = SS):
+		'''
+		Jacobian of the log-likelihood function of the 
+		two parameter dose-response curve
+							    1
+					y = ------------------
+						1 + exp(b0 + b1*x)
+		wherein prior is b0, b1 ~ MVN(0, sigma*I2).
+		
+		b: np.array of length nparam containing the paramter values at which
+			to calculate the Jacobian.
+		probs: np.array of length nprob containing the probability values.
+		conc: np.array of length nprob containing the concentration values.
+		sigma_squared: float value for sigma**2 for the MVN prior for the
+			values of b0 and b1. 
+
+		returns: np.array of length nparam containing the optimized parameters.
+		'''
+		b0 = b[0]
+		b1 = b[1]
+		xi = np.exp(b0+b1*conc)
+		l = xi/(xi+1)
+		g1 = -b0/sigma_squared + sum(probs) - sum(l)
+		g2 = -b1/sigma_squared + sum(conc*probs) - sum(conc*l)
+		return(np.array([-g1,-g2]))
+
+	@staticmethod
+	@utils.surpress_warnings
+	def ll3p_jac(b, probs, conc, sigma_squared = SS, beta_param=BP):
 		'''
 		Jacobian of the log-likelihood function of the three 
 		parameter dose-response curve 
@@ -414,6 +652,17 @@ class FunctionFit():
 						1 + exp(b0 + b1*x)
 		wherein priors are b0, b1 ~ MVN(0, sigma*I2) and 
 		b2 ~ Beta(beta_param).
+
+		b: np.array of length nparam containing the paramter values at which
+			to calculate the Jacobian.
+		probs: np.array of length nprob containing the probability values.
+		conc: np.array of length nprob containing the concentration values.
+		sigma_squared: float value for sigma**2 for the MVN prior for the
+			values of b0 and b1. 
+		beta_param: 1D np.array of length 2 contain the two beta parameters
+			for the prior on b2.
+
+		returns: np.array of length nparam containing the optimized parameters.
 		'''
 		b0, b1, b2 = b
 
@@ -429,42 +678,6 @@ class FunctionFit():
 		g2 = (ba-1)/b2 - (bb-1)/(1-b2) + sum(-probs/(d)) + sum((1-probs)/b2)
 		return(np.array([-g0,-g1,-g2]))
 
-	@staticmethod
-	@utils.surpress_warnings
-	def ll2p(b, probs, conc, sigma_squared = SS):
-		'''
-		Log-likelihood function of the two parameter dose-response curve 
-							    1
-					y = ------------------
-						1 + exp(b0 + b1*x)
-		wherein prior is b0, b1 ~ MVN(0, sigma*I2).
-		'''
-		b0 = b[0]
-		b1 = b[1]
-		p_sum = sum(probs)
-		p_conc_sum = sum(probs*conc)
-		ll = -(b0*b0 + b1*b1)/(2*sigma_squared) + b0*p_sum + b1*p_conc_sum - \
-				sum(np.log(1 + np.exp(b0+b1*conc)))
-		return(-ll)
-
-	@staticmethod
-	@utils.surpress_warnings
-	def ll2p_jac(b, probs, conc, sigma_squared = SS):
-		'''
-		Jacobian of the log-likelihood function of the 
-		two parameter dose-response curve
-							    1
-					y = ------------------
-						1 + exp(b0 + b1*x)
-		wherein prior is b0, b1 ~ MVN(0, sigma*I2).
-		'''
-		b0 = b[0]
-		b1 = b[1]
-		xi = np.exp(b0+b1*conc)
-		l = xi/(xi+1)
-		g1 = -b0/sigma_squared + sum(probs) - sum(l)
-		g2 = -b1/sigma_squared + sum(conc*probs) - sum(conc*l)
-		return(np.array([-g1,-g2]))
 
 	@staticmethod
 	@utils.surpress_warnings
@@ -475,6 +688,14 @@ class FunctionFit():
 							    b2
 					y = ------------------
 						1 + exp(b0 + b1*x)
+		b: np.array of length nparam containing the parameter values at which
+			to calculate the error.
+		nparam: Either 2 or 3, for whether the 2-paramter or 3-parameter dose-
+			response curve should be used. 
+		probs: np.array of length nprob containing the probability values.
+		conc: np.array of length nprob containing the concentration values.
+
+		returns: float containing the summed squared residuals.
 		'''
 		if nparam == 2:
 			return np.array((1-1/(1 + np.exp(b[0] + b[1]*conc)) - probs)**2)
@@ -482,7 +703,8 @@ class FunctionFit():
 			if b[2] > 1:
 				return 1e10
 			else:
-				return np.array((1-b[2]/(1 + np.exp(b[0] + b[1]*conc)) - probs)**2)
+				return np.array((1-b[2]/(1 + np.exp(b[0] +\
+								b[1]*conc)) - probs)**2)
 
 	@staticmethod
 	@utils.surpress_warnings
@@ -493,6 +715,13 @@ class FunctionFit():
 					y = ------------------
 						1 + exp(b0 + b1*x)
 		given b = [b0, b1] and x.
+		b: np.array of length 2 containing the parameter values at which
+			to evaluate the function.
+		conc: 1D np.array containing the concentration values at which to 
+			evaluate the function.
+
+		returns: 1D np.array of length len(conc) containing the function 
+			values at each concentration 
 		'''
 		return 1./(1.+ np.exp(b[0] + conc * b[1]))
 
@@ -505,6 +734,14 @@ class FunctionFit():
 					y = ------------------
 						1 + exp(b0 + b1*x)
 		given b = [b0, b1, b2] and x.
+
+		b: np.array of length 3 containing the parameter values at which
+			to evaluate the function.
+		conc: 1D np.array containing the concentration values at which to 
+			evaluate the function.
+
+		returns: 1D np.array of length len(conc) containing the function 
+			values at each concentration 
 		'''
 		return b[2]/(1.+ np.exp(b[0] + conc * b[1]))
 
@@ -514,8 +751,14 @@ class FunctionFit():
 		Produce an initial estimate of the starting vector for curve 
 		optimization. The slope defualts to 1, and the data is used to 
 		generate estimates of the baseline mortality and the LC50. 
-		'''
-		#no good way to estimate slope yet without a curve fit.
+		
+		conc: 1D np.array containing the concentration values at which to 
+			evaluate the function.
+		probs: np.array of length len(conc) containing the probability values.
+		params: Either 2 or 3; number of parameters in curve. 
+		returns: np.array of len(params) for initial guess of values. 
+		'''		
+		#no great way to estimate slope implemented yet without a curve fit.
 		default_slope= 1
 		#estimate background mortality:
 		n_vals = round(0.2 * len(conc))
@@ -532,7 +775,8 @@ class FunctionFit():
 			background_mort = sum( probs[:n_vals])/n_vals #ave
 			if rev: background_mort = 1-background_mort
 			med = background_mort/2.
-			#prevent nasty number errors
+			#prevent nasty numerical errors, e.g. undefined function values
+			#from beta distributions when background_mort >=1 or <=0.
 			if abs(background_mort - 1.0)<1e-6: background_mort = 0.99
 			if background_mort < 0.5 : background_mort = 0.75
 
@@ -553,7 +797,7 @@ class FunctionFit():
 
 	def switch_fitter(self, switch, conc, probs, 
 				sigma_squared = None, beta_param = None,
-				rev = True):
+				rev = True, perturbation = False):
 		'''
 		Drives the selection of the apprpriate function to fit based on the 
 		value specified in the switch. 
@@ -561,14 +805,19 @@ class FunctionFit():
 			anlysis_config.txt
 		conc: The np.array of concentrations; shape = (nconc,)
 		props: The np.array of survival propbabilities. shape = (nconc,)
+		sigma_squared: float value for sigma**2 for the MVN prior for the
+			values of b0 and b1. To be passed to bayesian fittings
+		beta_param: 1D np.array of length 2 contain the two beta parameters
+			for the prior on b2. To be passed to bayesian fittings
 		Returns: np.array of fitted parameters. shape = (3,)
 		'''
 		if sigma_squared is None: sigma_squared = self.SS
 		if beta_param is None: beta_param = self.BP
 		b2 = self.estimate_initial_b(conc, probs, params = 2, rev = rev)
-		# b2 += np.random.normal(0, 0.5, 2)
 		b3 = self.estimate_initial_b(conc, probs, params = 3, rev = rev)
-		# b3 += np.array([*np.random.normal(0, 0.5, 2) , 0.0])
+		if perturbation: 
+			b2 += np.random.normal(0, 0.5, 2)
+			b3 += np.array([*np.random.normal(0, 0.5, 2) , 0.0])
 
 		switch = switch.lower()
 
@@ -599,7 +848,8 @@ class FunctionFit():
 			return b
 
 	def switch_array_fitter(self, switch, conc, prob_array, init_prob,
-				sigma_squared = None, beta_param = None):
+				sigma_squared = None, beta_param = None,
+				perturbation = False):
 		'''
 		Drives the selection of the apprpriate function to fit based on the 
 		value specified in the switch. 
@@ -609,20 +859,29 @@ class FunctionFit():
 		prob_array: The np.array of survival propbabilities; shape=(n_iter,nconc)
 		init_prob: The np.array of true probs for estimating the initial value 
 			of b to start optimization; shape=(nconc,)
+		sigma_squared: float value for sigma**2 for the MVN prior for the
+			values of b0 and b1. To be passed to bayesian fittings
+		beta_param: 1D np.array of length 2 contain the two beta parameters
+			for the prior on b2. To be passed to bayesian fittings
 		Returns: (n_iter,3) np.array of fitted parameters. 
 		'''
 		if sigma_squared is None: sigma_squared = self.SS
 		if beta_param is None: beta_param = self.BP
 
+		#generate initial estimates
 		niters, nprobs = prob_array.shape
 		b2 = self.estimate_initial_b(conc, init_prob, params = 2, rev = True)
 		b2_array = np.repeat([b2], niters, axis=0)
-		# b2_array += np.random.normal(0, 0.5, b2_array.shape)
 		b3 = self.estimate_initial_b(conc, init_prob, params = 3, rev = True)
 		background_mort = b3[2]
 		b3_array = np.repeat([b3], niters, axis=0)
-		# b3_array += np.c_[np.random.normal(0, 0.5, b2_array.shape), np.zeros(niters)]
-		switch = switch.lower()
+
+		if perturbation:
+			b2_array += np.random.normal(0, 0.5, b2_array.shape)
+			b3_array += np.c_[np.random.normal(0, 0.5, b2_array.shape), 
+								np.zeros(niters)]
+
+		switch = switch.lower() #verify switch is lower-case for matching
 
 		if switch == 'auto':
 			if background_mort > 0.10: switch = "ll3"
@@ -637,6 +896,8 @@ class FunctionFit():
 		elif switch in ["ls3"]:
 			b_out = self.array_ls(3, b3_array, 1.0-prob_array, conc)
 		elif switch in ["ls2"]:
+			#NB: note that whilst two parameters are used, the array still
+			#is required to be three param wide. 
 			b_out = self.array_ls(2, b3_array, 1.0-prob_array, conc)
 		elif switch in ["best", "aic"]:
 			b_out = self.array_ll23AIC(b3_array, prob_array, conc,

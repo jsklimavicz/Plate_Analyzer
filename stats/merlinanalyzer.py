@@ -336,19 +336,23 @@ class MerlinAnalyzer:
 		return header
 
 	@utils.surpress_warnings
-	def compare_LC(self, cmpd, n_bs = 100000, *args, **kwargs):
+	def compare_LC(self, cmpd, n_bs = 100000):
 		'''
 		Calculates relative potency using random samples from the kernel density of the LCx distribution for
 		cmpd1 and cmpd2.
 		'''
-		cmpd_kernel = self.cmpd_data[cmpd].curve_data.LC_kernel(
-			LC_val = 1. - self.options['LC_VALUES']).sample(n_samples=n_bs)
-		ref_kernel= self.cmpd_data[self.options['REFERENCE_COMPOUND']].curve_data.LC_kernel(
-			LC_val = 1. - self.options['LC_VALUES']).sample(n_samples=n_bs)
-		diff = cmpd_kernel - ref_kernel if self.options['REL_POT_TO_REF'] else kernel2 - kernel1
-		func = utils.calc_ET_CI if self.options["CI_METHOD"].lower() in utils.ET_VARS else utils.calc_HPDI_CI
-		vals = func(diff, CI_level = self.options['REL_POT_CI'])
-		return np.power(2., vals).T
+		lcs = self.options['LC_VALUES']
+		vals = np.zeros((len(lcs),3))
+		for ind, lc in enumerate(lcs):
+			cmpd_kernel = self.cmpd_data[cmpd].curve_data.LC_kernel(
+				LC_val = 1. - lc).sample(n_samples=n_bs)
+			ref_kernel= self.cmpd_data[self.options['REFERENCE_COMPOUND']].curve_data.LC_kernel(
+				LC_val = 1. - lc).sample(n_samples=n_bs)
+			diff = cmpd_kernel - ref_kernel if self.options['REL_POT_TO_REF'] else kernel2 - kernel1
+			func = utils.calc_ET_CI if self.options["CI_METHOD"].lower() in utils.ET_VARS else utils.calc_HPDI_CI
+			val = func(diff, CI_level = self.options['REL_POT_CI'])
+			vals[ind,:] = np.power(2., val).T
+		return vals
 
 	def collect_data(self,
 						new_datapath = None, 
