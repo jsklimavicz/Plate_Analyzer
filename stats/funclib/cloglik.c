@@ -45,7 +45,7 @@ void ll3_min(double *b, //The minimal value that is found.
   	struct multimin_params optim_par = {.1,1e-2,500,1e-3,1e-5,method,0};
 
 	//                   b0	  b1  b2
-	double xmin[3]   =  {-10, 0.05,  0};
+	double xmin[3]   =  {-10, 0.05,0};
 	double xmax[3]   =  {10,   5,  1};
 	unsigned type[3] =  {3,    3,  3};
 

@@ -534,12 +534,13 @@ class FunctionFit():
 			med = background_mort/2.
 			#prevent nasty number errors
 			if abs(background_mort - 1.0)<1e-6: background_mort = 0.99
+			if background_mort < 0.5 : background_mort = 0.75
 
 		#estimate the b0 parameter
 		high_idx = np.where(probs > med)[0]
 
 		if len(high_idx) == 0: 
-			est_intercept = max(conc)
+			est_intercept = max(conc)-1
 		else:
 			est_pt = round(len(high_idx)*.6)-1
 			est_intercept= - conc[high_idx[est_pt]]/default_slope

@@ -152,6 +152,12 @@ class DataPreviewer(tk.Frame):
 		#Scrollbar for inner frame (will be bound to the listbox)
 		scrollbar = Scrollbar(allowed_list_frm, orient="vertical")
 		scrollbar.pack(side=RIGHT, fill=Y)
+		msg = "These UIDs are included in the calculation of the dose-"+\
+			"response curve shown. If left in this box, these UIDs will"+\
+			" also be included in the final dose-response calculations. "+\
+			"Data from these UIDs are shown in larger black circles in "+\
+			"plot, and any currently-selected data is highlighted in red."
+		Tooltip(allowed_label, text=msg)
 		
 		#UID listbox
 		self.allowed_listbox = Listbox(allowed_list_frm, 
@@ -207,7 +213,13 @@ class DataPreviewer(tk.Frame):
 		#Scrollbar for inner frame (will be bound to the listbox)
 		scrollbar = Scrollbar(disallowed_list_frm, orient="vertical")
 		scrollbar.pack(side=RIGHT, fill=Y)
-		
+		msg = "These UIDs are not included in the calculation of the dose-"+\
+			"response curve shown. If left in this box, these UIDs will"+\
+			" also not be included in the final dose-response calculations."+\
+			"Data from these UIDs are shown in smalled gray circles in "+\
+			"plot, and any currently-selected data is highlighted in red."
+		Tooltip(disallowed_label, text=msg)
+
 		#UID listbox
 		self.disallowed_listbox = Listbox(disallowed_list_frm, 
 						selectmode='single',
@@ -426,7 +438,7 @@ class DataPreviewer(tk.Frame):
 		self.conc_orig = self.curr_data.data["conc"].copy() 
 		self.conc = self.conc_orig.copy() 
 		#calculate survival probability. 
-		self.probs = np.array(self.curr_data.data["live_count"]/ \
+		self.probs = np.array(self.curr_data.data["dead_count"]/ \
 					(self.curr_data.data["live_count"] + \
 					self.curr_data.data["dead_count"]))
 
@@ -481,11 +493,11 @@ class DataPreviewer(tk.Frame):
 		switch = self.stats_obj.options["CURVE_TYPE"].lower()
 		b = ff.switch_fitter(switch, self.calc_conc, 
 							self.probs_active, rev = False)
-		self.y = 1 - ff.loglogit3(b = b, conc = self.x)
+		self.y = ff.loglogit3(b = b, conc = self.x)
 
 		self.plot_curve()
 		r2 = CI_finder.find_r2(self.x, self.y, 
-							self.calc_conc, self.probs_active)
+							self.calc_conc, 1-self.probs_active)
 
 		if b[2] <= 1.0:
 			lc50 = 2**(-b[0]/b[1])
@@ -549,6 +561,7 @@ class DataPreviewer(tk.Frame):
 		Plots the data points of a graph. This is included for consistency of 
 		plots between plotting and replotting with highlighted data. 
 		'''
+		probs  = 1.0 - np.array(probs)
 		if style == "active":
 			self.plot1.plot(conc, 
 					probs, 
