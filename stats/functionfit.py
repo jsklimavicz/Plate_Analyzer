@@ -158,10 +158,11 @@ class FunctionFit():
 
 				#Constrained Least Squares
 				self.__cls = self.__cloglik.cls3_min
-				self.__cls.argtypes = [np.ctypeslib.ndpointer(dtype=np.float64, #minima
-												ndim=2, flags='C_CONTIGUOUS'),
+				self.__cls.argtypes = [
+						np.ctypeslib.ndpointer(dtype=np.float64, #minimum
+												ndim=1, flags='C_CONTIGUOUS'),
 						np.ctypeslib.ndpointer(dtype=np.float64, #prob array
-												ndim=2, flags='C_CONTIGUOUS'),
+												ndim=1, flags='C_CONTIGUOUS'),
 						np.ctypeslib.ndpointer(dtype=np.float64, #conc
 												ndim=1, flags='C_CONTIGUOUS'),
 						c_int, #number of probabilities
@@ -169,8 +170,8 @@ class FunctionFit():
 						np.ctypeslib.ndpointer(dtype=np.float64, #lb
 												ndim=1, flags='C_CONTIGUOUS'),
 						np.ctypeslib.ndpointer(dtype=np.float64, #ub
-												ndim=1, flags='C_CONTIGUOUS'),
-						c_int] #OPTIM_METHOD
+												ndim=1, flags='C_CONTIGUOUS')]
+
 
 				#Constrained Least Squares by array
 				self.__cls_array = self.__cloglik.cls3_array_min
@@ -187,8 +188,7 @@ class FunctionFit():
 						np.ctypeslib.ndpointer(dtype=np.float64, #lb
 												ndim=1, flags='C_CONTIGUOUS'),
 						np.ctypeslib.ndpointer(dtype=np.float64, #ub
-												ndim=1, flags='C_CONTIGUOUS'),
-						c_int] #OPTIM_METHOD
+												ndim=1, flags='C_CONTIGUOUS')]
 
 				self.use_C_lib = True
 			except:
@@ -501,8 +501,8 @@ class FunctionFit():
 		else:
 			return FunctionFit.ll_ls(b, nparam, probs, conc)
 
-	def min_cls(self, b, probs, conc, 
-				optim_method = None, lb = None, ub = None):
+	@utils.surpress_warnings
+	def min_cls(self, b, probs, conc, lb = None, ub = None):
 		'''
 		Used to pass nprob pairs of concentrations/probabilities to the 
 			C-based or python-based constrained least-squares optimizer.
@@ -515,14 +515,13 @@ class FunctionFit():
 
 		returns: np.array of length 2 containing the optimized parameters.
 		'''
-		if optim_method is None: optim_method = self.OPTIM_METHOD
 		if lb is None: lb = self.LB
 		if ub is None: ub = self.UB
 
 		if self.use_C_lib:
 			funmin = 0
 			self.__cls(b, probs, conc, len(probs), funmin, 
-						lb, ub, optim_method)
+						lb, ub)
 			return b
 		else:
 			bb = self.get_python_bounds()
@@ -530,8 +529,7 @@ class FunctionFit():
 					method = 'SLSQP', bounds = bb)
 			return res.x
 
-	def array_cls(self, b_input, prob_array, conc_list, 
-							optim_method = None, lb = None, ub = None):
+	def array_cls(self, b_input, prob_array, conc_list, lb = None, ub = None):
 		'''
 		Used to pass an array of probabilities to the C-based or python-based
 			ll3 solver. For data that has prob_ct different concentration/
@@ -553,7 +551,6 @@ class FunctionFit():
 		returns: 2D np.array of size niters * 3 containing the optimized 
 			values for each bootstrap. 
 		'''
-		if optim_method is None: optim_method = self.OPTIM_METHOD
 		if lb is None: lb = self.LB
 		if ub is None: ub = self.UB
 
@@ -563,7 +560,7 @@ class FunctionFit():
 			#to provide the minimum value if needed. 
 			funmin = np.zeros(niters)
 			self.__cls_array(prob_ct, niters, b_input, prob_array, conc_list, 
-						funmin, lb, ub, optim_method)
+						funmin, lb, ub)
 		else:
 			for i in range(niters):
 				b_input[i] = self.min_cls(b_input[i], prob_array[i], conc_list)
@@ -996,7 +993,7 @@ class FunctionFit():
 		elif switch in ["ls2"]:
 			b = self.min_ls(b2, 2, probs, conc)
 		elif switch in ["cls", "cls3"]:
-			b = self. min_cls(b3, probs, conc)
+			b = self. min_cls(b3, 1.0 - probs, conc)
 		elif switch in ["best", "aic"]:
 			b = self.min_llAIC(b3, probs, conc,
 				sigma_squared = sigma_squared, beta_param = beta_param)
@@ -1062,7 +1059,7 @@ class FunctionFit():
 			#is required to be three param wide. 
 			b_out = self.array_ls(2, b3_array, prob_array, conc)
 		elif switch in ["cls", "cls3"]:
-			b = self.array_cls(b3, probs, conc)
+			b_out = self.array_cls(b3_array, 1.0 - prob_array, conc)
 		elif switch in ["best", "aic"]:
 			b_out = self.array_ll23AIC(b3_array, prob_array, conc,
 				sigma_squared = sigma_squared, beta_param = beta_param)

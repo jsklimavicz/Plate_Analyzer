@@ -73,6 +73,7 @@ void cls3f_error(const size_t n,
 		curry = ls3_fun(b[0], b[1], b[2], conc[i]) - probs[i];
 		*fval += curry * curry;
 	}
+
 }
 
 

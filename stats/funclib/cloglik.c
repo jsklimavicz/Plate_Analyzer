@@ -47,8 +47,6 @@ void ll3_min(double *b, //Vector of parameters for optimization
   	struct multimin_params optim_par = {.1,1e-2,500,1e-3,1e-5,method,0};
 
 	//                   b0	  b1  b2
-	// double xmin[3]   =  {-10, 0.05,0};
-	// double xmax[3]   =  {10,   5,  1};
 	unsigned type[3] =  {3,    3,  3};
 
 	multimin(3, b, &minimum, type, lb, ub, &ll3f,&ll3df,&ll3fdf,
@@ -72,8 +70,6 @@ void ll2_min(double *b, //Vector of parameters for optimization
   	struct multimin_params optim_par = {.1,1e-2,500,1e-3,1e-5,method,0};
 	
 	//                   b0	  b1 
-	// double xmin[2]   =  {-10, 0.05};
-	// double xmax[2]   =  {10,   5};
 	unsigned type[2] =  {3,    3};
 
 	multimin(2, b, &minimum, type, lb, ub, &ll2f,&ll2df,&ll2fdf,
@@ -101,8 +97,6 @@ void ll3_array_min(
   	struct multimin_params optim_par = {.1,1e-2,500,1e-3,1e-5,method,0};
 
 	//                   b0	  b1  b2
-	// double xmin[3]   =  {-10, 0.05,  0};
-	// double xmax[3]   =  {10,   5,  1};
 	unsigned type[3] =  {3,    3,  3};
 
 	for (int i = 0; i<n_iters; i++){
@@ -167,8 +161,6 @@ void ll2_ll3_AIC(double *b, //Vector of parameters for optimization
 	struct multimin_params optim_par = {.1,1e-2,500,1e-3,1e-5,method,0};
 
 	//                   b0	  b1  b2
-	// double xmin[3]   =  {-10, 0.05,  0};
-	// double xmax[3]   =  {10,   5,  1};
 	unsigned type[3] =  {3,    3,  3};
 
 	multimin(2, b, &minimum, type, lb, ub, &ll2f, &ll2df, &ll2fdf, 
@@ -222,8 +214,6 @@ void array_ll2_ll3_AIC(
 	struct multimin_params optim_par = {.1,1e-2,500,1e-3,1e-5,method,0};
 
 	//                   b0	  b1  b2
-	// double xmin[3]   =  {-10, 0.05,  0};
-	// double xmax[3]   =  {10,   5,  1};
 	unsigned type[3] =  {3,    3,  3};
 
 	for (int i = 0; i<n_iters; i++){
@@ -346,18 +336,16 @@ void cls3_min(double *b, //Vector of parameters for optimization
 	int probs_size, //Length of the prob/conc arrays
 	double minimum, //The function value
 	double *lb, //Lower bound for constrained optim
-	double *ub, //Upper bound for constrained optim
-	const int method) //ID of method to be usedfor optimization. 
+	double *ub) //Upper bound for constrained optim
 {
+
 	struct ll_param fparam = { .probs = probs, 
 								.conc = conc, 
 								.probs_size = probs_size
 							};
-  	struct multimin_params optim_par = {.1,1e-2,500,1e-3,1e-5,method,0};
+  	struct multimin_params optim_par = {.1,1e-2,500,1e-3,1e-5,6,0};
 
 	//                   b0	  b1  b2
-	// double xmin[3]   =  {-10, 0.05,0};
-	// double xmax[3]   =  {10,   5,  1};
 	unsigned type[3] =  {3,    3,  3};
 
 	multimin(3, b, &minimum, type, lb, ub, &cls3f_error,NULL,NULL,
@@ -373,18 +361,15 @@ void cls3_array_min(
 	double *conc, //Array of concentrations
 	double *minimum, //The function values
 	double *lb, //Lower bound for constrained optim
-	double *ub, //Upper bound for constrained optim
-	const int method) //ID of method to be usedfor optimization. 
+	double *ub) //Upper bound for constrained optim
 {
 	struct ll_param fparam ={ .probs = probs[0], 
 							  .conc = conc, 
 							  .probs_size = probs_size
 							};
-  	struct multimin_params optim_par = {.1,1e-2,500,1e-3,1e-5,method,0};
+  	struct multimin_params optim_par = {.1,1e-2,500,1e-3,1e-5,6,0};
 
 	//                   b0	  b1  b2
-	// double xmin[3]   =  {-10, 0.05,  0};
-	// double xmax[3]   =  {10,   5,  1};
 	unsigned type[3] =  {3,    3,  3};
 
 	for (int i = 0; i<n_iters; i++){

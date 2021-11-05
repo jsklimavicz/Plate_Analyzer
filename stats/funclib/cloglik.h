@@ -117,8 +117,7 @@ void cls3_min(double *b, //Vector of parameters for optimization
 	int probs_size, //Length of the prob/conc arrays
 	double minimum, //The function value
 	double *lb, //Lower bound for constrained optim
-	double *ub, //Upper bound for constrained optim
-	const int method); //ID of method to be usedfor optimization. 
+	double *ub); //Upper bound for constrained optim 
 
 void cls3_array_min(
 	int probs_size, //Number of vals in the prob/conc arrays
@@ -128,5 +127,4 @@ void cls3_array_min(
 	double *conc, //Array of concentrations
 	double *minimum, //The function values
 	double *lb, //Lower bound for constrained optim
-	double *ub, //Upper bound for constrained optim
-	const int method); //ID of method to be usedfor optimization. 
+	double *ub); //Upper bound for constrained optim 

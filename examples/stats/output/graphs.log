@@ -1,0 +1,1225 @@
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=pdflatex 2021.5.5)  5 NOV 2021 17:01
+entering extended mode
+ restricted \write18 enabled.
+ %&-line parsing enabled.
+**/home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/graphs.tex --
+shell-escape --enable-write18
+(/home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/graphs.tex
+LaTeX2e <2020-02-02> patch level 2
+L3 programming layer <2020-02-14>
+(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
+(/usr/share/texlive/texmf-dist/tex/latex/base/size10.clo
+File: size10.clo 2019/12/20 v1.4l Standard LaTeX file (size option)
+)
+\c@part=\count167
+\c@section=\count168
+\c@subsection=\count169
+\c@subsubsection=\count170
+\c@paragraph=\count171
+\c@subparagraph=\count172
+\c@figure=\count173
+\c@table=\count174
+\abovecaptionskip=\skip47
+\belowcaptionskip=\skip48
+\bibindent=\dimen134
+)
+(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
+Package: geometry 2020/01/02 v5.9 Page Geometry
+
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty
+Package: keyval 2014/10/28 v1.15 key=value parser (DPC)
+\KV@toks@=\toks14
+)
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
+Package: ifvtex 2019/10/25 v1.7 ifvtex legacy package. Use iftex instead.
+
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty
+Package: iftex 2019/11/07 v1.0c TeX engine tests
+))
+\Gm@cnth=\count175
+\Gm@cntv=\count176
+\c@Gm@tempcnt=\count177
+\Gm@bindingoffset=\dimen135
+\Gm@wd@mp=\dimen136
+\Gm@odd@mp=\dimen137
+\Gm@even@mp=\dimen138
+\Gm@layoutwidth=\dimen139
+\Gm@layoutheight=\dimen140
+\Gm@layouthoffset=\dimen141
+\Gm@layoutvoffset=\dimen142
+\Gm@dimlist=\toks15
+)
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/graphicx.sty
+Package: graphicx 2019/11/30 v1.2a Enhanced LaTeX Graphics (DPC,SPQR)
+
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/graphics.sty
+Package: graphics 2019/11/30 v1.4a Standard LaTeX Graphics (DPC,SPQR)
+
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/trig.sty
+Package: trig 2016/01/03 v1.10 sin cos tan (DPC)
+)
+(/usr/share/texlive/texmf-dist/tex/latex/graphics-cfg/graphics.cfg
+File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
+)
+Package graphics Info: Driver file: pdftex.def on input line 105.
+
+(/usr/share/texlive/texmf-dist/tex/latex/graphics-def/pdftex.def
+File: pdftex.def 2018/01/08 v1.0l Graphics/color driver for pdftex
+))
+\Gin@req@height=\dimen143
+\Gin@req@width=\dimen144
+)
+(/usr/share/texlive/texmf-dist/tex/latex/caption/subcaption.sty
+Package: subcaption 2020/01/22 v1.3d Sub-captions (AR)
+
+(/usr/share/texlive/texmf-dist/tex/latex/caption/caption.sty
+Package: caption 2020/01/03 v3.4h Customizing captions (AR)
+
+(/usr/share/texlive/texmf-dist/tex/latex/caption/caption3.sty
+Package: caption3 2020/01/03 v1.8h caption3 kernel (AR)
+Package caption3 Info: TeX engine: e-TeX on input line 61.
+\captionmargin=\dimen145
+\captionmargin@=\dimen146
+\captionwidth=\dimen147
+\caption@tempdima=\dimen148
+\caption@indent=\dimen149
+\caption@parindent=\dimen150
+\caption@hangindent=\dimen151
+Package caption Info: Standard document class detected.
+)
+\c@caption@flags=\count178
+\c@continuedfloat=\count179
+)
+\c@subfigure=\count180
+\c@subtable=\count181
+)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
+Package: amsmath 2020/01/20 v2.17e AMS math features
+\@mathmargin=\skip49
+
+For additional information on amsmath, use the `?' option.
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
+Package: amstext 2000/06/29 v2.01 AMS text
+
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty
+File: amsgen.sty 1999/11/30 v2.0 generic functions
+\@emptytoks=\toks16
+\ex@=\dimen152
+))
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty
+Package: amsbsy 1999/11/29 v1.2d Bold Symbols
+\pmbraise@=\dimen153
+)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty
+Package: amsopn 2016/03/08 v2.02 operator names
+)
+\inf@bad=\count182
+LaTeX Info: Redefining \frac on input line 227.
+\uproot@=\count183
+\leftroot@=\count184
+LaTeX Info: Redefining \overline on input line 389.
+\classnum@=\count185
+\DOTSCASE@=\count186
+LaTeX Info: Redefining \ldots on input line 486.
+LaTeX Info: Redefining \dots on input line 489.
+LaTeX Info: Redefining \cdots on input line 610.
+\Mathstrutbox@=\box45
+\strutbox@=\box46
+\big@size=\dimen154
+LaTeX Font Info:    Redeclaring font encoding OML on input line 733.
+LaTeX Font Info:    Redeclaring font encoding OMS on input line 734.
+\macc@depth=\count187
+\c@MaxMatrixCols=\count188
+\dotsspace@=\muskip16
+\c@parentequation=\count189
+\dspbrk@lvl=\count190
+\tag@help=\toks17
+\row@=\count191
+\column@=\count192
+\maxfields@=\count193
+\andhelp@=\toks18
+\eqnshift@=\dimen155
+\alignsep@=\dimen156
+\tagshift@=\dimen157
+\tagwidth@=\dimen158
+\totwidth@=\dimen159
+\lineht@=\dimen160
+\@envbody=\toks19
+\multlinegap=\skip50
+\multlinetaggap=\skip51
+\mathdisplay@stack=\toks20
+LaTeX Info: Redefining \[ on input line 2859.
+LaTeX Info: Redefining \] on input line 2860.
+)
+(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty
+Package: amsthm 2017/10/31 v2.20.4
+\thm@style=\toks21
+\thm@bodyfont=\toks22
+\thm@headfont=\toks23
+\thm@notefont=\toks24
+\thm@headpunct=\toks25
+\thm@preskip=\skip52
+\thm@postskip=\skip53
+\thm@headsep=\skip54
+\dth@everypar=\toks26
+)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty
+Package: amsfonts 2013/01/14 v3.01 Basic AMSFonts support
+\symAMSa=\mathgroup4
+\symAMSb=\mathgroup5
+LaTeX Font Info:    Redeclaring math symbol \hbar on input line 98.
+LaTeX Font Info:    Overwriting math alphabet `\mathfrak' in version `bold'
+(Font)                  U/euf/m/n --> U/euf/b/n on input line 106.
+)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
+Package: amssymb 2013/01/14 v3.01 AMS font symbols
+)
+(/usr/share/texlive/texmf-dist/tex/latex/mathtools/mathtools.sty
+Package: mathtools 2020/01/17 v1.23 mathematical typesetting tools
+
+(/usr/share/texlive/texmf-dist/tex/latex/tools/calc.sty
+Package: calc 2017/05/25 v4.3 Infix arithmetic (KKT,FJ)
+\calc@Acount=\count194
+\calc@Bcount=\count195
+\calc@Adimen=\dimen161
+\calc@Bdimen=\dimen162
+\calc@Askip=\skip55
+\calc@Bskip=\skip56
+LaTeX Info: Redefining \setlength on input line 80.
+LaTeX Info: Redefining \addtolength on input line 81.
+\calc@Ccount=\count196
+\calc@Cskip=\skip57
+)
+(/usr/share/texlive/texmf-dist/tex/latex/mathtools/mhsetup.sty
+Package: mhsetup 2017/03/31 v1.3 programming setup (MH)
+)
+LaTeX Info: Thecontrolsequence`\('isalreadyrobust on input line 129.
+LaTeX Info: Thecontrolsequence`\)'isalreadyrobust on input line 129.
+LaTeX Info: Thecontrolsequence`\['isalreadyrobust on input line 129.
+LaTeX Info: Thecontrolsequence`\]'isalreadyrobust on input line 129.
+\g_MT_multlinerow_int=\count197
+\l_MT_multwidth_dim=\dimen163
+\origjot=\skip58
+\l_MT_shortvdotswithinadjustabove_dim=\dimen164
+\l_MT_shortvdotswithinadjustbelow_dim=\dimen165
+\l_MT_above_intertext_sep=\dimen166
+\l_MT_below_intertext_sep=\dimen167
+\l_MT_above_shortintertext_sep=\dimen168
+\l_MT_below_shortintertext_sep=\dimen169
+)
+(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty
+Package: bm 2019/07/24 v1.2d Bold Symbol Support (DPC/FMi)
+\symboldoperators=\mathgroup6
+\symboldletters=\mathgroup7
+\symboldsymbols=\mathgroup8
+LaTeX Font Info:    Redeclaring math alphabet \mathbf on input line 141.
+LaTeX Info: Redefining \bm on input line 209.
+)
+(/usr/share/texlive/texmf-dist/tex/latex/datetime/datetime.sty
+Package: datetime 2015/03/20 v2.60 Date Time Package
+
+(/usr/share/texlive/texmf-dist/tex/latex/etoolbox/etoolbox.sty
+Package: etoolbox 2019/09/21 v2.5h e-TeX tools for LaTeX (JAW)
+\etb@tempcnta=\count198
+)
+(/usr/share/texlive/texmf-dist/tex/latex/fmtcount/fmtcount.sty
+Package: fmtcount 2020/01/30 v3.06
+
+(/usr/share/texlive/texmf-dist/tex/latex/base/ifthen.sty
+Package: ifthen 2014/09/29 v1.1c Standard LaTeX ifthen package (DPC)
+)
+(/usr/share/texlive/texmf-dist/tex/latex/xkeyval/xkeyval.sty
+Package: xkeyval 2014/12/03 v2.7a package option processing (HA)
+
+(/usr/share/texlive/texmf-dist/tex/generic/xkeyval/xkeyval.tex
+(/usr/share/texlive/texmf-dist/tex/generic/xkeyval/xkvutils.tex
+\XKV@toks=\toks27
+\XKV@tempa@toks=\toks28
+)
+\XKV@depth=\count199
+File: xkeyval.tex 2014/12/03 v2.7a key=value parser (HA)
+))
+(/usr/share/texlive/texmf-dist/tex/latex/fmtcount/fcprefix.sty
+Package: fcprefix 2012/09/28
+
+(/usr/share/texlive/texmf-dist/tex/latex/fmtcount/fcnumparser.sty
+Package: fcnumparser 2017/06/15
+\fc@digit@counter=\count266
+))
+\c@padzeroesN=\count267
+\fc@tmpcatcode=\count268
+\@DT@modctr=\count269
+\@ordinalctr=\count270
+\@orgargctr=\count271
+\@strctr=\count272
+\@tmpstrctr=\count273
+\@DT@loopN=\count274
+\@DT@X=\count275
+)
+(/usr/share/texlive/texmf-dist/tex/latex/datetime/datetime-defaults.sty
+Package: datetime-defaults 2013/09/10
+)
+\@day=\count276
+\@month=\count277
+\@year=\count278
+\c@HOUR=\count279
+\c@HOURXII=\count280
+\c@MINUTE=\count281
+\c@TOHOUR=\count282
+\c@TOMINUTE=\count283
+\c@SECOND=\count284
+\currenthour=\count285
+\currentminute=\count286
+\currentsecond=\count287
+Package datetime Info: No datetime.cfg file found, using default settings on in
+put line 308.
+
+
+! LaTeX Error: Unknown option `HHmmss' for package `datetime'.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.560 \if@dt@nodate
+                   
+The option `HHmmss' was not declared in package `datetime', perhaps you
+misspelled its name. Try typing  <return>  to proceed.
+
+\@dtctr=\count288
+\dayofyear=\count289
+\dayofweek=\count290
+LaTeX Info: Redefining \today on input line 736.
+\dt@a=\toks29
+\dt@b=\toks30
+) (/usr/share/texlive/texmf-dist/tex/latex/fancyhdr/fancyhdr.sty
+Package: fancyhdr 2019/01/31 v3.10 Extensive control of page headers and footer
+s
+\f@nch@headwidth=\skip59
+\f@nch@O@elh=\skip60
+\f@nch@O@erh=\skip61
+\f@nch@O@olh=\skip62
+\f@nch@O@orh=\skip63
+\f@nch@O@elf=\skip64
+\f@nch@O@erf=\skip65
+\f@nch@O@olf=\skip66
+\f@nch@O@orf=\skip67
+)
+(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-pdfmode.def
+File: l3backend-pdfmode.def 2020-02-03 L3 backend support: PDF mode
+\l__kernel_color_stack_int=\count291
+\l__pdf_internal_box=\box47
+)
+(./graphs.aux)
+\openout1 = `graphs.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+
+*geometry* driver: auto-detecting
+*geometry* detected driver: pdftex
+*geometry* verbose mode - [ preamble ] result:
+* driver: pdftex
+* paper: letterpaper
+* layout: <same size as paper>
+* layoutoffset:(h,v)=(0.0pt,0.0pt)
+* modes: 
+* h-part:(L,W,R)=(54.2025pt, 505.89pt, 54.2025pt)
+* v-part:(T,H,B)=(54.2025pt, 686.56499pt, 54.2025pt)
+* \paperwidth=614.295pt
+* \paperheight=794.96999pt
+* \textwidth=505.89pt
+* \textheight=686.56499pt
+* \oddsidemargin=-18.06749pt
+* \evensidemargin=-18.06749pt
+* \topmargin=-55.06749pt
+* \headheight=12.0pt
+* \headsep=25.0pt
+* \topskip=10.0pt
+* \footskip=30.0pt
+* \marginparwidth=65.0pt
+* \marginparsep=11.0pt
+* \columnsep=10.0pt
+* \skip\footins=9.0pt plus 4.0pt minus 2.0pt
+* \hoffset=0.0pt
+* \voffset=0.0pt
+* \mag=1000
+* \@twocolumnfalse
+* \@twosidefalse
+* \@mparswitchfalse
+* \@reversemarginfalse
+* (1in=72.27pt=25.4mm, 1cm=28.453pt)
+
+(/usr/share/texlive/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
+[Loading MPS to PDF converter (version 2006.09.02).]
+\scratchcounter=\count292
+\scratchdimen=\dimen170
+\scratchbox=\box48
+\nofMPsegments=\count293
+\nofMParguments=\count294
+\everyMPshowfont=\toks31
+\MPscratchCnt=\count295
+\MPscratchDim=\dimen171
+\MPnumerator=\count296
+\makeMPintoPDFobject=\count297
+\everyMPtoPDFconversion=\toks32
+) (/usr/share/texlive/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
+Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
+Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
+85.
+
+(/usr/share/texlive/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
+File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
+e
+))
+Package caption Info: Begin \AtBeginDocument code.
+Package caption Info: End \AtBeginDocument code.
+
+(/usr/share/texlive/texmf-dist/tex/latex/fmtcount/fc-english.def
+File: fc-english.def 2016/01/12
+)
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/103
+6-15a.pdf, id=1, 416.70178pt x 326.62701pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/1036-15a.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/1036-15a.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/1036-15a.pdf  used on input line 33.
+(pdftex.def)             Requested size: 240.29697pt x 188.3573pt.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 36.
+
+
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd
+File: umsa.fd 2013/01/14 v3.01 AMS symbols A
+)
+LaTeX Font Info:    Trying to load font information for U+msb on input line 36.
+
+
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd
+File: umsb.fd 2013/01/14 v3.01 AMS symbols B
+)
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/103
+6-15b.pdf, id=2, 416.70178pt x 326.62701pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/1036-15b.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/1036-15b.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/1036-15b.pdf  used on input line 41.
+(pdftex.def)             Requested size: 240.29697pt x 188.3573pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/103
+6-15c.pdf, id=3, 416.70178pt x 326.62701pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/1036-15c.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/1036-15c.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/1036-15c.pdf  used on input line 50.
+(pdftex.def)             Requested size: 240.29697pt x 188.3573pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/103
+6-16a.pdf, id=4, 416.70178pt x 326.62701pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/1036-16a.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/1036-16a.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/1036-16a.pdf  used on input line 58.
+(pdftex.def)             Requested size: 240.29697pt x 188.3573pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/103
+6-16b.pdf, id=5, 416.70178pt x 326.62701pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/1036-16b.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/1036-16b.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/1036-16b.pdf  used on input line 67.
+(pdftex.def)             Requested size: 240.29697pt x 188.3573pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/103
+6-16c.pdf, id=6, 416.70178pt x 326.62701pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/1036-16c.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/1036-16c.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/1036-16c.pdf  used on input line 75.
+(pdftex.def)             Requested size: 240.29697pt x 188.3573pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 31--81
+[]$[]$$[]$
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 31--81
+[]$$[]$
+ []
+
+[1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}
+
+ </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/10
+36-15a.pdf> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/im
+ages/pdf/1036-15b.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/1036-15b.pdf): PDF inclusion: multiple pdfs with pag
+e group included in a single page
+> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/1
+036-15c.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/1036-15c.pdf): PDF inclusion: multiple pdfs with pag
+e group included in a single page
+> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/1
+036-16a.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/1036-16a.pdf): PDF inclusion: multiple pdfs with pag
+e group included in a single page
+> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/1
+036-16b.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/1036-16b.pdf): PDF inclusion: multiple pdfs with pag
+e group included in a single page
+> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/1
+036-16c.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/1036-16c.pdf): PDF inclusion: multiple pdfs with pag
+e group included in a single page
+>]
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/103
+6-3a.pdf, id=235, 416.70178pt x 326.62701pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/1036-3a.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/1036-3a.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/1036-3a.pdf  used on input line 88.
+(pdftex.def)             Requested size: 240.29697pt x 188.3573pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/106
+1-11.pdf, id=236, 416.70178pt x 326.62701pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/1061-11.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/1061-11.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/1061-11.pdf  used on input line 96.
+(pdftex.def)             Requested size: 240.29697pt x 188.3573pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/106
+1-12a.pdf, id=237, 416.70178pt x 326.62701pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/1061-12a.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/1061-12a.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/1061-12a.pdf  used on input line 105.
+(pdftex.def)             Requested size: 240.29697pt x 188.3573pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/106
+1-12b.pdf, id=238, 416.70178pt x 326.62701pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/1061-12b.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/1061-12b.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/1061-12b.pdf  used on input line 113.
+(pdftex.def)             Requested size: 240.29697pt x 188.3573pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/106
+1-1a.pdf, id=239, 416.70178pt x 326.62701pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/1061-1a.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/1061-1a.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/1061-1a.pdf  used on input line 122.
+(pdftex.def)             Requested size: 240.29697pt x 188.3573pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/106
+1-1b.pdf, id=240, 416.70178pt x 326.62701pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/1061-1b.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/1061-1b.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/1061-1b.pdf  used on input line 130.
+(pdftex.def)             Requested size: 240.29697pt x 188.3573pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 86--136
+[]$[]$$[]$
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 86--136
+[]$$[]$
+ []
+
+[2
+
+ </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/10
+36-3a.pdf> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/ima
+ges/pdf/1061-11.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/1061-11.pdf): PDF inclusion: multiple pdfs with page
+ group included in a single page
+> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/1
+061-12a.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/1061-12a.pdf): PDF inclusion: multiple pdfs with pag
+e group included in a single page
+> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/1
+061-12b.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/1061-12b.pdf): PDF inclusion: multiple pdfs with pag
+e group included in a single page
+> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/1
+061-1a.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/1061-1a.pdf): PDF inclusion: multiple pdfs with page
+ group included in a single page
+> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/1
+061-1b.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/1061-1b.pdf): PDF inclusion: multiple pdfs with page
+ group included in a single page
+>]
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/106
+1-2a.pdf, id=463, 416.70178pt x 326.62701pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/1061-2a.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/1061-2a.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/1061-2a.pdf  used on input line 143.
+(pdftex.def)             Requested size: 240.29697pt x 188.3573pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/106
+1-2b.pdf, id=464, 416.70178pt x 326.62701pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/1061-2b.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/1061-2b.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/1061-2b.pdf  used on input line 151.
+(pdftex.def)             Requested size: 240.29697pt x 188.3573pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/106
+1-3b.pdf, id=465, 416.70178pt x 326.62701pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/1061-3b.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/1061-3b.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/1061-3b.pdf  used on input line 160.
+(pdftex.def)             Requested size: 240.29697pt x 188.3573pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/106
+1-4a.pdf, id=466, 416.70178pt x 326.62701pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/1061-4a.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/1061-4a.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/1061-4a.pdf  used on input line 168.
+(pdftex.def)             Requested size: 240.29697pt x 188.3573pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/106
+1-4b.pdf, id=467, 416.70178pt x 326.62701pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/1061-4b.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/1061-4b.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/1061-4b.pdf  used on input line 177.
+(pdftex.def)             Requested size: 240.29697pt x 188.3573pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/106
+1-5a.pdf, id=468, 416.70178pt x 326.62701pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/1061-5a.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/1061-5a.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/1061-5a.pdf  used on input line 185.
+(pdftex.def)             Requested size: 240.29697pt x 188.3573pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 141--191
+[]$[]$$[]$
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 141--191
+[]$$[]$
+ []
+
+[3
+
+ </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/10
+61-2a.pdf> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/ima
+ges/pdf/1061-2b.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/1061-2b.pdf): PDF inclusion: multiple pdfs with page
+ group included in a single page
+> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/1
+061-3b.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/1061-3b.pdf): PDF inclusion: multiple pdfs with page
+ group included in a single page
+> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/1
+061-4a.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/1061-4a.pdf): PDF inclusion: multiple pdfs with page
+ group included in a single page
+> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/1
+061-4b.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/1061-4b.pdf): PDF inclusion: multiple pdfs with page
+ group included in a single page
+> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/1
+061-5a.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/1061-5a.pdf): PDF inclusion: multiple pdfs with page
+ group included in a single page
+>]
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/106
+1-5b.pdf, id=692, 416.70178pt x 326.62701pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/1061-5b.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/1061-5b.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/1061-5b.pdf  used on input line 198.
+(pdftex.def)             Requested size: 240.29697pt x 188.3573pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/106
+1-6a.pdf, id=693, 416.70178pt x 326.62701pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/1061-6a.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/1061-6a.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/1061-6a.pdf  used on input line 206.
+(pdftex.def)             Requested size: 240.29697pt x 188.3573pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/106
+1-7a1.pdf, id=694, 416.70178pt x 326.62701pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/1061-7a1.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/1061-7a1.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/1061-7a1.pdf  used on input line 215.
+(pdftex.def)             Requested size: 240.29697pt x 188.3573pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/106
+1-7a2.pdf, id=695, 416.70178pt x 326.62701pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/1061-7a2.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/1061-7a2.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/1061-7a2.pdf  used on input line 223.
+(pdftex.def)             Requested size: 240.29697pt x 188.3573pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/106
+1-9a1.pdf, id=696, 416.70178pt x 326.62701pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/1061-9a1.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/1061-9a1.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/1061-9a1.pdf  used on input line 232.
+(pdftex.def)             Requested size: 240.29697pt x 188.3573pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/109
+1-14.pdf, id=697, 416.70178pt x 326.62701pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/1091-14.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/1091-14.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/1091-14.pdf  used on input line 240.
+(pdftex.def)             Requested size: 240.29697pt x 188.3573pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 196--246
+[]$[]$$[]$
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 196--246
+[]$$[]$
+ []
+
+[4
+
+ </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/10
+61-5b.pdf> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/ima
+ges/pdf/1061-6a.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/1061-6a.pdf): PDF inclusion: multiple pdfs with page
+ group included in a single page
+> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/1
+061-7a1.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/1061-7a1.pdf): PDF inclusion: multiple pdfs with pag
+e group included in a single page
+> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/1
+061-7a2.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/1061-7a2.pdf): PDF inclusion: multiple pdfs with pag
+e group included in a single page
+> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/1
+061-9a1.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/1061-9a1.pdf): PDF inclusion: multiple pdfs with pag
+e group included in a single page
+> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/1
+091-14.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/1091-14.pdf): PDF inclusion: multiple pdfs with page
+ group included in a single page
+>]
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/ace
+tamiprid.pdf, id=922, 416.70178pt x 329.35596pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/acetamiprid.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/acetamiprid.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/acetamiprid.pdf  used on input line 253.
+(pdftex.def)             Requested size: 240.29697pt x 189.931pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/ald
+icarb.pdf, id=923, 416.70178pt x 329.35596pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/aldicarb.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/aldicarb.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/aldicarb.pdf  used on input line 261.
+(pdftex.def)             Requested size: 240.29697pt x 189.931pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/azi
+phos-methyl.pdf, id=924, 416.70178pt x 329.35596pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/aziphos-methyl.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/aziphos-methyl.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/aziphos-methyl.pdf  used on input line 270.
+(pdftex.def)             Requested size: 240.29697pt x 189.931pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/bif
+enthrin.pdf, id=925, 416.70178pt x 329.35596pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/bifenthrin.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/bifenthrin.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/bifenthrin.pdf  used on input line 278.
+(pdftex.def)             Requested size: 240.29697pt x 189.931pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/car
+baryl.pdf, id=926, 416.70178pt x 329.35596pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/carbaryl.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/carbaryl.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/carbaryl.pdf  used on input line 287.
+(pdftex.def)             Requested size: 240.29697pt x 189.931pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/car
+bofuran.pdf, id=927, 416.70178pt x 329.35596pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/carbofuran.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/carbofuran.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/carbofuran.pdf  used on input line 295.
+(pdftex.def)             Requested size: 240.29697pt x 189.931pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 251--301
+[]$[]$$[]$
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 251--301
+[]$$[]$
+ []
+
+[5
+
+ </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/ac
+etamiprid.pdf> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output
+/images/pdf/aldicarb.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/aldicarb.pdf): PDF inclusion: multiple pdfs with pag
+e group included in a single page
+> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/a
+ziphos-methyl.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/aziphos-methyl.pdf): PDF inclusion: multiple pdfs wi
+th page group included in a single page
+> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/b
+ifenthrin.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/bifenthrin.pdf): PDF inclusion: multiple pdfs with p
+age group included in a single page
+> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/c
+arbaryl.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/carbaryl.pdf): PDF inclusion: multiple pdfs with pag
+e group included in a single page
+> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/c
+arbofuran.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/carbofuran.pdf): PDF inclusion: multiple pdfs with p
+age group included in a single page
+>]
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/chl
+orantraniliprole.pdf, id=1164, 416.70178pt x 329.35596pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/chlorantraniliprole.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/chlorantraniliprole.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/chlorantraniliprole.pdf  used on input line 308.
+(pdftex.def)             Requested size: 240.29697pt x 189.931pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/chl
+orfenapyr.pdf, id=1165, 416.70178pt x 326.62701pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/chlorfenapyr.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/chlorfenapyr.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/chlorfenapyr.pdf  used on input line 316.
+(pdftex.def)             Requested size: 240.29697pt x 188.3573pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/chl
+orpyrifos.pdf, id=1166, 416.70178pt x 329.35596pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/chlorpyrifos.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/chlorpyrifos.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/chlorpyrifos.pdf  used on input line 325.
+(pdftex.def)             Requested size: 240.29697pt x 189.931pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/clo
+thianidin.pdf, id=1167, 416.70178pt x 329.35596pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/clothianidin.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/clothianidin.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/clothianidin.pdf  used on input line 333.
+(pdftex.def)             Requested size: 240.29697pt x 189.931pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/cya
+ntraniliprole.pdf, id=1168, 416.70178pt x 329.35596pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/cyantraniliprole.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/cyantraniliprole.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/cyantraniliprole.pdf  used on input line 342.
+(pdftex.def)             Requested size: 240.29697pt x 189.931pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/bet
+a-cypermethrin.pdf, id=1169, 416.70178pt x 329.35596pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/beta-cypermethrin.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/beta-cypermethrin.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/beta-cypermethrin.pdf  used on input line 350.
+(pdftex.def)             Requested size: 240.29697pt x 189.931pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 306--356
+[]$[]$$[]$
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 306--356
+[]$$[]$
+ []
+
+[6
+
+ </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/ch
+lorantraniliprole.pdf> </home/jklimavicz/Documents/Plate_Analyzer/examples/stat
+s/output/images/pdf/chlorfenapyr.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/chlorfenapyr.pdf): PDF inclusion: multiple pdfs with
+ page group included in a single page
+> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/c
+hlorpyrifos.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/chlorpyrifos.pdf): PDF inclusion: multiple pdfs with
+ page group included in a single page
+> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/c
+lothianidin.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/clothianidin.pdf): PDF inclusion: multiple pdfs with
+ page group included in a single page
+> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/c
+yantraniliprole.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/cyantraniliprole.pdf): PDF inclusion: multiple pdfs 
+with page group included in a single page
+> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/b
+eta-cypermethrin.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/beta-cypermethrin.pdf): PDF inclusion: multiple pdfs
+ with page group included in a single page
+>]
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/ddt
+.pdf, id=1407, 416.70178pt x 329.35596pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/ddt.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/ddt.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/ddt.pdf  used on input line 363.
+(pdftex.def)             Requested size: 240.29697pt x 189.931pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/ddv
+p.pdf, id=1408, 416.70178pt x 329.35596pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/ddvp.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/ddvp.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/ddvp.pdf  used on input line 371.
+(pdftex.def)             Requested size: 240.29697pt x 189.931pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/fip
+ronil.pdf, id=1409, 416.70178pt x 329.35596pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/fipronil.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/fipronil.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/fipronil.pdf  used on input line 380.
+(pdftex.def)             Requested size: 240.29697pt x 189.931pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/imi
+dacloprid.pdf, id=1410, 416.70178pt x 329.35596pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/imidacloprid.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/imidacloprid.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/imidacloprid.pdf  used on input line 388.
+(pdftex.def)             Requested size: 240.29697pt x 189.931pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/mal
+athion.pdf, id=1411, 416.70178pt x 329.35596pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/malathion.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/malathion.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/malathion.pdf  used on input line 397.
+(pdftex.def)             Requested size: 240.29697pt x 189.931pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/mna
+led.pdf, id=1412, 416.70178pt x 326.62701pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/mnaled.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/mnaled.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/mnaled.pdf  used on input line 405.
+(pdftex.def)             Requested size: 240.29697pt x 188.3573pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 361--411
+[]$[]$$[]$
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 361--411
+[]$$[]$
+ []
+
+[7
+
+ </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/dd
+t.pdf> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/
+pdf/ddvp.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/ddvp.pdf): PDF inclusion: multiple pdfs with page gr
+oup included in a single page
+> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/f
+ipronil.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/fipronil.pdf): PDF inclusion: multiple pdfs with pag
+e group included in a single page
+> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/i
+midacloprid.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/imidacloprid.pdf): PDF inclusion: multiple pdfs with
+ page group included in a single page
+> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/m
+alathion.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/malathion.pdf): PDF inclusion: multiple pdfs with pa
+ge group included in a single page
+> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/m
+naled.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/mnaled.pdf): PDF inclusion: multiple pdfs with page 
+group included in a single page
+>]
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/nal
+ed.pdf, id=1642, 416.70178pt x 329.35596pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/naled.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/naled.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/naled.pdf  used on input line 418.
+(pdftex.def)             Requested size: 240.29697pt x 189.931pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/nap
+hazoline hydrochloride.pdf, id=1643, 416.70178pt x 326.62701pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/naphazoline hydrochloride.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/naphazoline hydrochloride.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/naphazoline hydrochloride.pdf  used on input line 426.
+(pdftex.def)             Requested size: 240.29697pt x 188.3573pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/s-n
+icotine.pdf, id=1644, 416.70178pt x 326.62701pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/s-nicotine.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/s-nicotine.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/s-nicotine.pdf  used on input line 435.
+(pdftex.def)             Requested size: 240.29697pt x 188.3573pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/per
+methrin.pdf, id=1645, 416.70178pt x 329.35596pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/permethrin.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/permethrin.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/permethrin.pdf  used on input line 443.
+(pdftex.def)             Requested size: 240.29697pt x 189.931pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/pho
+rate.pdf, id=1646, 416.70178pt x 329.35596pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/phorate.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/phorate.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/phorate.pdf  used on input line 452.
+(pdftex.def)             Requested size: 240.29697pt x 189.931pt.
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/pro
+poxur.pdf, id=1647, 416.70178pt x 329.35596pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/propoxur.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/propoxur.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/propoxur.pdf  used on input line 460.
+(pdftex.def)             Requested size: 240.29697pt x 189.931pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 416--466
+[]$[]$$[]$
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 416--466
+[]$$[]$
+ []
+
+[8
+
+ </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/na
+led.pdf> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/image
+s/pdf/naphazoline hydrochloride.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/naphazoline hydrochloride.pdf): PDF inclusion: multi
+ple pdfs with page group included in a single page
+> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/s
+-nicotine.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/s-nicotine.pdf): PDF inclusion: multiple pdfs with p
+age group included in a single page
+> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/p
+ermethrin.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/permethrin.pdf): PDF inclusion: multiple pdfs with p
+age group included in a single page
+> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/p
+horate.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/phorate.pdf): PDF inclusion: multiple pdfs with page
+ group included in a single page
+> </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/p
+ropoxur.pdf
+
+pdfTeX warning: pdflatex (file /home/jklimavicz/Documents/Plate_Analyzer/exampl
+es/stats/output/images/pdf/propoxur.pdf): PDF inclusion: multiple pdfs with pag
+e group included in a single page
+>]
+</home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/pye
+thrum.pdf, id=1878, 416.70178pt x 329.35596pt>
+File: /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pd
+f/pyethrum.pdf Graphic file (type pdf)
+<use /home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf
+/pyethrum.pdf>
+Package pdftex.def Info: /home/jklimavicz/Documents/Plate_Analyzer/examples/sta
+ts/output/images/pdf/pyethrum.pdf  used on input line 473.
+(pdftex.def)             Requested size: 240.29697pt x 189.931pt.
+ [9
+
+ </home/jklimavicz/Documents/Plate_Analyzer/examples/stats/output/images/pdf/py
+ethrum.pdf>] [10] (./graphs.aux) ) 
+Here is how much of TeX's memory you used:
+ 6336 strings out of 481239
+ 112696 string characters out of 5920378
+ 348107 words of memory out of 5000000
+ 21462 multiletter control sequences out of 15000+600000
+ 542269 words of font info for 61 fonts, out of 8000000 for 9000
+ 1141 hyphenation exceptions out of 8191
+ 48i,10n,63p,1175b,573s stack positions out of 5000i,500n,10000p,200000b,80000s
+</usr/share/texlive/texmf-dist/fonts/type1/pu
+blic/amsfonts/cm/cmbx9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/am
+sfonts/cm/cmbxti10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfon
+ts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/
+cmmi9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.p
+fb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr
+/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/share/t
+exlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
+Output written on graphs.pdf (10 pages, 826184 bytes).
+PDF statistics:
+ 1954 PDF objects out of 2073 (max. 8388607)
+ 302 compressed objects within 4 object streams
+ 0 named destinations out of 1000 (max. 500000)
+ 246 words of extra memory for PDF output out of 10000 (max. 10000000)
+
