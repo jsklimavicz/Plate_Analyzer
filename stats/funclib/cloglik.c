@@ -28,14 +28,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <gsl/gsl_multifit_nlinear.h>
 #include <time.h>
 
-void ll3_min(double *b, //The minimal value that is found.
-	double *probs, 
-	double *conc, 
-	int probs_size, 
+void ll3_min(double *b, //Vector of parameters for optimization
+	double *probs, //Array of probs
+	double *conc, //Array of concentrations
+	int probs_size, //Length of the prob/conc arrays
 	double minimum, //The function value
-	double sigsquare, 
-	double *beta, 
-	const int method)
+	double *lb, //Lower bound for constrained optim
+	double *ub, //Upper bound for constrained optim
+	double sigsquare, //Value of sigma**2 for MVN prior on b0 and b1
+	double *beta, //2-value array with parameters for beta prior on b2
+	const int method) //ID of method to be usedfor optimization. 
 {
 	struct ll_param fparam = { .probs = probs, 
 								.conc = conc, 
@@ -45,21 +47,23 @@ void ll3_min(double *b, //The minimal value that is found.
   	struct multimin_params optim_par = {.1,1e-2,500,1e-3,1e-5,method,0};
 
 	//                   b0	  b1  b2
-	double xmin[3]   =  {-10, 0.05,0};
-	double xmax[3]   =  {10,   5,  1};
+	// double xmin[3]   =  {-10, 0.05,0};
+	// double xmax[3]   =  {10,   5,  1};
 	unsigned type[3] =  {3,    3,  3};
 
-	multimin(3, b, &minimum, type, xmin, xmax, &ll3f,&ll3df,&ll3fdf,
+	multimin(3, b, &minimum, type, lb, ub, &ll3f,&ll3df,&ll3fdf,
 			(void *) &fparam, optim_par);
 }
 
-void ll2_min(double *b, //The minimal value that is found.
-	double *probs, 
-	double *conc, 
-	int probs_size, 
+void ll2_min(double *b, //Vector of parameters for optimization
+	double *probs, //Array of probs
+	double *conc, //Array of concentrations
+	int probs_size, //Length of the prob/conc arrays
 	double minimum, //The function value
-	double sigsquare,
-	const int method)
+	double *lb, //Lower bound for constrained optim
+	double *ub, //Upper bound for constrained optim
+	double sigsquare, //Value of sigma**2 for MVN prior on b0 and b1
+	const int method) //ID of method to be usedfor optimization.
 {
 	struct ll_param fparam = { .probs = probs, 
 								.conc = conc, 
@@ -68,27 +72,27 @@ void ll2_min(double *b, //The minimal value that is found.
   	struct multimin_params optim_par = {.1,1e-2,500,1e-3,1e-5,method,0};
 	
 	//                   b0	  b1 
-	double xmin[2]   =  {-10, 0.05};
-	double xmax[2]   =  {10,   5};
+	// double xmin[2]   =  {-10, 0.05};
+	// double xmax[2]   =  {10,   5};
 	unsigned type[2] =  {3,    3};
 
-	multimin(2, b, &minimum, type, xmin, xmax,&ll2f,&ll2df,&ll2fdf,
+	multimin(2, b, &minimum, type, lb, ub, &ll2f,&ll2df,&ll2fdf,
 			(void *) &fparam, optim_par);
 }
 
 void ll3_array_min(
-	int probs_size, 
-	int n_iters,
-	double b[][3], //The val to be minimized. Should be of size n_iters x 3
+	int probs_size, //Number of vals in the prob/conc arrays
+	int n_iters, //Number of different sets of probs
+	double b[][3], //The vals to be optimized. Should be of size n_iters x 3
 	double probs[][probs_size], //Should be of size n_iters x probs_size
-	double *conc, 
-	double *minimum, //The function value
-	double sigsquare, 
-	double *beta,
-	const int method)
+	double *conc, //Array of concentrations
+	double *minimum, //The function values
+	double *lb, //Lower bound for constrained optim
+	double *ub, //Upper bound for constrained optim
+	double sigsquare, //Value of sigma**2 for MVN prior on b0 and b1
+	double *beta, //2-value array with parameters for beta prior on b2
+	const int method) //ID of method to be usedfor optimization. 
 {
-	// printf("%i\n", probs_size);
-	// printf("%i\n", n_iters);
 	struct ll_param fparam = { .probs = probs[0], 
 								.conc = conc, 
 								.sigsquare = sigsquare, 
@@ -97,31 +101,29 @@ void ll3_array_min(
   	struct multimin_params optim_par = {.1,1e-2,500,1e-3,1e-5,method,0};
 
 	//                   b0	  b1  b2
-	double xmin[3]   =  {-10, 0.05,  0};
-	double xmax[3]   =  {10,   5,  1};
+	// double xmin[3]   =  {-10, 0.05,  0};
+	// double xmax[3]   =  {10,   5,  1};
 	unsigned type[3] =  {3,    3,  3};
 
 	for (int i = 0; i<n_iters; i++){
 		fparam.probs = probs[i];
-		// for (int j = 0; j < 3; j++){
-		// 	printf("%.5f ", b[i][j]);
-		// }
-		// printf("\n");
-		multimin(3, b[i], &minimum[i], type, xmin, xmax, &ll3f,&ll3df,&ll3fdf,
+		multimin(3, b[i], &minimum[i], type, lb, ub, &ll3f,&ll3df,&ll3fdf,
 				(void *) &fparam, optim_par);
 	}
 
 }
 
 void ll2_array_min(	
-	int probs_size, 
-	int n_iters,
-	double b[][2], //The vals to be minimized. Should be of size n_iters x 2
+	int probs_size, //Number of vals in the prob/conc arrays
+	int n_iters, //Number of different sets of probs
+	double b[][2], //The vals to be optimized. Should be of size n_iters x 3
 	double probs[][probs_size], //Should be of size n_iters x probs_size
-	double *conc, 
-	double *minimum, //The function value
-	double sigsquare,
-	const int method)
+	double *conc, //Array of concentrations
+	double *minimum, //The function values
+	double *lb, //Lower bound for constrained optim
+	double *ub, //Upper bound for constrained optim
+	double sigsquare, //Value of sigma**2 for MVN prior on b0 and b1
+	const int method) //ID of method to be usedfor optimization.
 {
 	struct ll_param fparam = { .probs = probs[0], 
 								.conc = conc, 
@@ -130,26 +132,32 @@ void ll2_array_min(
   	struct multimin_params optim_par = {.1,1e-2,500,1e-3,1e-5,method,0};
 
 	//                   b0	  b1 
-	double xmin[2]   =  {-10, 0.05};
-	double xmax[2]   =  {10,   5};
+	// double xmin[2]   =  {-10, 0.05};
+	// double xmax[2]   =  {10,   5};
 	unsigned type[2] =  {3,    3};
 
 	for (int i = 0; i<n_iters; i++){
 		fparam.probs = probs[i];
-		multimin(2, b[i], &minimum[i], type, xmin, xmax, &ll2f,&ll2df,&ll2fdf,
+		multimin(2, b[i], &minimum[i], type, lb, ub, &ll2f,&ll2df,&ll2fdf,
 				(void *) &fparam, optim_par);
 	}
 }
 
-
-void ll2_ll3_AIC(double *b, //The val to be minimized. Must have length 3.
-	double *probs, 
-	double *conc, 
-	int probs_size, 
+/*
+This function for for calculating both the ll2 curve and the ll3 curve, and
+then the AIC is used to determine whether the 2-parameter or 3-parameter curve
+should be used. 
+*/
+void ll2_ll3_AIC(double *b, //Vector of parameters for optimization
+	double *probs, //Array of probs
+	double *conc, //Array of concentrations
+	int probs_size, //Length of the prob/conc arrays
 	double minimum, //The function value
-	double sigsquare,
-	double *beta,
-	const int method)
+	double *lb, //Lower bound for constrained optim
+	double *ub, //Upper bound for constrained optim
+	double sigsquare, //Value of sigma**2 for MVN prior on b0 and b1
+	double *beta, //2-value array with parameters for beta prior on b2
+	const int method) //ID of method to be usedfor optimization. 
 {
 	struct ll_param fparam = { .probs = probs, 
 								.conc = conc, 
@@ -159,11 +167,11 @@ void ll2_ll3_AIC(double *b, //The val to be minimized. Must have length 3.
 	struct multimin_params optim_par = {.1,1e-2,500,1e-3,1e-5,method,0};
 
 	//                   b0	  b1  b2
-	double xmin[3]   =  {-10, 0.05,  0};
-	double xmax[3]   =  {10,   5,  1};
+	// double xmin[3]   =  {-10, 0.05,  0};
+	// double xmax[3]   =  {10,   5,  1};
 	unsigned type[3] =  {3,    3,  3};
 
-	multimin(2, b, &minimum, type, xmin, xmax, &ll2f, &ll2df, &ll2fdf, 
+	multimin(2, b, &minimum, type, lb, ub, &ll2f, &ll2df, &ll2fdf, 
 			(void *) &fparam, optim_par);
 	
 	double min2;
@@ -171,7 +179,7 @@ void ll2_ll3_AIC(double *b, //The val to be minimized. Must have length 3.
 	//calculate a modified log-likelihood.
 	ll_all_AIC(b2, &fparam, &min2);
 
-	multimin(3, b, &minimum, type, xmin, xmax, &ll3f, &ll3df, &ll3fdf, 
+	multimin(3, b, &minimum, type, lb, ub, &ll3f, &ll3df, &ll3fdf, 
 			(void *) &fparam, optim_par);
 	//calculate a modified log-likelihood.
 	double min3; 
@@ -193,17 +201,18 @@ void ll2_ll3_AIC(double *b, //The val to be minimized. Must have length 3.
 }
 
 
-
 void array_ll2_ll3_AIC(
-	int probs_size, 
-	int n_iters,
-	double b[][3], //The vals to be minimized. Should be of size n_iters x 3
+	int probs_size, //Number of vals in the prob/conc arrays
+	int n_iters, //Number of different sets of probs
+	double b[][3], //The vals to be optimized. Should be of size n_iters x 3
 	double probs[][probs_size], //Should be of size n_iters x probs_size
-	double *conc, 
-	double *minimum, //The function value
-	double sigsquare, 
-	double *beta,
-	const int method)
+	double *conc, //Array of concentrations
+	double *minimum, //The function values
+	double *lb, //Lower bound for constrained optim
+	double *ub, //Upper bound for constrained optim
+	double sigsquare, //Value of sigma**2 for MVN prior on b0 and b1
+	double *beta, //2-value array with parameters for beta prior on b2
+	const int method) //ID of method to be usedfor optimization. 
 {
 	struct ll_param fparam = { .probs = probs[0], 
 								.conc = conc, 
@@ -213,21 +222,21 @@ void array_ll2_ll3_AIC(
 	struct multimin_params optim_par = {.1,1e-2,500,1e-3,1e-5,method,0};
 
 	//                   b0	  b1  b2
-	double xmin[3]   =  {-10, 0.05,  0};
-	double xmax[3]   =  {10,   5,  1};
+	// double xmin[3]   =  {-10, 0.05,  0};
+	// double xmax[3]   =  {10,   5,  1};
 	unsigned type[3] =  {3,    3,  3};
 
 	for (int i = 0; i<n_iters; i++){
 		fparam.probs = probs[i];
 		//ll2 curve fit
-		multimin(2, b[i], &minimum[i], type, xmin, xmax,&ll2f,&ll2df,&ll2fdf,
+		multimin(2, b[i], &minimum[i], type, lb, ub, &ll2f,&ll2df,&ll2fdf,
 					(void *) &fparam, optim_par);
 		double min2;
 		double b2[3] = {b[i][0], b[i][1], 1.0};
 		ll_all_AIC(b2, &fparam, &min2);//calculate a modified log-likelihood.
 
 		//ll3 curve fit
-		multimin(3, b[i], &minimum[i], type, xmin, xmax, &ll3f,&ll3df,&ll3fdf,
+		multimin(3, b[i], &minimum[i], type, lb, ub, &ll3f,&ll3df,&ll3fdf,
 					(void *) &fparam, optim_par);
 		double min3; 
 		double b3[3] = {b[i][0], b[i][1], b[i][2]};
@@ -250,12 +259,13 @@ void array_ll2_ll3_AIC(
 }
 
 
-void ls_driver(const int nparam, //number of parameters to use
+void ls_driver(
+	const int nparam, //number of parameters to use in dose-response curve
 	const int n, //number of data points
 	double *user_b, //initial guess for b (and output). Must be len 3
 	double *x, //concentration values
-	double *y, // y-values
-	const int method) //for picking solving method
+	double *y, //probability values
+	const int method) //least squares method to use
 {
 	gsl_vector *f = gsl_vector_alloc(n);
 	gsl_vector *b = gsl_vector_alloc(nparam);
@@ -316,18 +326,71 @@ void ls_driver(const int nparam, //number of parameters to use
 }
 
 void ls_array_min(
-	const int nparam,
-	const int probs_size, 
-	const int n_iters,
-	double b[][3], //The vals to be minimized. Should be of size n_iters x 3
-	double *conc,
+	const int nparam, //number of parameters to use in dose-response curve
+	const int probs_size, //Number of vals in the prob/conc arrays
+	const int n_iters, //Number of different sets of probs
+	double b[][3], //The vals to be optimized. Should be of size n_iters x 3
+	double *conc, //concentration values
 	double probs[][probs_size], //Should be of size n_iters x probs_size
-	const int method)
+	const int method) //least squares method to use
 {
 	for (int i = 0; i<n_iters; i++){
-
 		ls_driver(nparam, probs_size, b[i], conc, probs[i], method);
 	}
 
 }
 
+void cls3_min(double *b, //Vector of parameters for optimization
+	double *probs, //Array of probs
+	double *conc, //Array of concentrations
+	int probs_size, //Length of the prob/conc arrays
+	double minimum, //The function value
+	double *lb, //Lower bound for constrained optim
+	double *ub, //Upper bound for constrained optim
+	const int method) //ID of method to be usedfor optimization. 
+{
+	struct ll_param fparam = { .probs = probs, 
+								.conc = conc, 
+								.probs_size = probs_size
+							};
+  	struct multimin_params optim_par = {.1,1e-2,500,1e-3,1e-5,method,0};
+
+	//                   b0	  b1  b2
+	// double xmin[3]   =  {-10, 0.05,0};
+	// double xmax[3]   =  {10,   5,  1};
+	unsigned type[3] =  {3,    3,  3};
+
+	multimin(3, b, &minimum, type, lb, ub, &cls3f_error,NULL,NULL,
+			(void *) &fparam, optim_par);
+}
+
+
+void cls3_array_min(
+	int probs_size, //Number of vals in the prob/conc arrays
+	int n_iters, //Number of different sets of probs
+	double b[][3], //The vals to be optimized. Should be of size n_iters x 3
+	double probs[][probs_size], //Should be of size n_iters x probs_size
+	double *conc, //Array of concentrations
+	double *minimum, //The function values
+	double *lb, //Lower bound for constrained optim
+	double *ub, //Upper bound for constrained optim
+	const int method) //ID of method to be usedfor optimization. 
+{
+	struct ll_param fparam ={ .probs = probs[0], 
+							  .conc = conc, 
+							  .probs_size = probs_size
+							};
+  	struct multimin_params optim_par = {.1,1e-2,500,1e-3,1e-5,method,0};
+
+	//                   b0	  b1  b2
+	// double xmin[3]   =  {-10, 0.05,  0};
+	// double xmax[3]   =  {10,   5,  1};
+	unsigned type[3] =  {3,    3,  3};
+
+	for (int i = 0; i<n_iters; i++){
+		fparam.probs = probs[i];
+		multimin(3, b[i], &minimum[i], type, lb, ub, &cls3f_error,NULL,NULL,
+				(void *) &fparam, optim_par);
+	}
+
+}

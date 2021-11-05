@@ -67,6 +67,8 @@ def config_parse_helper(key, val):
 		val = True if "true" in val.lower() else False
 	elif key in ['LC_VALUES']: 
 		val = np.array([float(i.strip()) for i in val.split(",")])/100.
+	elif key in ['LB', 'UB']: 
+		val = np.array([float(i.strip()) for i in val.split(",")])
 	elif key in ['RHO', 'BETA_PRIOR', 'BETA_PRIOR_0', 
 				'JITTER_FACTOR', 'ALPHA', 'CURVE_CI', 
 				'LC_CI', 'ERROR_BAR_CI', 'REL_POT_CI', 
@@ -127,6 +129,8 @@ def default_config():
 					"EXTRAPOLATION_FACTOR": 2,
 					'LS_METHOD': 4,
 					'OPTIM_METHOD': 5,
+					'LB': np.array([-10, 0.05, 0]),
+					'UB': np.array([10, 5, 1]),
 					'LL_SIGMA': 1000,
 					'LL_BETA1': 1.5,
 					'LL_BETA2': 1.001,

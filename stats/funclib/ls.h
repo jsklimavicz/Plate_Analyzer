@@ -39,6 +39,11 @@ double ls3_fun(const double b0,
          const double b2, 
          const double x);
 
+void cls3f_error(const size_t n, 
+        const double *b, 
+        void * fparams, 
+        double * fval);
+
 int ls2_func_f (const gsl_vector * b, 
         void *params, 
         gsl_vector * f);

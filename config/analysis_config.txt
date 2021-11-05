@@ -140,7 +140,7 @@ CI_METHOD = HPDI
 #    'aic': identical to 'best'
 #    'ls2': use least-squares fitting of a two-parameter curve
 #    'ls3': use least-squares fitting of a three-parameter curve
-CURVE_TYPE = ll3
+CURVE_TYPE = cls
 
 # Optimization method for least-squares fitting. 
 #    0: Levenberg-Marquardt
@@ -161,7 +161,16 @@ LS_METHOD = 1
 #    5: Vector BFGS method ver. 2
 #    6: Nelder-Mead simplex ver. 2
 #    7: Nelder-Mead simplex with random initialization
-OPTIM_METHOD = 6
+OPTIM_METHOD = 5
+
+# Lower bounds (LB) and lower bounds (UB) for optimization fitting. 
+# Must be three float values for the paramters b0, b1, and b2 in 
+#			    b2
+#	y = ------------------
+#		1 + exp(b0 + b1*x)
+#
+LB = -15, 0.05, 0
+UB = 15, 5, 1
 
 # Log-likelihood prior parameters for the 2- and 3-parameter log-logistic 
 # curves y = b2 / (1 + exp(b0 + b1 * x)); b2 = 1.0 for 2-param. LL_SIGMA is for
@@ -176,7 +185,7 @@ LL_BETA2 = 1.001
 # The C library requires a compiled shared libray object (.so, Unix systems)
 # or a dynamic linked library (.dll, Windows) of the appropriate C files found
 # n ./stat/funclib. See README for details. 
-USE_CLIB = True
+USE_CLIB = False
 
 ###################################################
 #                 Analysis Options                #

@@ -40,6 +40,9 @@ class FunctionFit():
 	'''
 	LS_METHOD = 4
 	OPTIM_METHOD = 5
+	LB = np.array([-10, 0.05, 0])
+	UB = np.array([10, 5, 1])
+
 
 	def __init__(self, **kwargs):
 		self.set_default_params(**kwargs)
@@ -64,32 +67,37 @@ class FunctionFit():
 			the libray was not properly compiled. 
 			'''
 			try:
-				self.cloglik = func(lib_path)
+				self.__cloglik = func(lib_path)
 				#Single shot optimizers
-				single_min_params = [np.ctypeslib.ndpointer(dtype=np.float64,
+				single_min_params = [
+						np.ctypeslib.ndpointer(dtype=np.float64, #vector param
 												ndim=1, flags='C_CONTIGUOUS'),
-						np.ctypeslib.ndpointer(dtype=np.float64, 
+						np.ctypeslib.ndpointer(dtype=np.float64, #probs
 												ndim=1, flags='C_CONTIGUOUS'),
-						np.ctypeslib.ndpointer(dtype=np.float64, 
+						np.ctypeslib.ndpointer(dtype=np.float64, #conc
 												ndim=1, flags='C_CONTIGUOUS'),
-						c_int, 
-						c_double, 
-						c_double, 
-						np.ctypeslib.ndpointer(dtype=np.float64, 
+						c_int, #nparam
+						c_double, #funtion min
+						np.ctypeslib.ndpointer(dtype=np.float64, #lb
+												ndim=1, flags='C_CONTIGUOUS'),
+						np.ctypeslib.ndpointer(dtype=np.float64, #ub
+												ndim=1, flags='C_CONTIGUOUS'),
+						c_double, #sigma_squared
+						np.ctypeslib.ndpointer(dtype=np.float64, #beta_param
 												ndim=1, flags='C_CONTIGUOUS'),
 						c_int] #OPTIM_METHOD
 				#LL3 minimzer
-				self.ll3c = self.cloglik.ll3_min
-				self.ll3c.argtypes = (single_min_params)
+				self.__ll3c = self.__cloglik.ll3_min
+				self.__ll3c.argtypes = (single_min_params)
 
 				#LL2 minimzer
-				self.ll2c = self.cloglik.ll2_min
+				self.__ll2c = self.__cloglik.ll2_min
 				#all but beta params
-				self.ll2c.argtypes = (*single_min_params[:-2],single_min_params[-1])
+				self.__ll2c.argtypes = (*single_min_params[:-2],single_min_params[-1])
 
 				#AIC-based minimizer
-				self.ll23cAIC = self.cloglik.ll2_ll3_AIC
-				self.ll23cAIC.argtypes = (single_min_params)
+				self.__ll23cAIC = self.__cloglik.ll2_ll3_AIC
+				self.__ll23cAIC.argtypes = (single_min_params)
 
 				#Array-based optimizers
 				array_min_params = [c_int, #number of probs/trial
@@ -102,27 +110,31 @@ class FunctionFit():
 												ndim=1, flags='C_CONTIGUOUS'),
 						np.ctypeslib.ndpointer(dtype=np.float64, #func vals
 												ndim=1, flags='C_CONTIGUOUS'),
+						np.ctypeslib.ndpointer(dtype=np.float64, #lb
+												ndim=1, flags='C_CONTIGUOUS'),
+						np.ctypeslib.ndpointer(dtype=np.float64, #ub
+												ndim=1, flags='C_CONTIGUOUS'),
 						c_double, #sigma**2
 						np.ctypeslib.ndpointer(dtype=np.float64, #beta perams
 												ndim=1, flags='C_CONTIGUOUS'),
 						c_int] #OPTIM_METHOD
 				#LL3 Array minimizer
-				self.ll3ca = self.cloglik.ll3_array_min
-				self.ll3ca.argtypes = (array_min_params)
+				self.__ll3ca = self.__cloglik.ll3_array_min
+				self.__ll3ca.argtypes = (array_min_params)
 
 				#LL2 Array minimizer
-				self.ll2ca = self.cloglik.ll2_array_min
+				self.__ll2ca = self.__cloglik.ll2_array_min
 				#all but beta params
-				self.ll2ca.argtypes = (*array_min_params[:-2],array_min_params[-1]) 
+				self.__ll2ca.argtypes = (*array_min_params[:-2],array_min_params[-1]) 
 
 				#AIC-based best LL picker Array minimizer
-				self.ll23aAIC = self.cloglik.array_ll2_ll3_AIC
-				self.ll23aAIC.argtypes = (array_min_params)
+				self.__ll23aAIC = self.__cloglik.array_ll2_ll3_AIC
+				self.__ll23aAIC.argtypes = (array_min_params)
 
 				#Least-Squares fitters
 				#Single Curve
-				self.lsfit = self.cloglik.ls_driver
-				self.lsfit.argtypes = (c_int, #number of parameters (2 or 3)
+				self.__lsfit = self.__cloglik.ls_driver
+				self.__lsfit.argtypes = (c_int, #number of parameters (2 or 3)
 				c_int, # number of data points
 				np.ctypeslib.ndpointer(dtype=np.float64, #input b
 											ndim=1, flags='C_CONTIGUOUS'),
@@ -132,8 +144,8 @@ class FunctionFit():
 											ndim=1, flags='C_CONTIGUOUS'))
 
 				#Array
-				self.lsarray = self.cloglik.ls_array_min
-				self.lsarray.argtypes = (c_int, #number of parameters (2 or 3)
+				self.__lsarray = self.__cloglik.ls_array_min
+				self.__lsarray.argtypes = (c_int, #number of parameters (2 or 3)
 				c_int, # number of data points
 				c_int, # n_iters
 				np.ctypeslib.ndpointer(dtype=np.float64, #input b
@@ -143,15 +155,48 @@ class FunctionFit():
 				np.ctypeslib.ndpointer(dtype=np.float64, #prob values
 											ndim=2, flags='C_CONTIGUOUS'))
 
+
+				#Constrained Least Squares
+				self.__cls = self.__cloglik.cls3_min
+				self.__cls.argtypes = [np.ctypeslib.ndpointer(dtype=np.float64, #minima
+												ndim=2, flags='C_CONTIGUOUS'),
+						np.ctypeslib.ndpointer(dtype=np.float64, #prob array
+												ndim=2, flags='C_CONTIGUOUS'),
+						np.ctypeslib.ndpointer(dtype=np.float64, #conc
+												ndim=1, flags='C_CONTIGUOUS'),
+						c_int, #number of probabilities
+						c_double, #function value
+						np.ctypeslib.ndpointer(dtype=np.float64, #lb
+												ndim=1, flags='C_CONTIGUOUS'),
+						np.ctypeslib.ndpointer(dtype=np.float64, #ub
+												ndim=1, flags='C_CONTIGUOUS'),
+						c_int] #OPTIM_METHOD
+
+				#Constrained Least Squares by array
+				self.__cls_array = self.__cloglik.cls3_array_min
+				self.__cls_array.argtypes = [c_int, #number of probs/trial
+						c_int, #number of iters
+						np.ctypeslib.ndpointer(dtype=np.float64, #minima
+												ndim=2, flags='C_CONTIGUOUS'),
+						np.ctypeslib.ndpointer(dtype=np.float64, #prob array
+												ndim=2, flags='C_CONTIGUOUS'),
+						np.ctypeslib.ndpointer(dtype=np.float64, #conc
+												ndim=1, flags='C_CONTIGUOUS'),
+						np.ctypeslib.ndpointer(dtype=np.float64, #func vals
+												ndim=1, flags='C_CONTIGUOUS'),
+						np.ctypeslib.ndpointer(dtype=np.float64, #lb
+												ndim=1, flags='C_CONTIGUOUS'),
+						np.ctypeslib.ndpointer(dtype=np.float64, #ub
+												ndim=1, flags='C_CONTIGUOUS'),
+						c_int] #OPTIM_METHOD
+
 				self.use_C_lib = True
 			except:
 				self.use_C_lib =  False
-				self.cloglik = None
+				self.__cloglik = None
 		else:
-			self.cloglik = None
+			self.__cloglik = None
 			self.use_C_lib = False
-
-
 
 	def set_default_params(self, **kwargs):
 		self.use_C_lib = kwargs.get('USE_CLIB') if 'USE_CLIB' in kwargs else False
@@ -161,9 +206,11 @@ class FunctionFit():
 		self.BP=np.array([1.5,1.01])
 		self.BP[0] = kwargs.get('LL_BETA1') if 'LL_BETA1' in kwargs else 1.5
 		self.BP[1] = kwargs.get('LL_BETA2') if 'LL_BETA2' in kwargs else 1.01
-
+		self.LB = kwargs.get('LB') if 'LB' in kwargs else np.array([-10, 0.05, 0])
+		self.UB = kwargs.get('UB') if 'UB' in kwargs else np.array([10, 5, 1])
+ 
 	def array_ll2(self, b_input, prob_array, conc_list, sigma_squared = None,
-							optim_method = None):
+							optim_method = None, lb = None, ub = None):
 		'''
 		Used to pass an array of probabilities to the C-based or python-based 
 			ll2 solver. For data that has prob_ct different concentration/
@@ -185,12 +232,14 @@ class FunctionFit():
 		'''
 		if sigma_squared is None: sigma_squared = self.SS
 		if optim_method is None: optim_method = self.OPTIM_METHOD
+		if lb is None: lb = self.LB
+		if ub is None: ub = self.UB
 
 		niters, prob_ct = prob_array.shape
 		if self.use_C_lib: # pass off to the C function if it exists.
 			funmin = np.zeros(niters)
-			self.ll2ca(prob_ct, niters, b_input, prob_array, conc_list, 
-						funmin, sigma_squared, optim_method)
+			self.__ll2ca(prob_ct, niters, b_input, prob_array, conc_list, 
+						funmin, lb[0:2], ub[0:2], sigma_squared, optim_method)
 		else:
 			for i in range(niters):
 				b_input[i] = self.min_ll2(b_input[i], prob_array[i], 
@@ -200,7 +249,7 @@ class FunctionFit():
 
 	def array_ll3(self, b_input, prob_array, conc_list, 
 							sigma_squared = None, beta_param=None,
-							optim_method = None):
+							optim_method = None, lb = None, ub = None):
 		'''
 		Used to pass an array of probabilities to the C-based or python-based
 			ll3 solver. For data that has prob_ct different concentration/
@@ -225,13 +274,17 @@ class FunctionFit():
 		if sigma_squared is None: sigma_squared = self.SS
 		if beta_param is None: beta_param = self.BP
 		if optim_method is None: optim_method = self.OPTIM_METHOD
+		if lb is None: lb = self.LB
+		if ub is None: ub = self.UB
+
 		niters, prob_ct = prob_array.shape
 		if self.use_C_lib: # pass off to the C function if it exists.
 			#funmin is for storing the function minimum, and can be returned
 			#to provide the minimum value if needed. 
 			funmin = np.zeros(niters)
-			self.ll3ca(prob_ct, niters, b_input, prob_array, conc_list, 
-						funmin, sigma_squared, beta_param, optim_method)
+			self.__ll3ca(prob_ct, niters, b_input, prob_array, conc_list, 
+						funmin, lb, ub, sigma_squared, 
+						beta_param, optim_method)
 		else:
 			for i in range(niters):
 				b_input[i] = self.min_ll3(b_input[i], prob_array[i],
@@ -240,7 +293,7 @@ class FunctionFit():
 
 	def array_ll23AIC(self, b_input, prob_array, conc_list, 
 							sigma_squared = None, beta_param=None,
-							optim_method = None):
+							optim_method = None, lb = None, ub = None):
 		'''
 		Used to pass an array of probabilities to the C-based or python-based 
 			ll2/ll3 solver that then uses the AIC to determine which fit is 
@@ -267,18 +320,23 @@ class FunctionFit():
 		if sigma_squared is None: sigma_squared = self.SS
 		if beta_param is None: beta_param = self.BP
 		if optim_method is None: optim_method = self.OPTIM_METHOD
+		if lb is None: lb = self.LB
+		if ub is None: ub = self.UB
+
 		niters, prob_ct = prob_array.shape
 		if self.use_C_lib: # pass off to the C function if it exists.
 			funmin = np.zeros(niters)
-			self.ll23aAIC(prob_ct, niters, b_input, prob_array, conc_list,
-						funmin, sigma_squared, beta_param, optim_method)
+			self.__ll23aAIC(prob_ct, niters, b_input, prob_array, conc_list,
+						funmin, lb, ub, sigma_squared, 
+						beta_param, optim_method)
 		else:
 			for i in range(niters):
 				b_input[i] = self.min_llAIC(b_input[i], prob_array[i], 
 									conc_list, sigma_squared, beta_param)
 		return b_input
 
-	def array_ls(self, nparam, b_input, prob_array, conc_list, ls_method = None):
+	def array_ls(self, nparam, b_input, prob_array, conc_list, 
+										ls_method = None):
 		'''
 		Used to pass an array of probabilities to the C-based or python-based 
 			least-squares solver. For data that has prob_ct different 
@@ -302,7 +360,7 @@ class FunctionFit():
 		if ls_method is None: ls_method = self.LS_METHOD
 		if self.use_C_lib: # pass off to the C function if it exists.
 			niters, prob_ct = prob_array.shape
-			self.lsarray(nparam, prob_ct, niters, b_input, 
+			self.__lsarray(nparam, prob_ct, niters, b_input, 
 					conc_list, prob_array, ls_method)
 		else:
 			for i in range(niters):
@@ -310,8 +368,8 @@ class FunctionFit():
 											prob_array[i], conc_list)
 		return b_input
 
-	def min_ll2(self, b, probs, conc, 
-					sigma_squared = None, optim_method = None):
+	def min_ll2(self, b, probs, conc, sigma_squared = None, 
+							optim_method = None, lb = None, ub = None):
 		'''
 		Used to pass nprob pairs of concentrations/probabilities to the 
 			C-based or python-based ll2 optimizer.
@@ -330,20 +388,25 @@ class FunctionFit():
 		'''
 		if sigma_squared is None: sigma_squared = self.SS
 		if optim_method is None: optim_method = self.OPTIM_METHOD
+		if lb is None: lb = self.LB
+		if ub is None: ub = self.UB
 
 		if self.use_C_lib:
 			funmin = 0
-			self.ll2c(b, probs, conc, len(probs), funmin,
+			self.__ll2c(b, probs, conc, len(probs), funmin, lb[0:2], ub[0:2],
 					sigma_squared, optim_method)
 			return b
 		else:
+			bb = self.get_python_bounds(params = 2)
 			res = minimize(FunctionFit.ll2p, b, 
 					args = (probs, conc, sigma_squared), 
-					method = 'BFGS', jac = FunctionFit.ll2p_jac)
+					method = 'SLSQP', jac = FunctionFit.ll2p_jac,
+					bounds = bb)
 			return res.x
 
 	def min_ll3(self, b, probs, conc, sigma_squared = None, 
-					beta_param=None, optim_method = None):
+					beta_param=None, optim_method = None, 
+								lb = None, ub = None):
 		'''
 		Used to pass nprob pairs of concentrations/probabilities to the 
 			C-based or python-based ll3 optimizer.
@@ -364,20 +427,24 @@ class FunctionFit():
 		if sigma_squared is None: sigma_squared = self.SS
 		if beta_param is None: beta_param = self.BP
 		if optim_method is None: optim_method = self.OPTIM_METHOD
+		if lb is None: lb = self.LB
+		if ub is None: ub = self.UB
 
 		if self.use_C_lib:
 			funmin = 0
-			self.ll3c(b, probs, conc, len(probs), funmin, sigma_squared,
+			self.__ll3c(b, probs, conc, len(probs), funmin, lb, ub, sigma_squared,
 					beta_param, optim_method)
 			return b
 		else:
+			bb = self.get_python_bounds()
 			res = minimize(FunctionFit.ll3p, b, 
 					args = (probs, conc, sigma_squared, beta_param), 
-					method = 'BFGS', jac = FunctionFit.ll3p_jac)
+					method = 'SLSQP', jac = FunctionFit.ll3p_jac,
+					bounds = bb)
 			return res.x
 
 	def min_llAIC(self, b, probs, conc, sigma_squared = None, beta_param=None,
-					optim_method = None):
+					optim_method = None, lb = None, ub = None):
 		'''
 		Used to pass nprob pairs of concentrations/probabilities to the 
 			C-based or python-based ll2/ll3 optimizers and use the AIC to
@@ -398,13 +465,18 @@ class FunctionFit():
 		if sigma_squared is None: sigma_squared = self.SS
 		if beta_param is None: beta_param = self.BP
 		if optim_method is None: optim_method = self.OPTIM_METHOD
+		if lb is None: lb = self.LB
+		if ub is None: ub = self.UB
+
 		if self.use_C_lib:
 			funmin = 0
-			self.ll23cAIC(b, probs, conc, len(probs), funmin,
+			self.__ll23cAIC(b, probs, conc, len(probs), funmin, lb, ub,
 					sigma_squared, beta_param, optim_method)
 			return b
 		else:
-			return self.ll23AIC_min(b, probs, conc, sigma_squared, beta_param)
+			bb = self.get_python_bounds()
+			return self.ll23AIC_min(b, probs, conc, sigma_squared, 
+				beta_param, bounds = bb)
 
 	def min_ls(self, b, nparam, probs, conc, ls_method = None):
 		'''
@@ -424,10 +496,99 @@ class FunctionFit():
 		if ls_method is None: ls_method = self.LS_METHOD
 		if self.use_C_lib: # pass off to the C function if it exists.
 			nprob = len(probs)
-			self.lsfit(nparam, nprob, b, conc, probs, ls_method)
+			self.__lsfit(nparam, nprob, b, conc, probs, ls_method)
 			return b
 		else:
 			return FunctionFit.ll_ls(b, nparam, probs, conc)
+
+	def min_cls(self, b, probs, conc, 
+				optim_method = None, lb = None, ub = None):
+		'''
+		Used to pass nprob pairs of concentrations/probabilities to the 
+			C-based or python-based constrained least-squares optimizer.
+		b: np.array of length 3. Should contain intial guess for
+			optimal value.
+		probs: np.array of length nprob containing the probability values.
+		conc: np.array of length nprob containing the concentration values.
+		optim_method: An int from {0,1,2,3,4} to choose the solver. See the 
+			README for more details. 
+
+		returns: np.array of length 2 containing the optimized parameters.
+		'''
+		if optim_method is None: optim_method = self.OPTIM_METHOD
+		if lb is None: lb = self.LB
+		if ub is None: ub = self.UB
+
+		if self.use_C_lib:
+			funmin = 0
+			self.__cls(b, probs, conc, len(probs), funmin, 
+						lb, ub, optim_method)
+			return b
+		else:
+			bb = self.get_python_bounds()
+			res = minimize(self.ls_SSR, b, args = (probs, conc), 
+					method = 'SLSQP', bounds = bb)
+			return res.x
+
+	def array_cls(self, b_input, prob_array, conc_list, 
+							optim_method = None, lb = None, ub = None):
+		'''
+		Used to pass an array of probabilities to the C-based or python-based
+			ll3 solver. For data that has prob_ct different concentration/
+			probability pairs and niter different iterations of bootstrapped 
+			probabilities:
+		b_input: 2D np.array of size niters * 3. Should initially contain the
+			guesses for b, and will ultimately contain the optimized values.
+		prob_array: 2D np.array of size niters * prob_ct containing the 
+			bootstrapped probability values.
+		conc_list: 1D np.array of length prob_ct. Contains the concentrations
+			that are matched to the probabilities. 
+		sigma_squared: float value for sigma**2 for the MVN prior for the
+			values of b[0] and b[1]. 
+		beta_param: 1D np.array of length 2 contain the two beta parameters
+			for the prior on b[2].
+		optim_method: An int from {0,1,2,3,4,5,6,7} to choose the solver. See
+			the README for more details. 
+
+		returns: 2D np.array of size niters * 3 containing the optimized 
+			values for each bootstrap. 
+		'''
+		if optim_method is None: optim_method = self.OPTIM_METHOD
+		if lb is None: lb = self.LB
+		if ub is None: ub = self.UB
+
+		niters, prob_ct = prob_array.shape
+		if self.use_C_lib: # pass off to the C function if it exists.
+			#funmin is for storing the function minimum, and can be returned
+			#to provide the minimum value if needed. 
+			funmin = np.zeros(niters)
+			self.__cls_array(prob_ct, niters, b_input, prob_array, conc_list, 
+						funmin, lb, ub, optim_method)
+		else:
+			for i in range(niters):
+				b_input[i] = self.min_cls(b_input[i], prob_array[i], conc_list)
+		return b_input
+
+	def ls_SSR(self, b, probs, conc):
+		resid = self.least_squares_error(b, 3, probs, conc)
+		return sum(resid*resid)
+
+	def get_python_bounds(self, nparam = 3, LB = None, UB = None):
+		'''
+		Converts C-style bounds (vector of min and vector of max) to
+		scipy bounds, which is a tuple of tuples of form
+		((min,max), ..., (min,max))
+		'''
+		if LB is None: LB = self.LB
+		if UB is None: UB = self.UB
+
+		bb0 = (LB[0],UB[0])
+		bb1 = (LB[1],UB[1])
+		if nparam == 3:
+			bb2 = (LB[2],UB[2])
+			return (bb0, bb1, bb2)
+		else:
+			return (bb0, bb1)
 
 	@staticmethod
 	@utils.surpress_warnings
@@ -488,7 +649,6 @@ class FunctionFit():
 		ll = -(b0*b0 + b1*b1)/(2*sigma_squared) + b0*p_sum + b1*p_conc_sum - \
 				sum(np.log(1 + np.exp(b0+b1*conc)))
 		return(-ll)
-
 
 	@staticmethod
 	@utils.surpress_warnings
@@ -570,9 +730,8 @@ class FunctionFit():
 						(1-probs)*math.log(b2))
 			return 6 - 2*ll #AIC for three paramters
 
-	@staticmethod
 	@utils.surpress_warnings
-	def ll23AIC_min(b, probs, conc, sigma_squared = SS, beta_param=BP):
+	def ll23AIC_min(self, b, probs, conc, sigma_squared = SS, beta_param=BP):
 		'''
 		Cacluates the maximum of the log-likelihood function of both the 
 		two- and three- parameter dose-response curves
@@ -596,15 +755,17 @@ class FunctionFit():
 		returns:np.array of length nparam containing the optimized parameters.
 		'''
 		#fit ll2
+		bb = self.get_python_bounds(params = 2)
 		res2 = minimize(FunctionFit.ll2p, b[0:2], 
 					args = (probs, conc, sigma_squared), 
-					method = 'BFGS', jac = FunctionFit.ll2p_jac)
+					method = 'SLSQP', jac = FunctionFit.ll2p_jac, bounds = bb)
 		b2 = np.array([*res2.x, 1.0])
 		AIC2 = FunctionFit.ll_for_AIC(b2, probs, conc, sigma_squared)
 		#fit ll3
+		bb = self.get_python_bounds(params = 3)
 		res3 = minimize(FunctionFit.ll3p, b, 
 					args = (probs, conc, sigma_squared, beta_param), 
-					method = 'BFGS', jac = FunctionFit.ll3p_jac)
+					method = 'SLSQP', jac = FunctionFit.ll3p_jac, bounds = bb)
 		AIC3 = FunctionFit.ll_for_AIC(res3.x, probs, conc, 
 									sigma_squared, beta_param)
 
@@ -678,7 +839,6 @@ class FunctionFit():
 		g2 = (ba-1)/b2 - (bb-1)/(1-b2) + sum(-probs/(d)) + sum((1-probs)/b2)
 		return(np.array([-g0,-g1,-g2]))
 
-
 	@staticmethod
 	@utils.surpress_warnings
 	def least_squares_error(b, nparam, probs, conc):
@@ -698,13 +858,13 @@ class FunctionFit():
 		returns: float containing the summed squared residuals.
 		'''
 		if nparam == 2:
-			return np.array((1-1/(1 + np.exp(b[0] + b[1]*conc)) - probs)**2)
+			return np.array((1-1/(1 + np.exp(b[0] + b[1]*conc)) - probs))
 		else:
 			if b[2] > 1:
 				return 1e10
 			else:
-				return np.array((1-b[2]/(1 + np.exp(b[0] +\
-								b[1]*conc)) - probs)**2)
+				return np.array((1-b[2]/(1.0 + np.exp(b[0] +\
+												b[1]*conc)) - probs))
 
 	@staticmethod
 	@utils.surpress_warnings
@@ -832,9 +992,11 @@ class FunctionFit():
 			b = self.min_ll3(b3, probs, conc,
 				sigma_squared = sigma_squared, beta_param = beta_param)
 		elif switch in ["ls3"]:
-			b = self.min_ls(b3, 3, 1.0-probs, conc)
+			b = self.min_ls(b3, 3, probs, conc)
 		elif switch in ["ls2"]:
-			b = self.min_ls(b2, 2, 1.0-probs, conc)
+			b = self.min_ls(b2, 2, probs, conc)
+		elif switch in ["cls", "cls3"]:
+			b = self. min_cls(b3, probs, conc)
 		elif switch in ["best", "aic"]:
 			b = self.min_llAIC(b3, probs, conc,
 				sigma_squared = sigma_squared, beta_param = beta_param)
@@ -894,11 +1056,13 @@ class FunctionFit():
 			b_out = self.array_ll3(b3_array, prob_array, conc,
 				sigma_squared = sigma_squared, beta_param = beta_param)
 		elif switch in ["ls3"]:
-			b_out = self.array_ls(3, b3_array, 1.0-prob_array, conc)
+			b_out = self.array_ls(3, b3_array, prob_array, conc)
 		elif switch in ["ls2"]:
 			#NB: note that whilst two parameters are used, the array still
 			#is required to be three param wide. 
-			b_out = self.array_ls(2, b3_array, 1.0-prob_array, conc)
+			b_out = self.array_ls(2, b3_array, prob_array, conc)
+		elif switch in ["cls", "cls3"]:
+			b = self.array_cls(b3, probs, conc)
 		elif switch in ["best", "aic"]:
 			b_out = self.array_ll23AIC(b3_array, prob_array, conc,
 				sigma_squared = sigma_squared, beta_param = beta_param)

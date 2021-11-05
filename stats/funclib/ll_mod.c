@@ -44,6 +44,7 @@ double DEF_RETURN = 1E10;
 #define M_E        2.71828182845904523536028747135      /* e */
 #endif
 
+
 void ll3f(const size_t n, 
 	const double *b, 
 	void * fparams, 
@@ -65,7 +66,6 @@ void ll3f(const size_t n,
 	const int probs_size = par->probs_size;
 	const double * beta = par->beta;
 
-	// printf("b: (%f, %f, %f)\n",b[0], b[1],b[2] );
 	if (b[2] < LB) { 
 		*fval = DEF_RETURN;
 		return; 
@@ -77,7 +77,6 @@ void ll3f(const size_t n,
 
 	*fval = (b[0] * b[0] + b[1]*b[1])/(2.0*sigsquare) //MVN prior
 		- (beta[0]-1)*lb2 - (beta[1]-1)*log(1-b[2]); //Beta prior
-	// printf("Before: ll = %f \n", *fval);
 	// Only iterate through probs and conc arrays once and
 	// add to log-likelihood each time. 
 	for (int i = 0; i < probs_size; i++) {

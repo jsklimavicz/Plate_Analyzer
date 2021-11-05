@@ -23,6 +23,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <stdio.h>
 #include "ls.h"
+#include "ll_mod.h"
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_matrix.h>
@@ -44,6 +45,34 @@ double ls3_fun(const double b0,
 				 const double x)
 {
 	return (b2 / (1.0 + exp(b0 + b1 * x)));
+}
+
+void cls3f_error(const size_t n, 
+	const double *b, 
+	void * fparams, 
+	double * fval) 
+{
+	/*
+	Error function of the three parameter dose-response curve 
+
+                    [  /         b2               \ 2 ]
+        error = sum [ | -------------------- - y_i |  ]
+			     i  [  \1 + exp(b0 + b1*x_i)      /   ]
+	*/
+
+	struct ll_param *par = (struct ll_param *) fparams;
+
+	const double * probs = par->probs;
+	const double * conc = par->conc;
+	const int probs_size = par->probs_size;
+
+	double curry;
+
+	*fval = 0;
+	for (int i = 0; i < probs_size; i++) {
+		curry = ls3_fun(b[0], b[1], b[2], conc[i]) - probs[i];
+		*fval += curry * curry;
+	}
 }
 
 
