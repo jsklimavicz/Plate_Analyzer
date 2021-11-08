@@ -17,7 +17,9 @@ The GUI does require the addition of `tkcalendar`, which is easily installed usi
 
 Testing has been performed on Ubuntu 20.04 and Windows 10 using Python 3.8.8.
 
-Tensorflow is used for analyzing the images with the Mask R-CNN algorithm. The process is highly parallelized, and runs fastest with a CUDA-enabled NVIDIA graphics card; however, images can also be processed on multiple CPU cores. 
+Tensorflow is used for analyzing the images with the Mask R-CNN algorithm. The process is highly parallelized, and runs fastest with a CUDA-enabled NVIDIA graphics card; however, images can also be processed on multiple CPU cores.
+
+The statistics module, which analyzes live/dead count data, contains several functions that are written in both C and python. The C code must be compiled and requires the [GNU Scientific Library](https://www.gnu.org/software/gsl/), and must be linked to this library during compilation into a `.so` or `.dll` file on Linux/MacOS or Windows, respectively. See the statistic readme for more details. If the C library is not compiled, full functionality is maintained using python functions; however, the C library provides substantial speed-up. 
 
 ## <a name="gui"></a>Graphical User Interface
 

@@ -1,8 +1,8 @@
-# Statistical Analysis Configuration
+# Statistical Analysis Configuration Options
 
 ## Intro
 
-This set of files is to calculate Bayesian log-likelihood dose-response curves based on bioassay live-dead data. Briefly, live/dead count data, associated with compounds/codes, dates, and plate rows and columns, is read into the program. These live/dead counts are then used to create bootstrapped samples of live/dead ratios using a beta distribution, and dose-response curves are fit to this bootstrapped data. These curves are then used to generate credible intervals for the best fit curve, which is taken as the median response at each concentration for which the curve is calculated. 
+This set of files is to calculate Bayesian log-likelihood or least-squares dose-response curves based on bioassay live-dead data. Briefly, live/dead count data, associated with compounds/codes, dates, and plate rows and columns, is read into the program. These live/dead counts are then used to create bootstrapped samples of live/dead ratios using a beta distribution, and dose-response curves are fit to this bootstrapped data. These curves are then used to generate credible intervals for the best fit curve, which is taken as the median response at each concentration for which the curve is calculated. 
 
 The output data is in .csv value, and includes estimates and credible intervals of user-requested LC values. The user can also specify a reference/control compound, and estimates and credible intervals of potency ratios of each compound to this reference compound are given. 
 
@@ -40,13 +40,21 @@ To prevent overcrowding of data points and error bars, the option to `JITTER` th
 
 Because the curve-fitting process is the most computationally-expensive component of the analysis, this portion has been written to be performed in parallel. The number of CPUs that should be used for computation should be set with `NCPU`. The default behavior is to use all available CPUs, which is automatically determined if `NCPU` = -1 (default). Alternatively, this variable may be set to any positive integer up to the number of available CPUs. 
 
-`BOOTSTRAP_ITERS` (default: 2500) speficies the number of bootstrapped curves to calculate. Higher numbers of bootstrap iterations will produce more reliable confidence intervals and curves, but correspondingly, this will take more computational time. For best results, this value should be no lower than 500. 
+`BOOTSTRAP_ITERS` (default: 2500) speficies the number of bootstrapped curves to calculate. Higher numbers of bootstrap iterations will produce more reliable confidence intervals and curves, but correspondingly, this will take more computational time. For best results, this value should be no lower than 500. Bootstrapping is performed in parallel, and will use all cpus allowed by `NCPU`.
 
 As discussed in the Advanced Description, the bootstrapped live/dead probabilities are created using beta distributions, since the live count out of the total count is binomial in nature. Because the posterior distribution is a beta distribution, the user is given some choice of prior through the variable `BETA_PRIOR`. Beta variables are then drawn from the distribution Beta(live count + `BETA_PRIOR`, dead count + `BETA_PRIOR`). Setting `BETA_PRIOR` to 0.5 is equivalent to Jeffreys' prior, while using 0.0 (default) is roughly equivelent to Heldane's prior. To avoid the [sunrise paradox][4], the `BETA_PRIOR_0` value can be set to provide a seperate beta prior when the live count or dead count is equal to 0 (default: 0.25). To prevent undefined values, `BETA_PRIOR_0` takes on a minimum value of sqrt(machine_epsilon).
 
 The `RHO` parameter is used to set correlation between the beta variables contained within a single replicate. See Advanced Description for more details. This paramter should be set to between -0.25 and roughly 0.6 (default: 0.10). 
 
 `CI_METHOD` specifies the method of confidence interval calculation. The default behavior (`HPDI`) is to calculate the highest posterior density interval (this is also the optimal CI in terms of decision theory). Setting this value to ``equal-tailed`` will produce credible intervals with equal probabilities of being above or below the median, and equal tail weights. This behavior is set for the credible intervals for both graphing and for the output .csv file. 
+
+Setting `USE_CLIB` to `False` tells the program not to use the C library, while setting it to `True` will tell the program to look for said library, but to default to the python functions if the library cannot be found.
+
+The module allows several types of curves to be fit to the date using `CURVE_TYPE`. All currently-available curves are log-logistic curves of the form *s*(*x*) = *b*<sub>2</sub>/(1 + exp(*b*<sub>0</sub> + *b*<sub>1</sub>*x*). The two-parameter curves fix *b*<sub>2</sub>=1.0, while the three-paramter curves allow this value to vary. The default method, `ll3`, maximizes the log-likelihood function to fit the three-parameter curve, while `ll2` maximizes the log-likelihood function to fit the two-parameter curve. The option `auto` will default to `ll3` when the background mortaility is above 10%, and will otherwise use `ll2`; the option `aic` will use the Akaike information criterion to choose either the `ll3` or `ll2` fit for each bootstrapped dataset. `ls2` and `ls3` fit the two- and three-paramter curve using least-squares, though `ls3` is *not* recommended because the values of *b*<sub>2</sub> are not contrained to the interval [0,1]. The option `cls` fits a least-squares curve, but with the constraints on **b** as specified in `LB` and `UB`; these constraints also apply to *b*<sub>0</sub> and *b*<sub>1</sub> in the `ll2` and `ll3` curves, while the *b*<sub>2</sub> is confined to the interal (0,1) in the `ll3` curve through the use of a Beta prior on this variable. 
+
+When using the C library, the solver for curve-fitting may be specified. When using `ll2`, `ll3`, `auto`, `aic`, or `cls`, the keyword `OPTIM_METHOD` specifies the solver, with the options being 0: Fletcher-Reeves CG; 1: Polak-Ribiere CG; 2: Vector BFGS method; 3: Steepest descent; 4: Nelder-Mead simplex; 5: Vector BFGS method ver. 2; 6: Nelder-Mead simplex ver. 2; or 7: Nelder-Mead simplex with random initialization. When using `ls2` or `ls3`, the least-squares method may be selected, with 0: Levenberg-Marquardt; 1: Levenberg-Marquardt with geodesic acceleration 2: dogleg 3: double dogleg; or 4: 2D subspace.
+
+When using any of the maximum likelihood methods, the hyperparameters may be adjusted. *b*<sub>0</sub> and *b*<sub>1</sub> are selected from diffuse prior, namely a multivariate normal distribution with variance `LL_SIGMA`, which by default is 1000. When using `ll3`, `auto`, or `beta`, the beta prior on *b*<sub>2</sub> is specified using the beta shape parameters `LL_BETA1` and `LL_BETA2`
 
 ### Analysis Options
 
@@ -57,14 +65,20 @@ The `.\stats` directory contains the following files:
 
 - `merlinanalyzer.py`, which contains the class object that drives the data analysis.
 - `compound.py` defines the class that contains all the data and calculated parameters for a compound.
-- `curvell.py` does most of the mathematical calculations for curve fitting, parameter estimation, etc.
+- `curvell.py` handles the bootstrapping of data. 
+- `functionfit.py` contains most of the mathematical functions for curve-fitting, and provides an interface to C libraries.
 - `corr_beta.py` generates the correlated random beta variables for bootstrapping purposes. 
 - `utils.py` contains several useful functions, including the function that creates the options dictionary from `analysis_config.txt`.
-- `analysis_config.txt` is used to set the user-chosen parameters. 
 - `merlin_grapher.py` is the module that generates plots of dose-response info using matplotlib.
 - `latex_writer.py` is the module that generates a LaTeX document for making the pdf of all dose-response curves. 
-
-
+- `./funclib/cloglik.c`, which contains wrappers for function minimization to interface with the python program.
+- `./funclib/cloglik.h`
+- `./funclib/ls.c`, which contains the functions and drivers for unconstrained least-squares fitting using the GSL library.
+- `./funclib/ls.h`
+- `./funclib/ll_mod.c`, which contains log-likelihood functions, gradients, and jacobians for finding maximum log-likelihood
+- `./funclib/ll_mod.h`
+- `./funclib/multimin.c`, written by Giulio Bottazzi Copyright (C) 2002-2014 to provide an interface to the GSL optimization library.
+- `./funclib/multimin.h`
 
 
 [1]: https://matplotlib.org/stable/gallery/color/named_colors.html
