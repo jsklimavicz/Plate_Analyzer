@@ -22,6 +22,7 @@
 from tkinter import *
 import tkinter as tk
 from tkinter.ttk import Label
+from tkinter.messagebox import askyesno
 
 import math
 from scipy.optimize import minimize, least_squares
@@ -31,29 +32,43 @@ import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, 
 NavigationToolbar2Tk)
+from copy import copy, deepcopy
 
 from stats.functionfit import FunctionFit
 from stats.curvell import CI_finder
 from gui.tooltip import Tooltip
 from gui.utils import win_center
 
+
+
 class DataPreviewer(tk.Frame):
 	'''
 	Provides an interactive interface to preview the data that will be 
 	included in the statistical anlysis.
 	'''
-	def __init__(self, parent, merlin_stats_obj, uid_handler, scale = 1):
+	def __init__(self, parent):
 		super(DataPreviewer, self).__init__() #initialize root
-		self.scale = scale
+		self.parent = parent
+		self.scale = parent.scale
 		w = 1200
 		h = 1000
 		self.top = Toplevel(parent)
 		self.top.wm_title("Data Previewer")
 		win_center(self.top, w, h)
 
-		#pass on statistics object
-		self.stats_obj = merlin_stats_obj
-		self.UIDH = uid_handler
+		#get the statistics object
+		self.stats_obj = deepcopy(self.parent.stats_obj)
+
+		#make a deep copy to pass pack to parent
+		self.UIDH = deepcopy(self.parent.UIDH)
+
+		'''
+		Monitors whether there was a net change to the UID list. A UID is
+		included in this list if it switched from allowed to disallowed or
+		vice versa, and removed from the lsit if it's switched back. If the
+		length of this list is zero, then no net change as occurred. 
+		'''
+		self.UIDH_change_list = []
 
 		self.columnconfigure(0, weight=2)
 		self.columnconfigure(1, weight=2)
@@ -75,28 +90,35 @@ class DataPreviewer(tk.Frame):
 		Makes the widget layout for the data previewer: 
 
 		self.top 
-		|--data_frm
-		|  |--cmpd_frm #Compound selection for plotting
-		|  |  |--cmpdlabel
-		|  |  |--cmpd_list_frm w/ scrollbar #Inner frame 
-		|  |  |  |--self.cmpd_listbox
-		|  |--allowed_frm #allowed uid selection for highlighting in plot
-		|  |  |--allowed_label
-		|  |  |--allowed_list_frm w/ scrollbar #Inner frame 
-		|  |  |  |--self.allowed_listbox
-		|  |--excludeButton
-		|  |--includeButton
-		|  |--disallowed_frm #disallowed uid selection for highlighting in plot
-		|  |  |--disallowed_label
-		|  |  |--disallowed_list_frm w/ scrollbar #Inner frame 
-		|  |  |  |--self.disallowed_listbox
-		|--self.fig_frame #The plot
-		|  |--self.canvas
-		|  |  |--self.fig
-		|  |  |--self.curve_data_label
+		|--display_frm
+		|  |--data_frm
+		|  |  |--cmpd_frm #Compound selection for plotting
+		|  |  |  |--cmpdlabel
+		|  |  |  |--cmpd_list_frm w/ scrollbar #Inner frame 
+		|  |  |  |  |--self.cmpd_listbox
+		|  |  |--allowed_frm #allowed uid selection for highlighting in plot
+		|  |  |  |--allowed_label
+		|  |  |  |--allowed_list_frm w/ scrollbar #Inner frame 
+		|  |  |  |  |--self.allowed_listbox
+		|  |  |--excludeButton
+		|  |  |--includeButton
+		|  |  |--disallowed_frm #disallowed uid selection data highlighting
+		|  |  |  |--disallowed_label
+		|  |  |  |--disallowed_list_frm w/ scrollbar #Inner frame 
+		|  |  |  |  |--self.disallowed_listbox
+		|  |--self.fig_frame #The plot
+		|  |  |--self.canvas
+		|  |  |  |--self.fig
+		|  |  |  |--self.curve_data_label
+		|--bttn_frm
+		|  |--accept_button #keep changes to UIDH
+		|  |--cancel_button #cancel changes to UIDH
 
 		'''
-		data_frm = Frame(self.top)
+		display_frm = Frame(self.top)
+		display_frm.grid(row=0, column=0, rowspan = 10, columnspan = 5, 
+				sticky=N+S, padx=10, pady=10)
+		data_frm = Frame(display_frm)
 		data_frm.grid(row=0, column=0, rowspan = 9, columnspan = 2, 
 						sticky=N+S, padx=10, pady=10)
 		#Compound Selection
@@ -143,7 +165,7 @@ class DataPreviewer(tk.Frame):
 		allowed_frm.grid(row=2, column=0, rowspan = 2, columnspan = 2, 
 						sticky=N+S, padx=10, pady=10)
 		
-		allowed_label = Label(allowed_frm, text="Currently Included") #Label
+		allowed_label = Label(allowed_frm, text="Included Replicates") #Label
 		allowed_label.grid(row=0, column=0, sticky=E)
 
 		allowed_list_frm = Frame(allowed_frm) #Inner frame
@@ -204,7 +226,7 @@ class DataPreviewer(tk.Frame):
 		disallowed_frm.grid(row=5, column=0, rowspan = 2, columnspan = 2, 
 						sticky=N+S, padx=10, pady=10)
 		
-		disallowed_label = Label(disallowed_frm, text="Not Currently Included") #Label
+		disallowed_label = Label(disallowed_frm, text="Excluded Replicates") #Label
 		disallowed_label.grid(row=0, column=0, sticky=E)
 
 		disallowed_list_frm = Frame(disallowed_frm) #Inner frame
@@ -244,7 +266,7 @@ class DataPreviewer(tk.Frame):
 		Making the figure and canvas here is important. When made in the plot
 		function, a memory leak results due to improper clearing of the plot. 
 		'''
-		self.fig_frame = Frame(self.top)
+		self.fig_frame = Frame(display_frm)
 		self.fig_frame.grid(row=0, column=3, rowspan = 9, columnspan = 9, 
 					sticky=N+S)
 		self.fig = Figure(figsize = (5,5), dpi = 150)
@@ -256,6 +278,63 @@ class DataPreviewer(tk.Frame):
 		self.curve_data_label.grid(row=9, column=3, sticky=E)
 		#initialize a plot with the first compound. 
 		self.plotselect()
+
+
+		bttn_frm = Frame(self.top)
+		bttn_frm.grid(row=10, column=0, rowspan = 2, columnspan = 5, 
+				sticky=N+S, padx=10, pady=10)
+		accept_button = Button(bttn_frm, 
+					text="Accept changes", 
+					command = lambda: self.accept_UIDH())
+		accept_button.grid(row=0, column=0, rowspan = 2, columnspan = 2, 
+					sticky=N+S, padx=10, pady=10)
+		accept_button.config(height = 2)
+		msg = "Keep the inclusions/exclusions made during this interactive "+\
+					"session."
+		Tooltip(accept_button, text= msg)
+		cancel_button = Button(bttn_frm, 
+					text="Cancel changes", 
+					command = lambda: self.cancel_UIDH())
+		cancel_button.grid(row=0, column=3, rowspan = 2, columnspan = 2, 
+					sticky=N+S, padx=10, pady=10)
+		cancel_button.config(height = 2)
+		msg = "Cancel the inclusions/exclusions made during this "+\
+					"interactive session."
+		Tooltip(cancel_button, text= msg)
+
+	def accept_UIDH(self):
+		if len(self.UIDH_change_list) > 0: 
+			msg ="Would you like to save the changes to the inclusion/exclusion"+\
+					" lists that were made during this interactive session?"
+			answer = askyesno(title = "Accept changes?", message = msg)
+			if answer: 
+				#Save modified objects back to parent
+				self.parent.UIDH = self.UIDH
+				self.parent.stats_obj = self.stats_obj
+				self.top.destroy()
+		else:
+			self.top.destroy()
+
+	def cancel_UIDH(self):
+		if len(self.UIDH_change_list) > 0: 
+			msg = "Would you like to cancel any changes to the inclusion/"+\
+					"exclusion lists that were made during this interactive "+\
+					"session?"
+			answer = askyesno(title = "Cancel changes?", message = msg)
+			if answer: 
+				self.top.destroy()
+		else:
+			self.top.destroy()
+
+	def update_change_list(self, uid):
+		'''
+		Updates the list of UIDs that have had a net change between the 
+		include/exclude lists.  
+		'''
+		if uid in self.UIDH_change_list:
+			self.UIDH_change_list.remove(uid)
+		else:
+			self.UIDH_change_list.append(uid)
 
 	def select_first(self, list_type = "allowed"):
 		'''
@@ -289,6 +368,7 @@ class DataPreviewer(tk.Frame):
 				self.select_first(list_type = "disallowed")
 			except IndexError:
 				self.select_first(list_type = "allowed")
+			self.update_change_list(uid)
 		except IndexError:
 			pass
 
@@ -305,6 +385,7 @@ class DataPreviewer(tk.Frame):
 				self.select_first(list_type = "allowed")
 			except IndexError:
 				self.select_first(list_type = "disallowed")
+			self.update_change_list(uid)
 		except IndexError:
 			pass
 

@@ -351,7 +351,7 @@ class DataSelectionFrame(ttk.Frame):
 		#update forbidden list
 		disallowed_uids = self.get_disallowed_uids()
 		self.stats_obj.set_diallowed(disallowed_uids)
-		DP = DataPreviewer(self, self.stats_obj, uid_handler = self.UIDH, scale = self.scale)
+		DP = DataPreviewer(self)
 		DP.wait(self)
 		self.__list_update()
 

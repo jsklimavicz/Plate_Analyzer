@@ -139,7 +139,11 @@ CI_METHOD = HPDI
 #        better-fitting curve, 
 #    'aic': identical to 'best'
 #    'ls2': use least-squares fitting of a two-parameter curve
-#    'ls3': use least-squares fitting of a three-parameter curve
+#    'ls3': NOT RECOMMENDED. Use unconstrained least-squares fitting of a 
+#        three-parameter curve. This method allows the upper horizontal 
+#        asymptote to assume values outside the range [0,1], which does not
+#        correspond to a probability, and this method should not be used.
+#    'cls': constrained least squares for three parameters
 CURVE_TYPE = cls
 
 # Optimization method for least-squares fitting. 
