@@ -147,6 +147,8 @@ def fix_num_output(func, *args, **kwargs):
 def check_library_change(cmpd_options, dict_options):
 	changed = False
 	check_list = ["BOOTSTRAP_ITERS", "RHO", "BETA_PRIOR", "CURVE_TYPE"]
+	if not bool(cmpd_options):
+		return True #dictionary is empty
 	for item in check_list:
 		if cmpd_options[item] != dict_options[item]:
 			changed = True

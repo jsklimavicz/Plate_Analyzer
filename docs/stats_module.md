@@ -8,13 +8,13 @@ The statistics module fits dose-response live/dead count data to the curve *s*(*
 
 ### C Library
 
-The statistic module fits bootstrapped data to log-logistic models. Functions to perform curve-fitting are written in python for this module with no further configuration necessary. However, because python is relatively slow, the functions to perform the curve-fitting have also been rewritten in C with use of the [GNU Scientific Library (GSL)](https://www.gnu.org/software/gsl/). While compiling this library is not required, it provides a substantial speed-up in the statistical analysis of data. 
+The statistic module fits bootstrapped data to log-logistic models. Functions to perform curve-fitting are written in python for this module with no further configuration necessary. However, because python is relatively slow, the functions to perform the curve-fitting have also been rewritten in C with use of the [GNU Scientific Library (GSL)](https://www.gnu.org/software/gsl/). While compiling this library is not required, it provides a substantial speed-up in the statistical analysis of data. A `makefile` is included for use on Linux/Mac OS. 
 
 #### Linux
-GSL 2.7 was downloaded directly from the main GNU ftp site, configured with the `./configure` file, and installed with `make`/`make install`. The C functions for this module were compiled into a shared object library `cloglik.so` with the command `gcc -fPIC -pedantic -Wall -Werror -shared -o cloglik.so cloglik.c ll_mod.c multimin.c ls.c -lgsl -lgslcblas -lm`. 
+GSL 2.7 was downloaded directly from the main GNU ftp site, configured with the `./configure` file, and installed with `make`/`make install`. If GSL is installed and in the compilier search path, then the library may be installed with the command `make clean && make`. Tested on Ubuntu 20.04.
 
-#### Mac OS
-GSL was installed using [Homebrew](https://brew.sh/) using the command `brew install gsl`. The C functions for this module were compiled into a shared object library `cloglik.so` with the command `gcc -fPIC -pedantic -Wall -Werror -shared -o cloglik.so cloglik.c ll_mod.c multimin.c ls.c -lgsl -lgslcblas -lm`. 
+#### macOS
+GSL was installed using [Homebrew](https://brew.sh/) using the command `brew install gsl`. If GSL is installed and in the compilier search path, then the library may be installed with the command `make clean && make`. Tested on macOS Big Sur.
 
 #### Windows 10
 Briefly, Mingw-w64 was used to port gcc, and MSYS2 was used to directly install GSL via `pacman -S mingw-w64-x86_64-gsl`. The dynamic link library file `cloglik.dll` was compiled with the command `gcc cloglik.c ll_mod.c multimin.c ls.c -O -pedantic -s -shared -I"C:\path\to\msys64\ming64\include" -L"C:\path\to\msys64\ming64\bin" -lgsl -lgslcblas -lm -o cloglik.dll`. The GSL .dll library must be in the path; alternatively, it can be added manually in the file `./stats/functionfit.py` with `os.add_dll_directory` (search for 'libgsl.dll').

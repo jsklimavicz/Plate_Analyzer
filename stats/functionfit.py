@@ -197,6 +197,10 @@ class FunctionFit():
 		else:
 			self.__cloglik = None
 			self.use_C_lib = False
+		
+
+	def check_Clib_running(self):
+		return self.use_C_lib
 
 	def set_default_params(self, **kwargs):
 		self.use_C_lib = kwargs.get('USE_CLIB') if 'USE_CLIB' in kwargs else False
@@ -368,6 +372,7 @@ class FunctionFit():
 											prob_array[i], conc_list)
 		return b_input
 
+	@utils.surpress_warnings
 	def min_ll2(self, b, probs, conc, sigma_squared = None, 
 							optim_method = None, lb = None, ub = None):
 		'''
@@ -397,13 +402,14 @@ class FunctionFit():
 					sigma_squared, optim_method)
 			return b
 		else:
-			bb = self.get_python_bounds(params = 2)
+			bb = self.get_python_bounds(nparam = 2)
 			res = minimize(FunctionFit.ll2p, b, 
 					args = (probs, conc, sigma_squared), 
 					method = 'SLSQP', jac = FunctionFit.ll2p_jac,
 					bounds = bb)
 			return res.x
 
+	@utils.surpress_warnings
 	def min_ll3(self, b, probs, conc, sigma_squared = None, 
 					beta_param=None, optim_method = None, 
 								lb = None, ub = None):
@@ -476,8 +482,9 @@ class FunctionFit():
 		else:
 			bb = self.get_python_bounds()
 			return self.ll23AIC_min(b, probs, conc, sigma_squared, 
-				beta_param, bounds = bb)
+				beta_param)
 
+	@utils.surpress_warnings
 	def min_ls(self, b, nparam, probs, conc, ls_method = None):
 		'''
 		Used to pass nprob pairs of concentrations/probabilities to the 
@@ -525,7 +532,7 @@ class FunctionFit():
 			return b
 		else:
 			bb = self.get_python_bounds()
-			res = minimize(self.ls_SSR, b, args = (probs, conc), 
+			res = minimize(self.ls_SSR, b, args = (1.0-probs, conc), 
 					method = 'SLSQP', bounds = bb)
 			return res.x
 
@@ -752,14 +759,14 @@ class FunctionFit():
 		returns:np.array of length nparam containing the optimized parameters.
 		'''
 		#fit ll2
-		bb = self.get_python_bounds(params = 2)
+		bb = self.get_python_bounds(nparam = 2)
 		res2 = minimize(FunctionFit.ll2p, b[0:2], 
 					args = (probs, conc, sigma_squared), 
 					method = 'SLSQP', jac = FunctionFit.ll2p_jac, bounds = bb)
 		b2 = np.array([*res2.x, 1.0])
 		AIC2 = FunctionFit.ll_for_AIC(b2, probs, conc, sigma_squared)
 		#fit ll3
-		bb = self.get_python_bounds(params = 3)
+		bb = self.get_python_bounds(nparam = 3)
 		res3 = minimize(FunctionFit.ll3p, b, 
 					args = (probs, conc, sigma_squared, beta_param), 
 					method = 'SLSQP', jac = FunctionFit.ll3p_jac, bounds = bb)
@@ -993,7 +1000,7 @@ class FunctionFit():
 		elif switch in ["ls2"]:
 			b = self.min_ls(b2, 2, probs, conc)
 		elif switch in ["cls", "cls3"]:
-			b = self. min_cls(b3, 1.0 - probs, conc)
+			b = self.min_cls(b3, 1.0 - probs, conc)
 		elif switch in ["best", "aic"]:
 			b = self.min_llAIC(b3, probs, conc,
 				sigma_squared = sigma_squared, beta_param = beta_param)

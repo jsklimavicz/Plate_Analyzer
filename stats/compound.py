@@ -170,10 +170,11 @@ class Compound:
 		'''
 		no_plt_cmpd = Compound(**self.data)
 		no_plt_cmpd.options = self.options
-		no_plt_cmpd.curve_data = self.curve_data
-		#Remove the really storage-pricy stuff.
-		no_plt_cmpd.curve_data.plot_quant = None
-		no_plt_cmpd.curve_data.points = None
+		if no_plt_cmpd.curve_data is not None:
+			no_plt_cmpd.curve_data = self.curve_data
+			#Remove the really storage-pricy stuff.
+			no_plt_cmpd.curve_data.plot_quant = None
+			no_plt_cmpd.curve_data.points = None
 		return no_plt_cmpd
 
 def empty_cpmd_dict():

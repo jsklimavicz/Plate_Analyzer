@@ -135,16 +135,16 @@ CI_METHOD = HPDI
 #    'll3': log-likelihood fitting of three-parameter log-logistic curve 
 #    'auto': for producing ll3 or ll2 depending on what the limiting behavior
 #        at low concentrations is, 
-#    'best': to use the AIC of the ll3 and ll2 curves to pick the 
+#    'aic': to use the AIC of the ll3 and ll2 curves to pick the 
 #        better-fitting curve, 
-#    'aic': identical to 'best'
+#    'best': identical to 'aic'
 #    'ls2': use least-squares fitting of a two-parameter curve
 #    'ls3': NOT RECOMMENDED. Use unconstrained least-squares fitting of a 
 #        three-parameter curve. This method allows the upper horizontal 
 #        asymptote to assume values outside the range [0,1], which does not
 #        correspond to a probability, and this method should not be used.
 #    'cls': constrained least squares for three parameters
-CURVE_TYPE = cls
+CURVE_TYPE = ll3
 
 # Optimization method for least-squares fitting. 
 #    0: Levenberg-Marquardt

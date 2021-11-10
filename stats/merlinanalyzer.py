@@ -37,6 +37,7 @@ import stats.utils as utils
 from time import time
 from stats.latex_writer import LatexWriter
 
+
 class MerlinAnalyzer:
 	'''
 	Class for processing all bioassay data.
@@ -157,7 +158,6 @@ class MerlinAnalyzer:
 			# print(self.options)
 			for cmpd in self.cmpd_data.keys():
 				# print(self.cmpd_data[cmpd].options)
-
 				dict_change = utils.check_library_change(self.cmpd_data[cmpd].options, self.options)
 				# print(self.cmpd_data[cmpd].__dict__)
 				if dict_change: 
@@ -243,6 +243,10 @@ class MerlinAnalyzer:
 	def generate_csv_data_lines(self, header):
 		output = []
 		for cmpd_name, cmpd in self.cmpd_data.items():
+			#check to see if the data is included at all. 
+			if not any(cmpd.data['include_now']):
+				continue
+
 			line = []
 			comment = " "
 			good_curve = True
@@ -395,9 +399,14 @@ class MerlinAnalyzer:
 			os.makedirs(pdf_dir)
 
 		LW = LatexWriter(img_folder = pdf_dir)
-		# cmpd_ct = 0
+
 		for cmpd_name, cmpd in self.cmpd_data.items():
 			self.progress += 90.0/self.number_of_compounds #update progress for each compound
+
+			#check to see if the data is included at all. 
+			if not any(cmpd.data['include_now']):
+				continue
+
 			self.message = f"Calculating LC data and dose-response curves for {cmpd_name:s}."
 			cmpd.fit_data(options = self.options)
 			cmpd.make_plot()

@@ -34,6 +34,7 @@ from gui.tooltip import Tooltip #as Tooltip
 from stats.main import analyze_data
 from gui.statsframe.uidhandler import UIDHandler
 from gui.statsframe.datapreviewer import DataPreviewer
+from stats.functionfit import FunctionFit as FF 
 
 class DataSelectionFrame(ttk.Frame):
 	cache_path = os.path.abspath('./stats/cache')
@@ -75,6 +76,9 @@ class DataSelectionFrame(ttk.Frame):
 			self.UIDH = self.UIDH.update(self.uid_list, selection_dict)
 
 		self.__create_widgets()
+
+		ff = FF(**self.stats_obj.options)
+		print("C Library running: ", ff.check_Clib_running())
 
 	def __create_widgets(self):
 		'''

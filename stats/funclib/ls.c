@@ -35,7 +35,7 @@ double ls2_fun(const double b0,
 				 const double b1, 
 				 const double x)
 {
-	return (1.0 / (1.0 + exp(b0 + b1 * x)));
+	return (1.0 - 1.0 / (1.0 + exp(b0 + b1 * x)));
 }
 
 /* 3-param Log-logit curve: b2 / (1 + exp(b0 + b1 * x) ) */
@@ -44,7 +44,7 @@ double ls3_fun(const double b0,
 				 const double b2, 
 				 const double x)
 {
-	return (b2 / (1.0 + exp(b0 + b1 * x)));
+	return (1.0 - b2 / (1.0 + exp(b0 + b1 * x)));
 }
 
 void cls3f_error(const size_t n, 
@@ -114,131 +114,6 @@ int ls3_func_f (const gsl_vector * b,
 		}
 	return GSL_SUCCESS;
 }
-
-int ls2_func_df (const gsl_vector * b, 
-				void *params, 
-				gsl_matrix * J)
-{
-	struct data *d = (struct data *) params;
-	double b0 = gsl_vector_get(b, 0);
-	double b1 = gsl_vector_get(b, 1);
-
-	for (int i = 0; i < d->n; ++i)
-		{
-			double x = d->x[i];
-			double xi = exp(b0 + b1*x);
-			double alpha = 1.0 + xi;
-			double Da = - xi / (alpha * alpha);
-
-			gsl_matrix_set(J, i, 0, -Da);
-			gsl_matrix_set(J, i, 1, -x*Da);
-		}
-	return GSL_SUCCESS;
-}
-
-int ls3_func_df (const gsl_vector * b, 
-				void *params, 
-				gsl_matrix * J)
-{
-	struct data *d = (struct data *) params;
-	double b0 = gsl_vector_get(b, 0);
-	double b1 = gsl_vector_get(b, 1);
-	double b2 = gsl_vector_get(b, 2);
-
-	for (int i = 0; i < d->n; ++i)
-		{
-			double x = d->x[i];
-			double xi = exp(b0 + b1*x);
-			double alpha = 1.0 + xi;
-
-			double Da = - b2 * xi / (alpha * alpha);
-			double Db = x*Da;
-			double Dc = 1.0 / alpha;
-
-			gsl_matrix_set(J, i, 0, -Da);
-			gsl_matrix_set(J, i, 1, -Db);
-			gsl_matrix_set(J, i, 2, -Dc);
-
-		}
-	return GSL_SUCCESS;
-}
-
-int ls2_func_fvv (const gsl_vector * b, 
-				const gsl_vector * v,
-				void *params, 
-				gsl_vector * fvv)
-{
-	struct data *d = (struct data *) params;
-	double b0 = gsl_vector_get(b, 0);
-	double b1 = gsl_vector_get(b, 1);
-	double vb0 = gsl_vector_get(v, 0);
-	double vb1 = gsl_vector_get(v, 1);
-	size_t i;
-
-	for (i = 0; i < d->n; ++i)
-		{
-			double x = d->x[i];
-			double xi = exp(b0 + b1*x);
-			double alpha = 1.0 + xi;
-			double gamma = xi / (alpha * alpha);
-
-			double Daa = gamma * (xi - 1.0) / alpha;
-			double Dab = x * Daa;
-			double Dbb = x * Dab;
-			double sum;
-
-			sum = vb0 * vb0 * Daa + 2.0 * vb0 * vb1 * Dab +
-						  vb1 * vb1 * Dbb;
-
-			gsl_vector_set(fvv, i, -sum);
-		}
-
-	return GSL_SUCCESS;
-}
-
-int ls3_func_fvv (const gsl_vector * b, 
-				const gsl_vector * v,
-				void *params, 
-				gsl_vector * fvv)
-{
-	struct data *d = (struct data *) params;
-	double b0 = gsl_vector_get(b, 0);
-	double b1 = gsl_vector_get(b, 1);
-	double b2 = gsl_vector_get(b, 2);
-	double vb0 = gsl_vector_get(v, 0);
-	double vb1 = gsl_vector_get(v, 1);
-	double vb2 = gsl_vector_get(v, 2);
-	size_t i;
-
-	for (i = 0; i < d->n; ++i)
-		{
-			double x = d->x[i];
-			double xi = exp(b0 + b1*x);
-			double alpha = 1.0 + xi;
-			double gamma = xi / (alpha * alpha);
-
-			double Daa = b2 * gamma * (xi - 1.0) / alpha;
-			double Dab = x * Daa;
-			double Dac = -gamma;
-			double Dbb = x * Dab;
-			double Dbc = -x * gamma;
-			double sum;
-
-			sum = 		  vb0 * vb0 * Daa +
-					2.0 * vb0 * vb1 * Dab +
-					2.0 * vb0 * vb2 * Dac + 
-						  vb1 * vb1 * Dbb +
-					2.0 * vb1 * vb2 * Dbc;
-
-			gsl_vector_set(fvv, i, -sum);
-		}
-
-	return GSL_SUCCESS;
-}
-
-
-
-
 
 void callback(const size_t iter, 
 				void *params,

@@ -274,14 +274,12 @@ void ls_driver(
 	fdf.params = &fit_data;
 	if (nparam == 2){
 		fdf.f = ls2_func_f;
-		fdf.df = ls2_func_df;
-		fdf.fvv = ls2_func_fvv;
 	} else {
 		gsl_vector_set(b, 2, user_b[2]);
 		fdf.f = ls3_func_f;
-		fdf.df = ls3_func_df;
-		fdf.fvv = ls3_func_fvv;
 	}
+	fdf.df = NULL;
+	fdf.fvv = NULL;
 
 	// printf("Method: %d\n",method);
 	switch(method){

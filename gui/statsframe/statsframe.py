@@ -93,6 +93,7 @@ class StatsFrame(ttk.Frame):
 		self.selection_frame.disallowButton['state'] = tk.DISABLED 
 		self.selection_frame.allowButton['state'] = tk.DISABLED 
 		self.selection_frame.clearButton['state'] = tk.DISABLED 
+		self.selection_frame.PreviewData['state'] = tk.DISABLED
 		
 		#create process thread for computing stats
 		stats_thread=Thread(target = self.__stats_processor)
@@ -114,4 +115,5 @@ class StatsFrame(ttk.Frame):
 		self.selection_frame.disallowButton['state'] = tk.NORMAL 
 		self.selection_frame.allowButton['state'] = tk.NORMAL 
 		self.selection_frame.clearButton['state'] = tk.NORMAL 
+		self.selection_frame.PreviewData['state'] = tk.NORMAL
 
