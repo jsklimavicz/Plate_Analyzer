@@ -17,7 +17,7 @@ GSL 2.7 was downloaded directly from the main GNU ftp site, configured with the 
 GSL was installed using [Homebrew](https://brew.sh/) using the command `brew install gsl`. The C functions for this module were compiled into a shared object library `cloglik.so` with the command `gcc -fPIC -pedantic -Wall -Werror -shared -o cloglik.so cloglik.c ll_mod.c multimin.c ls.c -lgsl -lgslcblas -lm`. 
 
 #### Windows 10
-Briefly, Mingw-w64 was used to port gcc, and MSYS2 was used to directly install GSL via `pacman -S mingw-w64-x86_64-gsl`. The dynamic link library file `cloglik.dll` was compiled with the command `gcc cloglik.c ll_mod.c multimin.c ls.c -O -pedantic -s -shared -I"C:\path\to\msys64\ming64\include" -L"C:\path\to\msys64\ming64\bin" -lgsl -lgslcblas -lm -o cloglik.dll`. The GSL .dll library must be in the path; alternatively, it can be added manually in the file `./stats/functionfit.py` (search for 'libgsl.dll').
+Briefly, Mingw-w64 was used to port gcc, and MSYS2 was used to directly install GSL via `pacman -S mingw-w64-x86_64-gsl`. The dynamic link library file `cloglik.dll` was compiled with the command `gcc cloglik.c ll_mod.c multimin.c ls.c -O -pedantic -s -shared -I"C:\path\to\msys64\ming64\include" -L"C:\path\to\msys64\ming64\bin" -lgsl -lgslcblas -lm -o cloglik.dll`. The GSL .dll library must be in the path; alternatively, it can be added manually in the file `./stats/functionfit.py` with `os.add_dll_directory` (search for 'libgsl.dll').
 
 ### Output graphics
 

@@ -231,9 +231,6 @@ int ls3_func_fvv (const gsl_vector * b,
 					2.0 * vb1 * vb2 * Dbc;
 
 			gsl_vector_set(fvv, i, -sum);
-			// if (i == 1){printf("DerDev: b0=%f, b1=%f, b2=%f, x=%f \n", b0, b1, b2, x);}
-			// if (i == 1){printf("\tv0=%f, v1=%f, v2=%f\n", vb0, vb1, vb2);}
-			// if (i == 1){printf("\tDaa=%f, Dab=%f, Dac=%f, Dbb=%f, Dbc=%f\n", Daa, Dab, Dac, Dbb, Dbc);}
 		}
 
 	return GSL_SUCCESS;
@@ -287,13 +284,6 @@ void solve_system(gsl_vector *b,
 	/* store initial cost */
 	gsl_blas_ddot(f, f, &chisq0);
 
-
-
-	/* iterate until convergence */
-	// gsl_multifit_nlinear_driver(max_iter, 
-	// 							xtol, gtol, ftol,
-	// 							callback, NULL, 
-	// 							&info, work);
 	gsl_multifit_nlinear_driver(max_iter, 
 								xtol, gtol, ftol,
 								NULL, NULL, 
@@ -304,20 +294,6 @@ void solve_system(gsl_vector *b,
 	gsl_multifit_nlinear_rcond(&rcond, work);
 	gsl_vector_memcpy(b, y);
 
-	/* print summary */
-
-	// fprintf(stderr, "NITER         = %zu\n", gsl_multifit_nlinear_niter(work));
-	// fprintf(stderr, "NFEV          = %zu\n", fdf->nevalf);
-	// fprintf(stderr, "NJEV          = %zu\n", fdf->nevaldf);
-	// fprintf(stderr, "NAEV          = %zu\n", fdf->nevalfvv);
-	// fprintf(stderr, "initial cost  = %.12e\n", chisq0);
-	// fprintf(stderr, "final cost    = %.12e\n", chisq);
-	// fprintf(stderr, "final x       = ( ");
-	// for (int ii = 0; ii < p; ii++){
-	// 	fprintf(stderr, "%.12e ", gsl_vector_get(b, ii));
-	// }
-	// fprintf(stderr, ")\n");
-	// fprintf(stderr, "final cond(J) = %.12e\n", 1.0 / rcond);
 
 	gsl_multifit_nlinear_free(work);
 
