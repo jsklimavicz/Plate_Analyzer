@@ -58,7 +58,7 @@ class LatexWriter:
 		self.header.append("\\usepackage[justification=centering]{subcaption}")
 		self.header.append("\\captionsetup[subfigure]{format=hang,justification=raggedright,singlelinecheck=false}")
 		self.header.append("\\usepackage{amsmath,amsthm,amsfonts,amssymb,mathtools, bm}")
-		self.header.append("\\usepackage[mmddyyyy,HHmmss]{datetime}")
+		self.header.append("\\usepackage[mmddyyyy]{datetime}")
 		self.header.append(f"\\graphicspath{{{{{self.image_folder:s}}}}}")
 		self.header.append("\\setcounter{topnumber}{8}")
 		self.header.append("\\setcounter{bottomnumber}{8}")
@@ -68,7 +68,7 @@ class LatexWriter:
 		self.header.append("\\fancyhf{}")
 		self.header.append("\\fancyhead[L]{Merlin Bioassay Results}")
 		self.header.append("\\fancyfoot[C]{\\thepage}")
-		self.header.append("\\fancyhead[R]{Compiled on \\today\\ at \\currenttime}")
+		self.header.append("\\fancyhead[R]{Compiled on \\today}")
 		self.header.append("\\renewcommand{\\headrulewidth}{0pt}")
 		self.header.append("\\DeclareMathOperator*{\\argmin}{argmin}")
 		self.header.append("\\DeclareMathOperator*{\\argmax}{argmax}")
@@ -343,7 +343,7 @@ class LatexWriter:
 			curve_summ += f"the curve {func_str('b_2')}"+\
 			" by maximizing the log-likelihood function, where $b_2$ was fixed at 1.0 "+\
 			"when background mortailty is low. You may allow $b_2$ to vary freely by "+\
-			"setting \\texttt{CURVE\\_TYPE = ls3} in the \\texttt{analysis\\_config.txt} file, or "+\
+			"setting \\texttt{CURVE\\_TYPE = cls} in the \\texttt{analysis\\_config.txt} file, or "+\
 			"keep $b_2$ fixed at 1.0 by setting \\texttt{CURVE\\_TYPE = ls2}. "
 			prior_summ += "Priors on parameters were $(b_0, b_1) \\sim \\mathcal{N}(\\bm 0,\\sigma \\mc I_2)$" +\
 			"and $b_2 \\sim \\text{Beta}(\\alpha, \\beta)$, where "+\
@@ -358,7 +358,7 @@ class LatexWriter:
 			" by maximizing the log-likelihood function. This is "+\
 			"equivalent to solving the problem \n"+\
 			get_optim_func('ll2') +"A scale parameter may be" +\
-			" included by setting \\texttt{CURVE\\_TYPE = ls3} in the \\texttt{analysis\\_config.txt} file. "
+			" included by setting \\texttt{CURVE\\_TYPE = cls} in the \\texttt{analysis\\_config.txt} file. "
 			prior_summ += "Priors on parameters were $(b_0, b_1) \\sim "+\
 			"\\mathcal{N}(\\bm 0,\\sigma \\mc I_2)$," +\
 			" where $\\sigma = " + f"{stat_lib['LL_SIGMA']}$, as defined "+\
@@ -377,6 +377,10 @@ class LatexWriter:
 		elif switch in ["ls3"]:
 			curve_summ += f"the curve {func_str('b_2')}"+\
 			" using the least squares approach, \\textit{i.e.}, solving "+\
+			get_optim_func('ls3')
+		elif switch in ["ls3"]:
+			curve_summ += f"the curve {func_str('b_2')}"+\
+			" using the a least-squares fit with parameter constraints, \\textit{i.e.}, solving "+\
 			get_optim_func('ls3')
 		elif switch in ["ls2"]:
 			curve_summ += f"the curve {func_str(1)}"+\

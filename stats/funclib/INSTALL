@@ -1,0 +1,9 @@
+# INSTALL
+
+The four C files (`cloglik.c`, `multimin.c`, `ll_mod.c`, `ls.c`) must be compiled into dynamic library, either a shared object (macOS/Linux) or dynamic link library (Windows). To simplify this process, a `makefile` has been written for use on Linux/macOS. For the dynamic library to be found, it must be saved as either `cloglik.so` or `cloglik.dll`, depending on the operating system. 
+
+## macOS and Linux
+To install the C library on macOS and Linux with the `makefile`, you must have `gcc`, and also have the GNU SCientific Library installed and in the compilier path. Installation is then performed using the command `make clean && make`. 
+
+## Windows 
+Windows 10 is a bit more complicated. Briefly, Mingw-w64 was used to port gcc, and MSYS2 was used to directly install GSL via `pacman -S mingw-w64-x86_64-gsl`. The dynamic link library file `cloglik.dll` was compiled with the command `gcc cloglik.c ll_mod.c multimin.c ls.c -O -pedantic -s -shared -I"C:\path\to\msys64\ming64\include" -L"C:\path\to\msys64\ming64\bin" -lgsl -lgslcblas -lm -o cloglik.dll`. The GSL .dll library must be in the path; alternatively, it can be added manually in the file `./stats/functionfit.py` with `os.add_dll_directory` (search for 'libgsl.dll').
